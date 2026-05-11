@@ -1,10 +1,11 @@
+// /src/app/page.js (Old Code - Original)
+
 'use client';
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopicPanel from '@/components/TopicPanel';
 import ScrollToTop from '@/components/ScrollToTop';
 import Footer from '@/components/Footer';
-
 
 export default function Home() {
   const [currentTopic, setCurrentTopic] = useState('html');

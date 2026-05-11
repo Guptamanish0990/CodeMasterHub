@@ -1,8 +1,9 @@
+// src/components/Sidebar.js (Updated with new technologies)
 'use client';
 import { topics } from '@/data';
 import { useState, useEffect } from 'react';
 
-export default function Sidebar({ currentTopic, setCurrentTopic, darkMode }) {
+export default function Sidebar({ currentTopic, setCurrentTopic }) {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
