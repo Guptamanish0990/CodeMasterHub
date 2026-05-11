@@ -2401,10 +2401,10 @@ export default function FileUpload() {
         note: "Always validate file type and size for security. Use env vars for upload limits."
       },
       // ========== 21. AUTHENTICATION WITH NEXTAUTH ==========
-{
-  name: "21. Authentication with NextAuth",
-  description: "NextAuth.js provides complete authentication solution with OAuth providers, email/password, JWT sessions, and database adapters. It supports Google, GitHub, Facebook, Apple, and 100+ providers out of the box.",
-  code: `// Install dependencies:
+      {
+        name: "21. Authentication with NextAuth",
+        description: "NextAuth.js provides complete authentication solution with OAuth providers, email/password, JWT sessions, and database adapters. It supports Google, GitHub, Facebook, Apple, and 100+ providers out of the box.",
+        code: `// Install dependencies:
 // npm install next-auth @auth/prisma-adapter @prisma/client bcryptjs
 
 // app/api/auth/[...nextauth]/route.js
@@ -2805,29 +2805,29 @@ export default withAuth(
 export const config = {
   matcher: ['/dashboard/:path*', '/admin/:path*', '/profile/:path*'],
 };`,
-  lineByLine: [
-    "NextAuth - Complete authentication solution with 100+ providers",
-    "GoogleProvider - OAuth authentication with Google",
-    "GitHubProvider - OAuth authentication with GitHub",
-    "CredentialsProvider - Email/password authentication",
-    "PrismaAdapter - Database adapter for storing users",
-    "bcrypt - Password hashing for security",
-    "session.strategy: 'jwt' - JWT-based sessions",
-    "callbacks.jwt - Custom JWT token data",
-    "callbacks.session - Custom session data",
-    "withAuth - Middleware for protected routes",
-    "getServerSession - Get session in Server Components"
-  ],
-  simpleMeaning: "NextAuth provides complete authentication with Google, GitHub, and email/password login.",
-  output: "Users can sign in with Google, GitHub, or email/password. Protected routes require authentication.",
-  note: "Always store passwords hashed with bcrypt. Use environment variables for client secrets."
-},
+        lineByLine: [
+          "NextAuth - Complete authentication solution with 100+ providers",
+          "GoogleProvider - OAuth authentication with Google",
+          "GitHubProvider - OAuth authentication with GitHub",
+          "CredentialsProvider - Email/password authentication",
+          "PrismaAdapter - Database adapter for storing users",
+          "bcrypt - Password hashing for security",
+          "session.strategy: 'jwt' - JWT-based sessions",
+          "callbacks.jwt - Custom JWT token data",
+          "callbacks.session - Custom session data",
+          "withAuth - Middleware for protected routes",
+          "getServerSession - Get session in Server Components"
+        ],
+        simpleMeaning: "NextAuth provides complete authentication with Google, GitHub, and email/password login.",
+        output: "Users can sign in with Google, GitHub, or email/password. Protected routes require authentication.",
+        note: "Always store passwords hashed with bcrypt. Use environment variables for client secrets."
+      },
 
-// ========== 22. MIDDLEWARE WITH UPSTASH REDIS ==========
-{
-  name: "22. Middleware with Upstash Redis",
-  description: "Upstash Redis provides serverless Redis for rate limiting, caching, sessions, and real-time data in middleware with Edge Runtime support.",
-  code: `// Install:
+      // ========== 22. MIDDLEWARE WITH UPSTASH REDIS ==========
+      {
+        name: "22. Middleware with Upstash Redis",
+        description: "Upstash Redis provides serverless Redis for rate limiting, caching, sessions, and real-time data in middleware with Edge Runtime support.",
+        code: `// Install:
 // npm install @upstash/redis @upstash/ratelimit
 
 // middleware.js
@@ -2927,20 +2927,381 @@ export async function GET(request) {
   
   return NextResponse.json({ topScores, userRank });
 }`,
-  lineByLine: [
-    "Upstash Redis - Serverless Redis for edge",
-    "Ratelimit.slidingWindow - Rate limiting",
-    "redis.get/set - Cache operations",
-    "redis.setex - Cache with TTL",
-    "redis.zadd - Sorted set for leaderboards",
-    "redis.zrange - Get top scores"
-  ],
-  simpleMeaning: "Upstash Redis provides rate limiting, caching, and real-time data in middleware.",
-  output: "API routes rate-limited. Homepage cached. Leaderboard with user rankings.",
-  note: "Upstash Redis works on Edge Runtime. Free tier available."
+        lineByLine: [
+          "Upstash Redis - Serverless Redis for edge",
+          "Ratelimit.slidingWindow - Rate limiting",
+          "redis.get/set - Cache operations",
+          "redis.setex - Cache with TTL",
+          "redis.zadd - Sorted set for leaderboards",
+          "redis.zrange - Get top scores"
+        ],
+        simpleMeaning: "Upstash Redis provides rate limiting, caching, and real-time data in middleware.",
+        output: "API routes rate-limited. Homepage cached. Leaderboard with user rankings.",
+        note: "Upstash Redis works on Edge Runtime. Free tier available."
+      },
+      // /data/nextjs/learning.js (Additional Advanced Topics - COMPLETE)
+
+      // ========== 23. NEXT.JS WITH DOCKER ==========
+      {
+        name: "23. Next.js with Docker",
+        description: "Docker containerizes Next.js applications for consistent deployment across environments. Multi-stage builds optimize image size, and production setup includes standalone output for minimal containers.",
+        code: `# Dockerfile
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# Stage 2: Builder
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npm run build
+
+# Stage 3: Runner (Production)
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "server.js"]
+
+# docker-compose.yml
+version: '3.8'
+
+services:
+  nextjs-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/mydb
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=your-secret-here
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=mydb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+
+# next.config.js
+module.exports = {
+  output: 'standalone',
+},
+
+# .dockerignore
+node_modules
+.next
+.git
+.env.local`,
+        lineByLine: [
+          "Multi-stage build - Reduces final image size",
+          "Alpine Linux - Minimal base image",
+          "standalone output - Self-contained production build",
+          "docker-compose - Orchestrates multiple services",
+          "Non-root user - Security best practice"
+        ],
+        simpleMeaning: "Docker packages Next.js app with all dependencies for consistent deployment anywhere.",
+        output: "Containerized app runs on port 3000 with PostgreSQL and Redis.",
+        note: "Use standalone output for smallest production images."
+      },
+
+      // ========== 24. NEXT.JS MONOREPO (Turborepo) ==========
+      {
+        name: "24. Next.js Monorepo (Turborepo)",
+        description: "Turborepo manages multiple Next.js apps and shared packages in a single repository with caching and parallel execution.",
+        code: `# Folder structure:
+# apps/web/ (Next.js app)
+# packages/ui/ (Shared components)
+# packages/types/ (Shared TypeScript)
+
+// pnpm-workspace.yaml
+packages:
+  - "apps/*"
+  - "packages/*"
+
+// turbo.json
+{
+  "pipeline": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
 }
+
+// apps/web/package.json
+{
+  "name": "web",
+  "dependencies": {
+    "@repo/ui": "workspace:*",
+    "@repo/types": "workspace:*"
+  }
+}
+
+// packages/ui/Button.tsx
+export const Button = ({ children, onClick }) => (
+  <button onClick={onClick} className="btn-primary">
+    {children}
+  </button>
+);
+
+// package.json (root)
+{
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build"
+  },
+  "packageManager": "pnpm@8.0.0"
+}`,
+        lineByLine: [
+          "Turborepo - Build system for monorepos",
+          "workspace:* - References local packages",
+          "turbo.json - Defines pipeline and caching",
+          "pnpm-workspace.yaml - Workspace structure"
+        ],
+        simpleMeaning: "Monorepo manages multiple Next.js apps and shared packages in one repository.",
+        output: "Multiple apps share UI components and types. Turbo caches builds for speed.",
+        note: "Use pnpm for faster installs. Turborepo caches build outputs."
+      },
+
+      // ========== 25. NEXT.JS WITH GRAPHQL ==========
+      {
+        name: "25. Next.js with GraphQL (Apollo)",
+        description: "GraphQL provides type-safe data fetching with Apollo Client. Supports SSR, SSG, and client-side queries.",
+        code: `// Install: npm install @apollo/client graphql
+
+// lib/apollo-client.js
+import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+
+const httpLink = createHttpLink({
+  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL,
+});
+
+export const client = new ApolloClient({
+  link: httpLink,
+  cache: new InMemoryCache(),
+});
+
+// app/providers.js
+'use client';
+import { ApolloProvider } from '@apollo/client';
+import { client } from '@/lib/apollo-client';
+
+export function ApolloWrapper({ children }) {
+  return <ApolloProvider client={client}>{children}</ApolloProvider>;
+}
+
+// graphql/queries.js
+import { gql } from '@apollo/client';
+
+export const GET_POSTS = gql\`
+  query GetPosts {
+    posts {
+      id
+      title
+      content
+      author { name }
+    }
+  }
+\`;
+
+export const CREATE_POST = gql\`
+  mutation CreatePost($title: String!, $content: String!) {
+    createPost(title: $title, content: $content) {
+      id
+      title
+    }
+  }
+\`;
+
+// app/posts/page.js (Server Component)
+import { client } from '@/lib/apollo-client';
+import { GET_POSTS } from '@/graphql/queries';
+
+async function getPosts() {
+  const { data } = await client.query({
+    query: GET_POSTS,
+    context: { fetchOptions: { next: { revalidate: 60 } } },
+  });
+  return data;
+}
+
+export default async function PostsPage() {
+  const data = await getPosts();
+  
+  return (
+    <div>
+      {data.posts.map(post => (
+        <div key={post.id}>
+          <h2>{post.title}</h2>
+          <p>{post.content}</p>
+        </div>
+      ))}
+    </div>
+  );
+}`,
+        lineByLine: [
+          "Apollo Client - GraphQL client for React",
+          "gql - Template literal for GraphQL queries",
+          "useQuery - Hook for fetching data",
+          "useMutation - Hook for modifying data",
+          "generateStaticParams - Static generation with GraphQL"
+        ],
+        simpleMeaning: "GraphQL provides type-safe data fetching with Apollo Client.",
+        output: "Posts fetched with GraphQL queries. Mutations create/update posts.",
+        note: "Use codegen for TypeScript types. Apollo Client caches normalized data."
+      },
+
+      // ========== 26. NEXT.JS TESTING (JEST & PLAYWRIGHT) ==========
+      {
+        name: "26. Next.js Testing (Jest & Playwright)",
+        description: "Jest tests components and logic. Playwright tests end-to-end user flows across browsers.",
+        code: `// Install:
+// npm install -D jest @testing-library/react @testing-library/jest-dom
+// npm install -D @playwright/test
+
+// jest.config.js
+const nextJest = require('next/jest');
+const createJestConfig = nextJest({ dir: './' });
+
+const customJestConfig = {
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testEnvironment: 'jest-environment-jsdom',
+};
+
+module.exports = createJestConfig(customJestConfig);
+
+// jest.setup.js
+import '@testing-library/jest-dom';
+
+// __tests__/components/Button.test.jsx
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import Button from '@/components/Button';
+
+describe('Button', () => {
+  it('renders button with text', () => {
+    render(<Button>Click Me</Button>);
+    expect(screen.getByText('Click Me')).toBeInTheDocument();
+  });
+  
+  it('handles click events', async () => {
+    const handleClick = jest.fn();
+    render(<Button onClick={handleClick}>Click</Button>);
+    await userEvent.click(screen.getByText('Click'));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+});
+
+// playwright.config.js
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './e2e',
+  use: { baseURL: 'http://localhost:3000' },
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+  ],
+  webServer: {
+    command: 'npm run start',
+    url: 'http://localhost:3000',
+  },
+});
+
+// e2e/homepage.spec.ts
+import { test, expect } from '@playwright/test';
+
+test('homepage loads', async ({ page }) => {
+  await page.goto('/');
+  await expect(page).toHaveTitle(/My App/);
+  await expect(page.getByText('Welcome')).toBeVisible();
+});
+
+test('login flow', async ({ page }) => {
+  await page.goto('/login');
+  await page.fill('input[name="email"]', 'test@example.com');
+  await page.fill('input[name="password"]', 'password');
+  await page.click('button[type="submit"]');
+  await expect(page).toHaveURL('/dashboard');
+});`,
+        lineByLine: [
+          "Jest - Unit testing framework",
+          "React Testing Library - Component testing",
+          "Playwright - E2E testing across browsers",
+          "jest.mock - Mock dependencies",
+          "userEvent - Simulate user interactions",
+          "waitFor - Async assertions"
+        ],
+        simpleMeaning: "Jest tests components and logic. Playwright tests full user journeys.",
+        output: "Components render correctly. Forms validate input. E2E flows work across browsers.",
+        note: "Run tests in CI. Use Playwright trace viewer for debugging."
+      },
+
+      // ========== 27. NEXT.JS CI/CD PIPELINE ==========
+      {
+        name: "27. Next.js CI/CD Pipeline (GitHub Actions)",
+        description: "CI/CD pipeline automates testing, building, and deployment of Next.js applications.",
+        code: "# .github/workflows/ci.yml\nname: CI\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  lint-and-test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n          cache: 'npm'\n      \n      - run: npm ci\n      - run: npm run lint\n      - run: npm run test\n      - run: npm run build\n\n  e2e:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n      \n      - run: npm ci\n      - run: npx playwright install --with-deps\n      - run: npm run build\n      - run: npm run test:e2e\n      \n      - uses: actions/upload-artifact@v4\n        if: failure()\n        with:\n          name: playwright-report\n          path: playwright-report/\n\n# .github/workflows/cd.yml\nname: CD\n\non:\n  push:\n    branches: [main]\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 20\n      \n      - run: npm ci\n      - run: npm run build\n      \n      - name: Deploy to Vercel\n        run: npx vercel --prod --token=${{ secrets.VERCEL_TOKEN }}\n      \n      - name: Deploy to AWS\n        run: |\n          aws ecr get-login-password | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT }}.dkr.ecr.us-east-1.amazonaws.com\n          docker build -t nextjs-app .\n          docker tag nextjs-app:latest ${{ secrets.AWS_ACCOUNT }}.dkr.ecr.us-east-1.amazonaws.com/nextjs-app:latest\n          docker push ${{ secrets.AWS_ACCOUNT }}.dkr.ecr.us-east-1.amazonaws.com/nextjs-app:latest",
+        lineByLine: [
+          "GitHub Actions - CI/CD automation",
+          "on.push - Triggers on code push",
+          "npm ci - Clean install dependencies",
+          "Upload artifact - Save test reports",
+          "Vercel deployment - Automatic deploy",
+          "AWS ECR - Container registry"
+        ],
+        simpleMeaning: "CI/CD pipeline automatically tests and deploys Next.js apps when code changes.",
+        output: "Linting passes. Tests pass. Build succeeds. App deploys to Vercel/AWS.",
+        note: "Store secrets in GitHub Secrets. Use environment-specific variables."
+      }
     ]
-  } 
-  };
+  }
+};
 
 export const nextExplanations = learning;
