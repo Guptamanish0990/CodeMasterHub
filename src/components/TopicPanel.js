@@ -252,10 +252,13 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(null);
   
-  // Feature states
+  // Feature states - Separate for each section
   const [starredItems, setStarredItems] = useState({});
   const [bookmarkedItems, setBookmarkedItems] = useState({});
-  const [completedLessons, setCompletedLessons] = useState({});
+  const [completedLearning, setCompletedLearning] = useState({});
+  const [completedInterview, setCompletedInterview] = useState({});
+  const [completedProblems, setCompletedProblems] = useState({});
+  const [completedPractice, setCompletedPractice] = useState({});
   const [showBookmarksFilter, setShowBookmarksFilter] = useState(false);
   const [showStarredFilter, setShowStarredFilter] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -267,12 +270,18 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
     
     const savedStarred = localStorage.getItem(`starred_${topic}`);
     const savedBookmarks = localStorage.getItem(`bookmarks_${topic}`);
-    const savedCompleted = localStorage.getItem(`completed_${topic}`);
+    const savedCompletedLearning = localStorage.getItem(`completed_learning_${topic}`);
+    const savedCompletedInterview = localStorage.getItem(`completed_interview_${topic}`);
+    const savedCompletedProblems = localStorage.getItem(`completed_problems_${topic}`);
+    const savedCompletedPractice = localStorage.getItem(`completed_practice_${topic}`);
     const savedShowSidebar = localStorage.getItem('showSidebar');
     
     if (savedStarred) setStarredItems(JSON.parse(savedStarred));
     if (savedBookmarks) setBookmarkedItems(JSON.parse(savedBookmarks));
-    if (savedCompleted) setCompletedLessons(JSON.parse(savedCompleted));
+    if (savedCompletedLearning) setCompletedLearning(JSON.parse(savedCompletedLearning));
+    if (savedCompletedInterview) setCompletedInterview(JSON.parse(savedCompletedInterview));
+    if (savedCompletedProblems) setCompletedProblems(JSON.parse(savedCompletedProblems));
+    if (savedCompletedPractice) setCompletedPractice(JSON.parse(savedCompletedPractice));
     if (savedShowSidebar) setShowSidebar(savedShowSidebar === 'true');
   }, [topic]);
 
@@ -302,11 +311,35 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
     });
   }, [topic]);
 
-  // Complete lesson
-  const toggleComplete = useCallback((itemId) => {
-    setCompletedLessons(prev => {
+  // Complete functions for different sections
+  const toggleCompleteLearning = useCallback((itemId) => {
+    setCompletedLearning(prev => {
       const newState = { ...prev, [itemId]: !prev[itemId] };
-      localStorage.setItem(`completed_${topic}`, JSON.stringify(newState));
+      localStorage.setItem(`completed_learning_${topic}`, JSON.stringify(newState));
+      return newState;
+    });
+  }, [topic]);
+
+  const toggleCompleteInterview = useCallback((itemId) => {
+    setCompletedInterview(prev => {
+      const newState = { ...prev, [itemId]: !prev[itemId] };
+      localStorage.setItem(`completed_interview_${topic}`, JSON.stringify(newState));
+      return newState;
+    });
+  }, [topic]);
+
+  const toggleCompleteProblems = useCallback((itemId) => {
+    setCompletedProblems(prev => {
+      const newState = { ...prev, [itemId]: !prev[itemId] };
+      localStorage.setItem(`completed_problems_${topic}`, JSON.stringify(newState));
+      return newState;
+    });
+  }, [topic]);
+
+  const toggleCompletePractice = useCallback((itemId) => {
+    setCompletedPractice(prev => {
+      const newState = { ...prev, [itemId]: !prev[itemId] };
+      localStorage.setItem(`completed_practice_${topic}`, JSON.stringify(newState));
       return newState;
     });
   }, [topic]);
@@ -403,8 +436,21 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
     item.explanation?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalLessons = learningDataList.length;
-  const completedCount = Object.values(completedLessons).filter(Boolean).length;
+  // Calculate totals for each section
+  const totalLearning = learningDataList.length;
+  const totalInterview = interviewList.length;
+  const totalProblems = problemsList.length;
+  const totalPractice = practiceList.length;
+  
+  const completedLearningCount = Object.values(completedLearning).filter(Boolean).length;
+  const completedInterviewCount = Object.values(completedInterview).filter(Boolean).length;
+  const completedProblemsCount = Object.values(completedProblems).filter(Boolean).length;
+  const completedPracticeCount = Object.values(completedPractice).filter(Boolean).length;
+  
+  // Overall totals
+  const totalAll = totalLearning + totalInterview + totalProblems + totalPractice;
+  const completedAll = completedLearningCount + completedInterviewCount + completedProblemsCount + completedPracticeCount;
+  
   const starredCount = Object.values(starredItems).filter(Boolean).length;
   const bookmarkedCount = Object.values(bookmarkedItems).filter(Boolean).length;
 
@@ -492,7 +538,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
             </div>
 
             <div className="p-4 space-y-5">
-              {/* Filters Section Only */}
+              {/* Filters Section */}
               <div>
                 <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-2">🔍 Filters</label>
                 <div className="space-y-2">
@@ -507,22 +553,62 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                 </div>
               </div>
 
-              {/* Progress Section */}
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-2">📊 Progress</label>
-                <ProgressTracker totalItems={totalLessons} completedItems={completedCount} />
+              {/* Section-wise Progress */}
+              <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">📊 Section Progress</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-[10px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">📘</span>
+                      <span>Learning</span>
+                    </div>
+                    <span className="font-medium text-green-600 dark:text-green-400">{completedLearningCount}/{totalLearning}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">🎤</span>
+                      <span>Interview</span>
+                    </div>
+                    <span className="font-medium text-blue-600 dark:text-blue-400">{completedInterviewCount}/{totalInterview}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">⚡</span>
+                      <span>Problems</span>
+                    </div>
+                    <span className="font-medium text-orange-600 dark:text-orange-400">{completedProblemsCount}/{totalProblems}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[10px]">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">📝</span>
+                      <span>Practice</span>
+                    </div>
+                    <span className="font-medium text-purple-600 dark:text-purple-400">{completedPracticeCount}/{totalPractice}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Overall Progress Bar */}
+              <div className="pt-2">
+                <ProgressTracker totalItems={totalAll} completedItems={completedAll} />
               </div>
 
               {/* Danger Zone */}
               <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                 <button onClick={() => {
-                  if (confirm('Are you sure? This will delete all your starred items, bookmarks, and completed lessons for this topic.')) {
+                  if (confirm('Are you sure? This will delete all your starred items, bookmarks, and completed lessons for ALL sections in this topic.')) {
                     localStorage.removeItem(`starred_${topic}`);
                     localStorage.removeItem(`bookmarks_${topic}`);
-                    localStorage.removeItem(`completed_${topic}`);
+                    localStorage.removeItem(`completed_learning_${topic}`);
+                    localStorage.removeItem(`completed_interview_${topic}`);
+                    localStorage.removeItem(`completed_problems_${topic}`);
+                    localStorage.removeItem(`completed_practice_${topic}`);
                     setStarredItems({});
                     setBookmarkedItems({});
-                    setCompletedLessons({});
+                    setCompletedLearning({});
+                    setCompletedInterview({});
+                    setCompletedProblems({});
+                    setCompletedPractice({});
                     setShowStarredFilter(false);
                     setShowBookmarksFilter(false);
                     const toast = document.createElement('div');
@@ -576,7 +662,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                 </div>
                 <div className="px-2 py-1 bg-white/15 backdrop-blur rounded-lg flex items-center gap-1.5 hover:scale-105 transition">
                   <span className="text-sm">✅</span>
-                  <div><div className="text-white font-bold text-xs">{completedCount}/{totalLessons}</div><div className="text-white/60 text-[9px]">Completed</div></div>
+                  <div><div className="text-white font-bold text-xs">{completedAll}/{totalAll}</div><div className="text-white/60 text-[9px]">Completed</div></div>
                 </div>
               </div>
             </div>
@@ -631,15 +717,18 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
           </div>
         )}
 
-        {/* ==================== LEARNING SECTION (LIST VIEW) ==================== */}
+        {/* ==================== LEARNING SECTION ==================== */}
         {activeTab === 'learn' && (
           <div className="space-y-4">
-            {learning && learning.basic && learning.advanced && (
-              <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur rounded-lg w-fit shadow-inner mb-4">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur rounded-lg w-fit shadow-inner">
                 <button onClick={() => setActiveLevel('basic')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${activeLevel === 'basic' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>🌱 Basic</button>
                 <button onClick={() => setActiveLevel('advanced')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${activeLevel === 'advanced' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>🚀 Advanced</button>
               </div>
-            )}
+              <div className="text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                📘 Progress: {completedLearningCount}/{totalLearning}
+              </div>
+            </div>
 
             {filteredLearning.length > 0 ? (
               <div className="space-y-3">
@@ -647,7 +736,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                   const itemId = topicItem.name || `learning_${idx}`;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
-                  const isCompleted = completedLessons[itemId] || false;
+                  const isCompleted = completedLearning[itemId] || false;
                   
                   return (
                     <div key={idx} className={`group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border ${isCompleted ? 'border-green-500/50' : 'border-gray-200/50 dark:border-gray-700/50'} hover:scale-[1.01]`}>
@@ -659,7 +748,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                                 <input 
                                   type="checkbox" 
                                   checked={isCompleted === true} 
-                                  onChange={() => toggleComplete(itemId)} 
+                                  onChange={() => toggleCompleteLearning(itemId)} 
                                   onClick={(e) => e.stopPropagation()} 
                                   className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer" 
                                 />
@@ -694,15 +783,11 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                                 <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1"><span className="text-sm">💻</span> Code Example</span>
                                 <div className="flex gap-2">
                                   <button onClick={(e) => copyToClipboard(topicItem.code, e)} className="text-[10px] px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition shadow-sm">{copied ? '✅ Copied!' : '📋 Copy'}</button>
-                                  <button onClick={() => setShowEditor(showEditor === idx ? null : idx)} className="text-[10px] px-2 py-1 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-800 transition shadow-sm">{showEditor === idx ? 'Hide Editor' : '✏️ Try it Live'}</button>
                                 </div>
                               </div>
-                              {showEditor !== idx && (
-                                <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg p-3 overflow-x-auto shadow-inner">
-                                  <pre className="text-gray-100 font-mono text-[11px] whitespace-pre-wrap"><code>{topicItem.code}</code></pre>
-                                </div>
-                              )}
-                              {showEditor === idx && <CodeEditor initialCode={topicItem.code} />}
+                              <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg p-3 overflow-x-auto shadow-inner">
+                                <pre className="text-gray-100 font-mono text-[11px] whitespace-pre-wrap"><code>{topicItem.code}</code></pre>
+                              </div>
                             </div>
                           )}
 
@@ -756,12 +841,17 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
           </div>
         )}
 
-        {/* ==================== INTERVIEW SECTION (LIST VIEW) ==================== */}
+        {/* ==================== INTERVIEW SECTION ==================== */}
         {activeTab === 'interview' && (
           <div className="space-y-4">
-            <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur rounded-lg w-fit shadow-inner mb-4">
-              <button onClick={() => setExpLevel('fresher')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'fresher' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>🎓 Fresher</button>
-              <button onClick={() => setExpLevel('experienced')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'experienced' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>💼 Experienced</button>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur rounded-lg w-fit shadow-inner">
+                <button onClick={() => setExpLevel('fresher')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'fresher' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>🎓 Fresher</button>
+                <button onClick={() => setExpLevel('experienced')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'experienced' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>💼 Experienced</button>
+              </div>
+              <div className="text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                🎤 Progress: {completedInterviewCount}/{totalInterview}
+              </div>
             </div>
 
             {filteredInterview.length > 0 ? (
@@ -770,20 +860,32 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                   const itemId = item.question || `interview_${idx}`;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
+                  const isCompleted = completedInterview[itemId] || false;
                   
                   return (
                     <div key={idx} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-md transition-all duration-300 group">
                       <div onClick={() => toggleQuestion(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
                         <div className="flex justify-between items-start gap-2">
                           <div className="flex-1 flex items-start gap-2.5">
-                            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0 mt-0.5">{idx + 1}</div>
-                            <h3 className="font-semibold text-gray-800 dark:text-white text-sm pr-3 leading-relaxed">{item.question}</h3>
+                            <div className="relative">
+                              <input 
+                                type="checkbox" 
+                                checked={isCompleted === true} 
+                                onChange={() => toggleCompleteInterview(itemId)} 
+                                onClick={(e) => e.stopPropagation()} 
+                                className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer mt-0.5" 
+                              />
+                            </div>
+                            <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">{idx + 1}</div>
+                            <h3 className={`font-semibold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'} text-sm pr-3 leading-relaxed`}>
+                              {item.question}
+                            </h3>
                           </div>
                           <div className="flex items-center gap-1">
                             <StarIcon starred={isStarred} onClick={() => toggleStar(itemId)} />
                             <BookmarkIcon bookmarked={isBookmarked} onClick={() => toggleBookmark(itemId)} />
                             <ShareButton title={item.question} onShare={handleShare} />
-                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-300 flex-shrink-0 mt-0.5 ${expandedQuestion === idx ? 'rotate-180' : ''} group-hover:text-blue-500`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            <svg className={`w-4 h-4 text-gray-400 transition-transform duration-300 flex-shrink-0 ${expandedQuestion === idx ? 'rotate-180' : ''} group-hover:text-blue-500`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                           </div>
                         </div>
                       </div>
@@ -832,12 +934,17 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
           </div>
         )}
 
-        {/* ==================== PROBLEMS SECTION (LIST VIEW) ==================== */}
+        {/* ==================== PROBLEMS SECTION ==================== */}
         {activeTab === 'problems' && (
           <div className="space-y-4">
-            <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur rounded-lg w-fit shadow-inner mb-4">
-              <button onClick={() => setExpLevel('fresher')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'fresher' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>🎓 Fresher</button>
-              <button onClick={() => setExpLevel('experienced')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'experienced' ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>💼 Experienced</button>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex gap-2 p-1 bg-gray-100/80 dark:bg-gray-800/80 backdrop-blur rounded-lg w-fit shadow-inner">
+                <button onClick={() => setExpLevel('fresher')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'fresher' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>🎓 Fresher</button>
+                <button onClick={() => setExpLevel('experienced')} className={`px-4 py-1.5 rounded-md font-medium transition-all duration-200 flex items-center gap-1.5 text-xs ${expLevel === 'experienced' ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'}`}>💼 Experienced</button>
+              </div>
+              <div className="text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                ⚡ Progress: {completedProblemsCount}/{totalProblems}
+              </div>
             </div>
 
             {filteredProblems.length > 0 ? (
@@ -849,6 +956,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                   const itemId = problemTitle;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
+                  const isCompleted = completedProblems[itemId] || false;
                   
                   return (
                     <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
@@ -856,13 +964,22 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <div className="relative">
+                                <input 
+                                  type="checkbox" 
+                                  checked={isCompleted === true} 
+                                  onChange={() => toggleCompleteProblems(itemId)} 
+                                  onClick={(e) => e.stopPropagation()} 
+                                  className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer" 
+                                />
+                              </div>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${expLevel === 'fresher' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' : 'bg-gradient-to-r from-orange-500 to-red-500 text-white'}`}>{idx + 1}</div>
-                              <h3 className="text-sm font-bold text-gray-800 dark:text-white">{problemTitle}</h3>
+                              <h3 className={`text-sm font-bold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'}`}>{problemTitle}</h3>
                               {problem.difficulty && (
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${problem.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : problem.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{problem.difficulty}</span>
                               )}
                             </div>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-xs">
+                            <p className={`text-gray-600 dark:text-gray-400 leading-relaxed text-xs ${isCompleted ? 'line-through opacity-70' : ''}`}>
                               {problemDescription}
                             </p>
                           </div>
@@ -917,40 +1034,67 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
           </div>
         )}
 
-        {/* ==================== PRACTICE SECTION (LIST VIEW) ==================== */}
+        {/* ==================== PRACTICE SECTION ==================== */}
         {activeTab === 'practice' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
+            <div className="flex items-center justify-end mb-4">
+              <div className="text-xs bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full">
+                📝 Progress: {completedPracticeCount}/{totalPractice}
+              </div>
+            </div>
+
             {filteredPractice.length > 0 ? (
-              filteredPractice.map((practiceItem, idx) => {
-                const itemId = practiceItem.line || practiceItem.question || `practice_${idx}`;
-                const isStarred = starredItems[itemId] || false;
-                const isBookmarked = bookmarkedItems[itemId] || false;
-                
-                return (
-                  <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
-                    <div className="flex gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">{idx + 1}</div>
-                      <div className="flex-1">
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center gap-1">
-                            <StarIcon starred={isStarred} onClick={() => toggleStar(itemId)} />
-                            <BookmarkIcon bookmarked={isBookmarked} onClick={() => toggleBookmark(itemId)} />
-                            <ShareButton title={practiceItem.line || 'Practice Question'} onShare={handleShare} />
+              <div className="space-y-3">
+                {filteredPractice.map((practiceItem, idx) => {
+                  const itemId = practiceItem.line || practiceItem.question || `practice_${idx}`;
+                  const isStarred = starredItems[itemId] || false;
+                  const isBookmarked = bookmarkedItems[itemId] || false;
+                  const isCompleted = completedPractice[itemId] || false;
+                  
+                  return (
+                    <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
+                      <div className="flex gap-2.5">
+                        <div className="relative">
+                          <input 
+                            type="checkbox" 
+                            checked={isCompleted === true} 
+                            onChange={() => toggleCompletePractice(itemId)} 
+                            onClick={(e) => e.stopPropagation()} 
+                            className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer mt-1" 
+                          />
+                        </div>
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">{idx + 1}</div>
+                        <div className="flex-1">
+                          <div className="flex justify-between items-start mb-1">
+                            <div className="flex items-center gap-1">
+                              <StarIcon starred={isStarred} onClick={() => toggleStar(itemId)} />
+                              <BookmarkIcon bookmarked={isBookmarked} onClick={() => toggleBookmark(itemId)} />
+                              <ShareButton title={practiceItem.line || 'Practice Question'} onShare={handleShare} />
+                            </div>
                           </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-md p-2 overflow-x-auto mb-2">
-                          <code className="text-gray-100 font-mono text-[10px]">{practiceItem.line || practiceItem.question || practiceItem.code || 'No content'}</code>
-                        </div>
-                        <div className="space-y-1 text-xs">
-                          <p className="flex flex-wrap gap-1.5 text-[11px]"><span className="font-semibold text-blue-600 dark:text-blue-400">📖 Explanation:</span> {practiceItem.explanation || practiceItem.answer || 'No explanation provided'}</p>
-                          {practiceItem.example && <p className="flex flex-wrap gap-1.5 text-[11px]"><span className="font-semibold text-green-600 dark:text-green-400">💡 Example:</span> {practiceItem.example}</p>}
-                          {practiceItem.output && <p className="flex flex-wrap gap-1.5 text-[11px]"><span className="font-semibold text-purple-600 dark:text-purple-400">📤 Output:</span> {practiceItem.output}</p>}
+                          <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-md p-2 overflow-x-auto mb-2">
+                            <code className={`text-gray-100 font-mono text-[10px] ${isCompleted ? 'line-through opacity-70' : ''}`}>
+                              {practiceItem.line || practiceItem.question || practiceItem.code || 'No content'}
+                            </code>
+                          </div>
+                          <div className="space-y-1 text-xs">
+                            <p className={`flex flex-wrap gap-1.5 text-[11px] ${isCompleted ? 'line-through opacity-70' : ''}`}>
+                              <span className="font-semibold text-blue-600 dark:text-blue-400">📖 Explanation:</span> 
+                              {practiceItem.explanation || practiceItem.answer || 'No explanation provided'}
+                            </p>
+                            {practiceItem.example && <p className={`flex flex-wrap gap-1.5 text-[11px] ${isCompleted ? 'line-through opacity-70' : ''}`}>
+                              <span className="font-semibold text-green-600 dark:text-green-400">💡 Example:</span> {practiceItem.example}
+                            </p>}
+                            {practiceItem.output && <p className={`flex flex-wrap gap-1.5 text-[11px] ${isCompleted ? 'line-through opacity-70' : ''}`}>
+                              <span className="font-semibold text-purple-600 dark:text-purple-400">📤 Output:</span> {practiceItem.output}
+                            </p>}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
+                  );
+                })}
+              </div>
             ) : (
               <div className="text-center py-12 bg-white/50 dark:bg-gray-800/50 backdrop-blur rounded-lg">
                 <div className="text-5xl mb-3 animate-bounce">🔍</div>
