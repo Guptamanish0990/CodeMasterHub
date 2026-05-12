@@ -6541,6 +6541,820 @@ server {
 }`,
       output: "Zero downtime updates with automatic rollbacks and health checks",
       note: "Use Vercel for automatic zero-downtime, custom setup for other platforms."
+    },
+    {
+  question: "How to implement CI/CD pipeline for Next.js with GitHub Actions?",
+  answer: "Set up automated testing, building, and deployment using GitHub Actions workflows with caching and environment-specific deployments.",
+  example: `# .github/workflows/deploy.yml
+name: Deploy Next.js App
+
+on:
+  push:
+    branches: [main, staging]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: 20
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: \${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linting
+        run: npm run lint
+      
+      - name: Run type checking
+        run: npx tsc --noEmit
+      
+      - name: Run unit tests
+        run: npm test
+      
+      - name: Run E2E tests
+        run: |
+          npx playwright install
+          npm run test:e2e
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: \${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          DATABASE_URL: \${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_API_URL: \${{ secrets.NEXT_PUBLIC_API_URL }}
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          path: |
+            .next/
+            public/
+            package.json
+            node_modules/
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/staging'
+    environment: staging
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+      
+      - name: Deploy to Vercel (Staging)
+        run: npx vercel --token=\${{ secrets.VERCEL_TOKEN }} --scope=\${{ secrets.VERCEL_TEAM }}
+        env:
+          VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: build
+      
+      - name: Deploy to Vercel (Production)
+        run: npx vercel --prod --token=\${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_PROJECT_ID: \${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: \${{ secrets.VERCEL_ORG_ID }}
+      
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "Deployment successful! 🚀\nEnvironment: Production\nCommit: \${{ github.sha }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: \${{ secrets.SLACK_WEBHOOK }}`,
+  output: "Automated pipeline runs tests, builds, and deploys to staging/production",
+  note: "Cache node_modules to speed up CI/CD. Use environment secrets for sensitive data."
+},
+
+{
+  question: "How to implement monitoring and analytics in Next.js?",
+  answer: "Use Sentry for error tracking, LogRocket for session recording, and Vercel Analytics for performance monitoring.",
+  example: `// Install: npm install @sentry/nextjs @vercel/analytics
+
+// sentry.client.config.js
+import * as Sentry from '@sentry/nextjs';
+
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
+  integrations: [
+    new Sentry.Replay({
+      maskAllText: false,
+      blockAllMedia: false,
+    }),
+  ],
+});
+
+// sentry.server.config.js
+import * as Sentry from '@sentry/nextjs';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+});
+
+// app/layout.js (Vercel Analytics)
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+        <Analytics />
+        <SpeedInsights />
+      </body>
+    </html>
+  );
+}
+
+// Error tracking in components
+'use client';
+import * as Sentry from '@sentry/nextjs';
+import { useEffect } from 'react';
+
+export default function ErrorBoundary({ error }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+  
+  return (
+    <div>
+      <h2>Something went wrong</h2>
+      <button onClick={() => Sentry.showReportDialog()}>
+        Report this error
+      </button>
+    </div>
+  );
+}
+
+// Custom error logging
+// lib/logging.js
+import * as Sentry from '@sentry/nextjs';
+
+export function logError(error, context = {}) {
+  console.error(error, context);
+  
+  Sentry.withScope((scope) => {
+    scope.setExtras(context);
+    Sentry.captureException(error);
+  });
+}
+
+export function logInfo(message, data = {}) {
+  console.log(message, data);
+  Sentry.addBreadcrumb({
+    message,
+    data,
+    level: 'info',
+  });
+}
+
+// Performance monitoring
+// app/api/performance/route.js
+export async function GET() {
+  const perfData = {
+    memory: process.memoryUsage(),
+    uptime: process.uptime(),
+    cpu: process.cpuUsage(),
+  };
+  
+  return Response.json(perfData);
+}
+
+// Custom metrics with Vercel
+// middleware.js
+import { NextResponse } from 'next/server';
+
+export function middleware(request) {
+  const start = Date.now();
+  const response = NextResponse.next();
+  
+  // Add custom header with response time
+  const duration = Date.now() - start;
+  response.headers.set('X-Response-Time', \`\${duration}ms\`);
+  
+  return response;
+}
+
+// Custom analytics event tracking
+// lib/analytics.js
+export function trackEvent(eventName, properties = {}) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, properties);
+  }
+  
+  // Send to custom analytics
+  fetch('/api/analytics', {
+    method: 'POST',
+    body: JSON.stringify({ eventName, properties, timestamp: Date.now() }),
+  });
+}
+
+// Usage in components
+'use client';
+import { trackEvent } from '@/lib/analytics';
+
+export default function BuyButton({ productId }) {
+  const handleClick = () => {
+    trackEvent('purchase_started', { productId });
+    // Proceed with purchase
+  };
+  
+  return <button onClick={handleClick}>Buy Now</button>;
+}`,
+  output: "Track errors, user sessions, and performance metrics in real-time",
+  note: "Set up proper error tracking before production. Respect user privacy laws (GDPR)."
+},
+
+{
+  question: "How to implement A/B testing in Next.js?",
+  answer: "Use cookies or server-side assignment to split traffic between different variants using middleware or Vercel Flags.",
+  example: `// app/middleware.js (A/B testing middleware)
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+
+export function middleware(request) {
+  const url = request.nextUrl.clone();
+  const variant = cookies().get('ab_variant')?.value;
+  
+  // Assign variant if not exists
+  if (!variant) {
+    const variants = ['A', 'B', 'C'];
+    const randomVariant = variants[Math.random() * variants.length | 0];
+    
+    const response = NextResponse.next();
+    response.cookies.set('ab_variant', randomVariant, {
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+    
+    return response;
+  }
+  
+  return NextResponse.next();
+}
+
+// app/page.js (Server component with A/B test)
+import { cookies } from 'next/headers';
+
+export default async function HomePage() {
+  const variant = cookies().get('ab_variant')?.value || 'A';
+  
+  // Different content based on variant
+  return (
+    <div>
+      {variant === 'A' && (
+        <div>
+          <h1 className="text-blue-500">Welcome! (Variant A)</h1>
+          <button className="bg-blue-500">Sign Up</button>
+        </div>
+      )}
+      
+      {variant === 'B' && (
+        <div>
+          <h1 className="text-green-500">Join Us Today! (Variant B)</h1>
+          <button className="bg-green-500 animate-pulse">Get Started →</button>
+        </div>
+      )}
+      
+      {variant === 'C' && (
+        <div>
+          <h1 className="text-red-500">Limited Time Offer! (Variant C)</h1>
+          <button className="bg-red-500">Claim 50% Off</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Using Vercel Flags (Enterprise)
+// app/flags/page.js
+import { flag } from '@vercel/flags/next';
+
+const showNewFeature = flag({
+  key: 'new-feature',
+  defaultValue: false,
+  decide: async () => {
+    // Check database, user segment, or random
+    return Math.random() > 0.5;
+  },
+});
+
+export default async function FeaturePage() {
+  const showFeature = await showNewFeature();
+  
+  return (
+    <div>
+      {showFeature ? (
+        <div>
+          <h2>New Feature!</h2>
+          <p>This is the new experimental feature.</p>
+        </div>
+      ) : (
+        <div>
+          <h2>Original Feature</h2>
+          <p>This is the stable version.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Server-side A/B test with database assignment
+// app/api/ab-test/route.js
+import { kv } from '@vercel/kv';
+
+export async function POST(request) {
+  const { userId } = await request.json();
+  
+  // Check if user already has variant
+  let variant = await kv.get(\`ab_test:\${userId}\`);
+  
+  if (!variant) {
+    // Assign variant based on user properties
+    const isPremium = await checkPremiumStatus(userId);
+    
+    if (isPremium) {
+      variant = 'premium_variant';
+    } else {
+      // Random assignment for free users
+      variant = Math.random() > 0.5 ? 'control' : 'treatment';
     }
+    
+    await kv.set(\`ab_test:\${userId}\`, variant, { ex: 2592000 });
+  }
+  
+  return Response.json({ variant });
+}
+
+// A/B test analytics tracking
+// lib/ab-test.js
+export function trackConversion(variant, eventName) {
+  fetch('/api/ab-test/conversion', {
+    method: 'POST',
+    body: JSON.stringify({ variant, eventName }),
+  });
+}
+
+// Results analysis
+// app/api/ab-test/results/route.js
+export async function GET() {
+  const results = {
+    variantA: {
+      visitors: 1042,
+      conversions: 87,
+      conversionRate: 8.35,
+    },
+    variantB: {
+      visitors: 1056,
+      conversions: 124,
+      conversionRate: 11.74,
+    },
+  };
+  
+  // Calculate statistical significance
+  results.variantB.improvement = 40.5;
+  results.variantB.significant = true;
+  
+  return Response.json(results);
+}`,
+  output: "Traffic split between variants with cookie persistence and analytics tracking",
+  note: "Run A/B tests for at least 1-2 weeks for statistical significance."
+},
+
+{
+  question: "How to implement multi-tenant architecture in Next.js?",
+  answer: "Support multiple customers (tenants) with subdomains or paths, each with custom domains, themes, and data isolation.",
+  example: `// middleware.js (Tenant detection)
+import { NextResponse } from 'next/server';
+
+const tenants = {
+  'acme': { theme: 'blue', db: 'acme_db' },
+  'globex': { theme: 'red', db: 'globex_db' },
+  'initech': { theme: 'green', db: 'initech_db' },
+};
+
+export function middleware(request) {
+  const url = request.nextUrl;
+  const hostname = request.headers.get('host') || '';
+  const subdomain = hostname.split('.')[0];
+  
+  // Check if subdomain is a tenant
+  if (tenants[subdomain]) {
+    const response = NextResponse.next();
+    response.headers.set('x-tenant', subdomain);
+    return response;
+  }
+  
+  // Custom domain handling (tenant.com -> tenant)
+  const pathTenant = url.pathname.split('/')[1];
+  if (tenants[pathTenant]) {
+    return NextResponse.rewrite(new URL(\`/\${pathTenant}\${url.pathname}\`, request.url));
+  }
+  
+  return NextResponse.next();
+}
+
+// app/[tenant]/layout.js (Tenant layout)
+import { tenants } from '@/lib/tenants';
+
+export async function generateMetadata({ params }) {
+  const tenant = tenants[params.tenant];
+  return {
+    title: tenant?.name || 'Multi-Tenant App',
+  };
+}
+
+export default function TenantLayout({ children, params }) {
+  const tenant = tenants[params.tenant];
+  const theme = tenant?.theme || 'default';
+  
+  return (
+    <div className={\`tenant-\${theme}\`}>
+      <header className="bg-primary text-white p-4">
+        <h1>{tenant?.name || 'Welcome'}</h1>
+        <nav>
+          <a href={\`/\${params.tenant}/dashboard\`}>Dashboard</a>
+          <a href={\`/\${params.tenant}/settings\`}>Settings</a>
+        </nav>
+      </header>
+      <main className="container mx-auto p-4">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// Tenant-specific database queries
+// lib/db.js
+import { PrismaClient } from '@prisma/client';
+
+export async function getTenantDb(tenantId) {
+  // Dynamically connect to tenant's database
+  const connectionString = process.env[\`DATABASE_URL_\${tenantId.toUpperCase()}\`];
+  const prisma = new PrismaClient({ datasourceUrl: connectionString });
+  return prisma;
+}
+
+// Server action with tenant isolation
+// app/[tenant]/actions/products.js
+'use server';
+
+import { getTenantDb } from '@/lib/db';
+import { headers } from 'next/headers';
+
+export async function getProducts() {
+  const headersList = headers();
+  const tenant = headersList.get('x-tenant');
+  
+  if (!tenant) {
+    throw new Error('Tenant not found');
+  }
+  
+  const db = await getTenantDb(tenant);
+  
+  try {
+    const products = await db.product.findMany();
+    return products;
+  } finally {
+    await db.$disconnect();
+  }
+}
+
+// Custom domain support
+// app/api/domains/route.js
+import { kv } from '@vercel/kv';
+
+export async function POST(request) {
+  const { domain, tenantId } = await request.json();
+  
+  // Store domain mapping
+  await kv.set(\`domain:\${domain}\`, tenantId);
+  
+  return Response.json({ success: true });
+}
+
+// app/[tenant]/page.js (Tenant homepage)
+import { tenants } from '@/lib/tenants';
+
+export default async function TenantHome({ params }) {
+  const tenant = tenants[params.tenant];
+  const products = await getProducts(); // Tenant-specific data
+  
+  return (
+    <div>
+      <section className="hero" style={{ backgroundColor: tenant.primaryColor }}>
+        <h2>Welcome to {tenant.name}</h2>
+        <p>{tenant.description}</p>
+      </section>
+      
+      <section className="products">
+        <h2>Our Products</h2>
+        <div className="grid">
+          {products.map(product => (
+            <div key={product.id} className="product-card">
+              <h3>{product.name}</h3>
+              <p>\${product.price}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+// Tenant configuration
+// lib/tenants.js
+export const tenants = {
+  acme: {
+    id: 'acme',
+    name: 'ACME Corporation',
+    theme: 'blue',
+    primaryColor: '#3b82f6',
+    logo: '/logos/acme.png',
+    domain: 'acme.example.com',
+    features: ['analytics', 'reports', 'api'],
+  },
+  globex: {
+    id: 'globex',
+    name: 'Globex Industries',
+    theme: 'red',
+    primaryColor: '#ef4444',
+    logo: '/logos/globex.png',
+    domain: 'globex.example.com',
+    features: ['analytics', 'reports', 'api', 'webhooks'],
+  },
+};`,
+  output: "Isolated tenant environments with custom domains, themes, and data",
+  note: "Use connection pooling for many tenants. Consider schema-per-tenant or database-per-tenant."
+},
+
+{
+  question: "How to implement real-time features with WebSockets in Next.js?",
+  answer: "Use Pusher, Socket.io, or Vercel Edge Config for real-time updates like chat, notifications, and live data.",
+  example: `// Install: npm install pusher pusher-js
+
+// app/api/pusher/auth/route.js (Pusher authentication)
+import { Pusher } from '@pusher/pusher';
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+  useTLS: true,
+});
+
+export async function POST(request) {
+  const { socket_id, channel_name } = await request.json();
+  const userId = request.headers.get('x-user-id');
+  
+  const authResponse = pusher.authorizeChannel(socket_id, channel_name, {
+    user_id: userId,
+  });
+  
+  return Response.json(authResponse);
+}
+
+// Components/Chat.js (Real-time chat)
+'use client';
+import { useEffect, useState } from 'react';
+import Pusher from 'pusher-js';
+
+export default function ChatRoom({ roomId, userId }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  
+  useEffect(() => {
+    // Initialize Pusher
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      authEndpoint: '/api/pusher/auth',
+    });
+    
+    // Subscribe to channel
+    const channel = pusher.subscribe(\`chat-room-\${roomId}\`);
+    
+    // Listen for new messages
+    channel.bind('new-message', (data) => {
+      setMessages(prev => [...prev, data]);
+    });
+    
+    // Load existing messages
+    fetchMessages();
+    
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [roomId]);
+  
+  const fetchMessages = async () => {
+    const res = await fetch(\`/api/chat/\${roomId}/messages\`);
+    const data = await res.json();
+    setMessages(data);
+  };
+  
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    
+    await fetch('/api/chat/send', {
+      method: 'POST',
+      body: JSON.stringify({ roomId, message: input, userId }),
+    });
+    
+    setInput('');
+  };
+  
+  return (
+    <div className="chat-container">
+      <div className="messages">
+        {messages.map(msg => (
+          <div key={msg.id} className={\`message \${msg.userId === userId ? 'own' : 'other'}\`}>
+            <strong>{msg.userName}:</strong>
+            <p>{msg.text}</p>
+            <small>{new Date(msg.timestamp).toLocaleTimeString()}</small>
+          </div>
+        ))}
+      </div>
+      
+      <div className="input-area">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          placeholder="Type a message..."
+        />
+        <button onClick={sendMessage}>Send</button>
+      </div>
+    </div>
+  );
+}
+
+// Live notifications component
+'use client';
+import { useEffect, useState } from 'react';
+import Pusher from 'pusher-js';
+
+export default function Notifications({ userId }) {
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  
+  useEffect(() => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    });
+    
+    const channel = pusher.subscribe(\`private-user-\${userId}\`);
+    
+    channel.bind('notification', (data) => {
+      setNotifications(prev => [data, ...prev]);
+      setUnreadCount(prev => prev + 1);
+      
+      // Show browser notification
+      if (Notification.permission === 'granted') {
+        new Notification(data.title, { body: data.body });
+      }
+    });
+    
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [userId]);
+  
+  return (
+    <div className="notifications">
+      <button className="bell-icon">
+        🔔
+        {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
+      </button>
+      <div className="dropdown">
+        {notifications.map(notif => (
+          <div key={notif.id} className="notification-item">
+            <strong>{notif.title}</strong>
+            <p>{notif.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Server-side event broadcasting
+// app/api/chat/send/route.js
+import { Pusher } from '@pusher/pusher';
+
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.NEXT_PUBLIC_PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+});
+
+export async function POST(request) {
+  const { roomId, message, userId } = await request.json();
+  
+  // Save to database
+  const savedMessage = await saveMessage(roomId, userId, message);
+  
+  // Broadcast to channel
+  await pusher.trigger(\`chat-room-\${roomId}\`, 'new-message', {
+    id: savedMessage.id,
+    text: message,
+    userId,
+    userName: savedMessage.userName,
+    timestamp: savedMessage.timestamp,
+  });
+  
+  return Response.json({ success: true });
+}
+
+// Live cursor position (collaborative feature)
+'use client';
+import { useEffect, useRef } from 'react';
+import Pusher from 'pusher-js';
+
+export default function LiveCursor({ roomId, userId, userName }) {
+  const cursorRef = useRef();
+  
+  useEffect(() => {
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    });
+    
+    const channel = pusher.subscribe(\`cursor-\${roomId}\`);
+    
+    channel.bind('cursor-move', (data) => {
+      // Update other users' cursors
+      updateCursorPosition(data.userId, data.x, data.y, data.userName);
+    });
+    
+    const handleMouseMove = (e) => {
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      // Broadcast my cursor position
+      channel.trigger('client-cursor-move', { x, y, userId, userName });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
+  }, [roomId]);
+  
+  return null;
+}`,
+  output: "Real-time chat, live notifications, and collaborative features",
+  note: "Pusher free tier: 200k messages/day. Self-host Socket.io for unlimited."
+}
   ]
 };

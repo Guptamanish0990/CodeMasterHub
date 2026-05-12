@@ -1513,6 +1513,1445 @@ function toggleRTL() {
         simpleMeaning: "Bootstrap RTL version automatically flips layouts for right-to-left languages",
         output: "Full layout mirroring: text alignment spacing, flex direction, and component positioning",
         note: "Use Bootstrap's RTL CDN or enable $enable-rtl in Sass for automatic RTL support"
+      },
+     {
+  name: "3. Bootstrap Custom Components Development",
+  description: "Create reusable, custom Bootstrap components with proper styling, JavaScript integration, and documentation.",
+  explanation: `🎯 WHY BUILD CUSTOM COMPONENTS?
+- Reusable across projects
+- Consistent branding
+- Complex functionality encapsulated
+- Easy to maintain and update
+- Share with team or community
+
+🔧 COMPONENT TYPES:
+1. UI Components (cards, modals, carousels)
+2. Form Components (custom inputs, selects)
+3. Data Components (tables, charts, grids)
+4. Navigation Components (megamenus, tabs)
+5. Interactive Components (sliders, drawers)
+
+📁 COMPONENT STRUCTURE:
+- HTML markup (structure)
+- CSS/Sass styling (appearance)
+- JavaScript (behavior)
+- Documentation (usage)
+
+🎨 STYLING APPROACHES:
+1. Extend Bootstrap classes
+2. Create new utility classes
+3. Override Bootstrap variables
+4. Custom CSS with BEM naming
+
+⚡ JAVASCRIPT PATTERNS:
+- Vanilla JS (no dependencies)
+- Bootstrap's JS plugins API
+- jQuery (legacy)
+- Framework components (React, Vue)
+
+📖 DOCUMENTATION BEST PRACTICES:
+- Installation instructions
+- Basic usage examples
+- Configuration options
+- API reference
+- Browser support
+- Accessibility notes`,
+  code: `// ========== PART 1: CUSTOM CARD COMPONENT ==========
+// _custom-card.scss
+.card-custom {
+  position: relative;
+  background: white;
+  border: none;
+  border-radius: 1rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    
+    .card-custom-overlay {
+      opacity: 1;
+    }
+  }
+  
+  &-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+  }
+  
+  &-content {
+    padding: 1.5rem;
+  }
+  
+  &-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  
+  &-text {
+    color: #6c757d;
+    line-height: 1.6;
+  }
+  
+  &-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(67, 97, 238, 0.9);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  &-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #dc3545;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 50rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+// ========== PART 2: CUSTOM MODAL COMPONENT ==========
+// custom-modal.js
+class CustomModal {
+  constructor(options = {}) {
+    this.title = options.title || 'Modal Title';
+    this.content = options.content || '';
+    this.onConfirm = options.onConfirm || (() => {});
+    this.onCancel = options.onCancel || (() => {});
+    this.createModal();
+  }
+  
+  createModal() {
+    const modalHTML = \`
+      <div class="modal fade" id="customModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header border-0">
+              <h5 class="modal-title">\${this.title}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              \${this.content}
+            </div>
+            <div class="modal-footer border-0">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" id="confirmBtn">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    \`;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    this.modal = document.getElementById('customModal');
+    this.modalInstance = new bootstrap.Modal(this.modal);
+    
+    const confirmBtn = this.modal.querySelector('#confirmBtn');
+    confirmBtn.addEventListener('click', () => {
+      this.onConfirm();
+      this.close();
+    });
+    
+    this.modal.addEventListener('hidden.bs.modal', () => {
+      this.onCancel();
+      this.modal.remove();
+    });
+  }
+  
+  show() {
+    this.modalInstance.show();
+  }
+  
+  close() {
+    this.modalInstance.hide();
+  }
+}
+
+// Usage
+// const modal = new CustomModal({
+//   title: 'Confirm Action',
+//   content: '<p>Are you sure you want to delete this item?</p>',
+//   onConfirm: () => console.log('Confirmed'),
+//   onCancel: () => console.log('Cancelled')
+// });
+// modal.show();
+
+// ========== PART 3: CUSTOM TOAST NOTIFICATION ==========
+// toast-notification.js
+class ToastNotification {
+  constructor(message, type = 'info', duration = 3000) {
+    this.message = message;
+    this.type = type;
+    this.duration = duration;
+    this.element = null;
+  }
+  
+  show() {
+    const toastHTML = \`
+      <div class="toast-custom toast-custom-\${this.type} p-3 mb-3" role="alert">
+        <div class="d-flex align-items-center">
+          <div class="toast-custom-icon me-3">
+            \${this.getIcon()}
+          </div>
+          <div class="flex-grow-1">
+            <div class="toast-custom-message">\${this.message}</div>
+            <div class="toast-custom-time">Just now</div>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+      </div>
+    \`;
+    
+    const container = document.getElementById('toast-container') || this.createContainer();
+    container.insertAdjacentHTML('beforeend', toastHTML);
+    this.element = container.lastElementChild;
+    
+    const bsToast = new bootstrap.Toast(this.element, { autohide: true, delay: this.duration });
+    bsToast.show();
+    
+    this.element.addEventListener('hidden.bs.toast', () => {
+      this.element.remove();
+    });
+  }
+  
+  getIcon() {
+    const icons = {
+      success: '<i class="bi bi-check-circle-fill"></i>',
+      error: '<i class="bi bi-x-circle-fill"></i>',
+      warning: '<i class="bi bi-exclamation-triangle-fill"></i>',
+      info: '<i class="bi bi-info-circle-fill"></i>'
+    };
+    return icons[this.type] || icons.info;
+  }
+  
+  createContainer() {
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.style.cssText = \`
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1100;
+    \`;
+    document.body.appendChild(container);
+    return container;
+  }
+}
+
+// Usage
+// new ToastNotification('Operation completed successfully!', 'success').show();
+// new ToastNotification('Something went wrong!', 'error', 5000).show();
+
+// ========== PART 4: CUSTOM SEARCHABLE DROPDOWN ==========
+// searchable-dropdown.js
+class SearchableDropdown {
+  constructor(selectElement, options = {}) {
+    this.select = selectElement;
+    this.placeholder = options.placeholder || 'Search...';
+    this.options = Array.from(this.select.options);
+    this.init();
+  }
+  
+  init() {
+    this.select.style.display = 'none';
+    
+    const dropdown = document.createElement('div');
+    dropdown.className = 'dropdown';
+    
+    const button = document.createElement('button');
+    button.className = 'btn btn-outline-secondary dropdown-toggle w-100';
+    button.textContent = this.placeholder;
+    button.setAttribute('data-bs-toggle', 'dropdown');
+    
+    const menu = document.createElement('div');
+    menu.className = 'dropdown-menu p-3';
+    menu.style.minWidth = '300px';
+    
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'form-control mb-2';
+    searchInput.placeholder = this.placeholder;
+    
+    const itemsContainer = document.createElement('div');
+    itemsContainer.className = 'dropdown-search-items';
+    itemsContainer.style.maxHeight = '300px';
+    itemsContainer.style.overflowY = 'auto';
+    
+    this.renderItems(itemsContainer, this.options);
+    
+    searchInput.addEventListener('input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const filtered = this.options.filter(opt => 
+        opt.textContent.toLowerCase().includes(searchTerm)
+      );
+      this.renderItems(itemsContainer, filtered);
+    });
+    
+    menu.appendChild(searchInput);
+    menu.appendChild(itemsContainer);
+    dropdown.appendChild(button);
+    dropdown.appendChild(menu);
+    this.select.parentNode.insertBefore(dropdown, this.select.nextSibling);
+  }
+  
+  renderItems(container, options) {
+    container.innerHTML = '';
+    
+    if (options.length === 0) {
+      container.innerHTML = '<div class="text-center text-muted p-3">No results found</div>';
+      return;
+    }
+    
+    options.forEach(opt => {
+      const item = document.createElement('div');
+      item.className = 'dropdown-item';
+      item.textContent = opt.textContent;
+      item.style.cursor = 'pointer';
+      
+      item.addEventListener('click', () => {
+        this.select.value = opt.value;
+        const button = container.closest('.dropdown').querySelector('.dropdown-toggle');
+        button.textContent = opt.textContent;
+      });
+      
+      container.appendChild(item);
+    });
+  }
+}
+
+// Usage
+// const select = document.querySelector('#mySelect');
+// const dropdown = new SearchableDropdown(select, {
+//   placeholder: 'Search country...'
+// });
+
+// ========== PART 5: CUSTOM DATA TABLE ==========
+// data-table.js
+class DataTable {
+  constructor(table, options = {}) {
+    this.table = table;
+    this.data = options.data || [];
+    this.columns = options.columns || [];
+    this.pageSize = options.pageSize || 10;
+    this.currentPage = 1;
+    this.sortColumn = null;
+    this.sortDirection = 'asc';
+    this.init();
+  }
+  
+  init() {
+    this.renderHeader();
+    this.renderBody();
+    this.renderPagination();
+  }
+  
+  renderHeader() {
+    const thead = this.table.createTHead();
+    const headerRow = thead.insertRow();
+    
+    this.columns.forEach(col => {
+      const th = document.createElement('th');
+      th.textContent = col.label;
+      th.style.cursor = 'pointer';
+      
+      if (col.sortable !== false) {
+        th.addEventListener('click', () => this.sort(col.field));
+      }
+      
+      if (this.sortColumn === col.field) {
+        th.innerHTML += \` \${this.sortDirection === 'asc' ? '↑' : '↓'}\`;
+      }
+      
+      headerRow.appendChild(th);
+    });
+    
+    const actionsTh = document.createElement('th');
+    actionsTh.textContent = 'Actions';
+    headerRow.appendChild(actionsTh);
+  }
+  
+  renderBody() {
+    const tbody = this.table.querySelector('tbody') || this.table.createTBody();
+    tbody.innerHTML = '';
+    
+    let filteredData = [...this.data];
+    
+    if (this.sortColumn) {
+      filteredData.sort((a, b) => {
+        let aVal = a[this.sortColumn];
+        let bVal = b[this.sortColumn];
+        
+        if (typeof aVal === 'string') {
+          aVal = aVal.toLowerCase();
+          bVal = bVal.toLowerCase();
+        }
+        
+        if (aVal < bVal) return this.sortDirection === 'asc' ? -1 : 1;
+        if (aVal > bVal) return this.sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    
+    const start = (this.currentPage - 1) * this.pageSize;
+    const paginatedData = filteredData.slice(start, start + this.pageSize);
+    
+    paginatedData.forEach(row => {
+      const tr = tbody.insertRow();
+      
+      this.columns.forEach(col => {
+        const td = tr.insertCell();
+        td.textContent = row[col.field];
+      });
+      
+      const actionsTd = tr.insertCell();
+      actionsTd.innerHTML = \`
+        <button class="btn btn-sm btn-outline-primary me-1">
+          <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-trash"></i>
+        </button>
+      \`;
+    });
+  }
+  
+  renderPagination() {
+    const totalPages = Math.ceil(this.data.length / this.pageSize);
+    if (totalPages <= 1) return;
+    
+    const pagination = document.createElement('nav');
+    pagination.className = 'mt-3';
+    
+    const ul = document.createElement('ul');
+    ul.className = 'pagination justify-content-center';
+    
+    for (let i = 1; i <= totalPages; i++) {
+      const li = document.createElement('li');
+      li.className = \`page-item \${i === this.currentPage ? 'active' : ''}\`;
+      
+      const a = document.createElement('a');
+      a.className = 'page-link';
+      a.href = '#';
+      a.textContent = i;
+      a.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.currentPage = i;
+        this.renderBody();
+        this.renderPagination();
+      });
+      
+      li.appendChild(a);
+      ul.appendChild(li);
+    }
+    
+    pagination.appendChild(ul);
+    this.table.parentNode.appendChild(pagination);
+  }
+  
+  sort(field) {
+    if (this.sortColumn === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = field;
+      this.sortDirection = 'asc';
+    }
+    
+    this.renderHeader();
+    this.renderBody();
+  }
+}
+
+// Usage
+// const table = new DataTable(document.getElementById('dataTable'), {
+//   data: [
+//     { id: 1, name: 'John Doe', email: 'john@example.com', status: 'Active' },
+//     { id: 2, name: 'Jane Smith', email: 'jane@example.com', status: 'Inactive' }
+//   ],
+//   columns: [
+//     { field: 'id', label: 'ID', sortable: true },
+//     { field: 'name', label: 'Name', sortable: true },
+//     { field: 'email', label: 'Email', sortable: true },
+//     { field: 'status', label: 'Status', sortable: false }
+//   ],
+//   pageSize: 5
+// });`,
+  lineByLine: [
+    "Line 4-52: Custom card component - Hover effects, overlays, and badges",
+    "Line 55-98: Custom modal - JavaScript class for reusable modals with Bootstrap integration",
+    "Line 101-158: Toast notifications - Success, error, warning, and info variants",
+    "Line 161-226: Searchable dropdown - Filterable select component with live search",
+    "Line 229-370: Data table - Sortable and paginatable table component"
+  ],
+  simpleMeaning: "Create reusable, production-ready Bootstrap components with custom styling, JavaScript functionality, and proper documentation.",
+  output: "Fully functional custom components including cards, modals, toasts, searchable dropdowns, and data tables.",
+  note: "Follow BEM naming convention for CSS. Use Bootstrap's utilities for spacing and colors. Provide clear documentation. Test components across browsers."
+},
+{
+        name: "4. Bootstrap Utility API Mastery",
+        description: "Master Bootstrap's Utility API to generate custom utility classes, modify existing ones, and create responsive utilities.",
+        explanation: `🎯 WHAT IS THE UTILITY API?
+Bootstrap's Utility API is a powerful Sass-based system that allows you to generate utility classes on-demand. It's the engine behind all of Bootstrap's utilities.
+
+🔧 WHY USE UTILITY API?
+- Generate only what you need (smaller CSS)
+- Create custom utilities easily
+- Modify existing utilities globally
+- Add responsive variants automatically
+- Maintain consistency across project
+
+📁 UTILITY API STRUCTURE:
+$utilities: (
+  "property-name": (
+    property: css-property,
+    class: class-name,
+    values: map-of-values,
+    responsive: true/false,
+    state: hover/focus,
+    rfs: true/false
+  )
+);
+
+🎨 COMMON UTILITY PROPERTIES:
+- property: CSS property (margin, padding, color)
+- class: Class prefix (m, p, text)
+- values: Map of values (0, 1, 2, auto)
+- responsive: Enable breakpoint variants
+- state: Enable hover/focus variants
+
+⚡ UTILITY GENERATION PROCESS:
+1. Define utility in $utilities map
+2. Choose property and values
+3. Set responsive/state variants
+4. Import utilities API
+5. Compile Sass to generate CSS
+
+📏 SPACING UTILITIES CUSTOMIZATION:
+- $spacer: Base spacing unit
+- $spacers: Map of spacing values
+- margin/padding utilities auto-generated
+- Negative margins included automatically
+
+🎯 BEST PRACTICES:
+- Use default utilities when possible
+- Extend rather than replace
+- Generate only needed variants
+- Test generated classes
+- Document custom utilities`,
+        code: `// ========== PART 1: UTILITY API CONFIGURATION ==========
+// custom-utilities.scss
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/utilities";
+
+// Custom spacing values
+$custom-spacers: (
+  6: $spacer * 4.5,   // 72px
+  7: $spacer * 6,     // 96px
+  8: $spacer * 7.5,   // 120px
+  9: $spacer * 9,     // 144px
+  10: $spacer * 12    // 192px
+);
+
+// Merge with default spacers
+$spacers: map-merge($spacers, $custom-spacers);
+
+// ========== PART 2: CUSTOM UTILITIES ==========
+// Add cursor utilities
+$utilities: map-merge($utilities, (
+  "cursor": (
+    property: cursor,
+    class: cursor,
+    values: (
+      pointer: pointer,
+      default: default,
+      wait: wait,
+      grab: grab,
+      grabbing: grabbing,
+      not-allowed: not-allowed,
+      zoom-in: zoom-in,
+      zoom-out: zoom-out
+    )
+  )
+));
+
+// Add text shadow utilities
+$utilities: map-merge($utilities, (
+  "text-shadow": (
+    property: text-shadow,
+    class: text-shadow,
+    values: (
+      none: none,
+      sm: 0 1px 2px rgba(0, 0, 0, 0.05),
+      md: 0 2px 4px rgba(0, 0, 0, 0.1),
+      lg: 0 4px 8px rgba(0, 0, 0, 0.15),
+      xl: 0 8px 16px rgba(0, 0, 0, 0.2)
+    )
+  )
+));
+
+// Add backdrop blur utilities
+$utilities: map-merge($utilities, (
+  "backdrop-blur": (
+    property: backdrop-filter,
+    class: backdrop-blur,
+    values: (
+      none: none,
+      sm: blur(4px),
+      md: blur(8px),
+      lg: blur(12px),
+      xl: blur(16px),
+      xxl: blur(24px)
+    )
+  )
+));
+
+// Add rotate utilities
+$utilities: map-merge($utilities, (
+  "rotate": (
+    property: transform,
+    class: rotate,
+    values: (
+      0: rotate(0deg),
+      45: rotate(45deg),
+      90: rotate(90deg),
+      135: rotate(135deg),
+      180: rotate(180deg),
+      225: rotate(225deg),
+      270: rotate(270deg),
+      315: rotate(315deg)
+    )
+  )
+));
+
+// Add scale utilities
+$utilities: map-merge($utilities, (
+  "scale": (
+    property: transform,
+    class: scale,
+    values: (
+      25: scale(0.25),
+      50: scale(0.5),
+      75: scale(0.75),
+      100: scale(1),
+      110: scale(1.1),
+      125: scale(1.25),
+      150: scale(1.5),
+      175: scale(1.75),
+      200: scale(2)
+    )
+  )
+));
+
+// ========== PART 3: MODIFY EXISTING UTILITIES ==========
+// Extend opacity utilities
+$utilities: map-merge($utilities, (
+  "opacity": (
+    property: opacity,
+    class: opacity,
+    values: (
+      0: 0,
+      10: 0.1,
+      20: 0.2,
+      25: 0.25,
+      30: 0.3,
+      40: 0.4,
+      50: 0.5,
+      60: 0.6,
+      70: 0.7,
+      75: 0.75,
+      80: 0.8,
+      90: 0.9,
+      100: 1
+    )
+  )
+));
+
+// Extend border radius
+$utilities: map-merge($utilities, (
+  "rounded": (
+    property: border-radius,
+    class: rounded,
+    values: (
+      null: $border-radius,
+      0: 0,
+      1: $border-radius-sm,
+      2: $border-radius,
+      3: $border-radius-lg,
+      4: $border-radius-xl,
+      5: $border-radius-2xl,
+      circle: 50%,
+      pill: 50rem
+    )
+  )
+));
+
+// ========== PART 4: RESPONSIVE UTILITIES ==========
+// Width utilities with responsive variants
+$utilities: map-merge($utilities, (
+  "width-responsive": (
+    property: width,
+    class: w,
+    values: (
+      25: 25%,
+      50: 50%,
+      75: 75%,
+      100: 100%,
+      auto: auto
+    ),
+    responsive: true
+  )
+));
+
+// Custom breakpoint utilities
+$custom-breakpoints: (
+  xs: 0,
+  sm: 576px,
+  md: 768px,
+  lg: 992px,
+  xl: 1200px,
+  xxl: 1400px,
+  xxxl: 1600px
+);
+
+$grid-breakpoints: map-merge($grid-breakpoints, $custom-breakpoints);
+
+// ========== PART 5: STATE UTILITIES ==========
+$utilities: map-merge($utilities, (
+  "hover-scale": (
+    property: transform,
+    class: hover-scale,
+    values: (
+      105: scale(1.05),
+      110: scale(1.1),
+      115: scale(1.15)
+    ),
+    state: hover
+  ),
+  
+  "focus-ring": (
+    property: box-shadow,
+    class: focus-ring,
+    values: (
+      primary: 0 0 0 0.25rem rgba($primary, 0.25),
+      success: 0 0 0 0.25rem rgba($success, 0.25),
+      danger: 0 0 0 0.25rem rgba($danger, 0.25),
+      warning: 0 0 0 0.25rem rgba($warning, 0.25)
+    ),
+    state: focus
+  )
+));
+
+// ========== PART 6: ADVANCED UTILITY GENERATION ==========
+// Gradient utilities
+$gradient-colors: (
+  primary: $primary,
+  secondary: $secondary,
+  success: $success,
+  danger: $danger,
+  warning: $warning,
+  info: $info,
+  dark: $dark,
+  light: $light
+);
+
+@each $name, $color in $gradient-colors {
+  $utilities: map-merge($utilities, (
+    "bg-gradient-#{$name}": (
+      property: background-image,
+      class: bg-gradient-#{$name},
+      values: (
+        null: linear-gradient(135deg, $color, darken($color, 10%))
+      )
+    )
+  ));
+}
+
+// ========== PART 7: PERFORMANCE OPTIMIZATION ==========
+// Only generate specific utilities
+$utilities: (
+  // Only include needed utilities
+  "width": $utilities["width"],
+  "height": $utilities["height"],
+  "margin": $utilities["margin"],
+  "padding": $utilities["padding"],
+  "color": $utilities["color"],
+  "background-color": $utilities["background-color"]
+);
+
+// Disable responsive variants for performance
+$enable-responsive-utilities: false;
+
+// Disable dark mode variants
+$enable-dark-mode: false;
+
+// ========== PART 8: CUSTOM UTILITY CLASSES EXAMPLE ==========
+<!-- Usage Examples -->
+<div class="container p-5">
+  <!-- Custom cursor utilities -->
+  <button class="btn btn-primary cursor-pointer">Pointer Cursor</button>
+  <button class="btn btn-secondary cursor-grab" disabled>Grab Cursor</button>
+  
+  <!-- Text shadow utilities -->
+  <h1 class="text-shadow-lg">Text with Large Shadow</h1>
+  <p class="text-shadow-md">Medium text shadow effect</p>
+  
+  <!-- Backdrop blur -->
+  <div class="bg-dark text-white p-4 backdrop-blur-md">
+    This content has backdrop blur
+  </div>
+  
+  <!-- Rotate utilities -->
+  <i class="bi bi-arrow-repeat rotate-90"></i>
+  <i class="bi bi-arrow-repeat rotate-180"></i>
+  
+  <!-- Scale utilities -->
+  <img src="image.jpg" class="scale-110 hover:scale-125 transition-all">
+  
+  <!-- Extended opacity -->
+  <div class="bg-primary opacity-25">25% opacity</div>
+  <div class="bg-primary opacity-60">60% opacity</div>
+  
+  <!-- Responsive width utilities -->
+  <div class="w-50 w-md-75 w-lg-100 bg-info">
+    Responsive width that changes at breakpoints
+  </div>
+  
+  <!-- Hover scale utilities -->
+  <button class="btn btn-success hover-scale-110 transition-all">
+    Hover to scale up
+  </button>
+  
+  <!-- Gradient backgrounds -->
+  <div class="bg-gradient-primary p-5 rounded text-white">
+    Primary gradient background
+  </div>
+  <div class="bg-gradient-success p-5 rounded text-white mt-3">
+    Success gradient background
+  </div>
+  
+  <!-- Custom spacing (spacer 6-10) -->
+  <div class="mt-6 mb-7 p-8 bg-light rounded">
+    Custom spacing values: margin-top 72px, margin-bottom 96px, padding 120px
+  </div>
+</div>`,
+        lineByLine: [
+          "Line 4-7: Import Bootstrap functions, variables, and utilities",
+          "Line 10-15: Custom spacers - Adding values 6 through 10",
+          "Line 20-34: Cursor utilities - Pointer, grab, not-allowed, etc.",
+          "Line 39-50: Text shadow - Adding shadow depth levels",
+          "Line 55-66: Backdrop blur - Blur effects for glass morphism",
+          "Line 71-84: Rotate utilities - Transform rotate degrees",
+          "Line 89-100: Scale utilities - Transform scale factors",
+          "Line 105-118: Extended opacity - More opacity options",
+          "Line 123-138: Extended border radius - More rounded options",
+          "Line 143-151: Responsive utilities - With breakpoint variants",
+          "Line 154-164: Custom breakpoints - Adding xxxl breakpoint",
+          "Line 169-184: State utilities - Hover scale and focus ring",
+          "Line 189-200: Dynamic generation - Loop through gradient colors",
+          "Line 205-214: Performance optimization - Selective utility generation"
+        ],
+        simpleMeaning: "The Utility API lets you generate custom CSS utilities on-demand, modify existing ones, and add responsive/state variants automatically.",
+        output: "Custom utility classes for cursor, text-shadow, backdrop-blur, rotate, scale, extended opacity, gradients, and more.",
+        note: "Always import utilities after modifying $utilities map. Use map-merge to preserve defaults. Test generated classes. Only generate what you need for smaller CSS."
+      },
+      
+      {
+        name: "5. Bootstrap with React.js Integration",
+        description: "Complete guide to using Bootstrap 5 with React.js applications using react-bootstrap library.",
+        explanation: `🎯 WHY REACT-BOOTSTRAP?
+React-Bootstrap rebuilds Bootstrap components as true React components without jQuery dependency. Each component is built from scratch as proper React components.
+
+📦 ADVANTAGES:
+- No jQuery dependency
+- True React components (props, state, lifecycle)
+- Bootstrap styles preserved
+- Accessible by default
+- TypeScript support
+- Tree-shakeable imports
+
+🔧 INSTALLATION:
+npm install react-bootstrap bootstrap
+
+📁 COMPONENT CATEGORIES:
+1. Layout (Container, Row, Col, Stack)
+2. Forms (Form, InputGroup, FloatingLabel)
+3. Navigation (Nav, Navbar, Breadcrumb)
+4. Components (Button, Card, Modal, Toast)
+5. Data (Table, Pagination, Spinner)
+6. Overlays (Tooltip, Popover, Dropdown)
+
+🎨 THEMING WITH REACT:
+- Import Bootstrap CSS
+- Override with custom CSS
+- Use CSS modules
+- Styled components integration
+
+⚡ PERFORMANCE:
+- Import only needed components
+- Code splitting ready
+- Lazy loading support
+- Minimal bundle size
+
+🔄 REACT-BOOTSTRAP vs BOOTSTRAP JS:
+- No global $ or jQuery
+- Component-based API
+- Event handlers as props
+- State management integration
+- Lifecycle method access`,
+        code: `// ========== PART 1: INSTALLATION & SETUP ==========
+// Install packages
+// npm install react-bootstrap bootstrap
+
+// App.js - Import Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Container, Row, Col, Button, Card } from 'react-bootstrap';
+
+function App() {
+  return (
+    <Container className="py-4">
+      <h1>React-Bootstrap Demo</h1>
+      <Button variant="primary">Primary Button</Button>
+    </Container>
+  );
+}
+
+// ========== PART 2: LAYOUT COMPONENTS ==========
+// Responsive grid layout
+import { Container, Row, Col } from 'react-bootstrap';
+
+function ResponsiveLayout() {
+  return (
+    <Container fluid className="p-4">
+      <Row>
+        <Col xs={12} md={6} lg={4} className="mb-3">
+          <div className="bg-light p-3">Column 1</div>
+        </Col>
+        <Col xs={12} md={6} lg={4} className="mb-3">
+          <div className="bg-light p-3">Column 2</div>
+        </Col>
+        <Col xs={12} md={6} lg={4} className="mb-3">
+          <div className="bg-light p-3">Column 3</div>
+        </Col>
+      </Row>
+      
+      {/* Auto-layout columns */}
+      <Row>
+        <Col>1 of 2</Col>
+        <Col>2 of 2</Col>
+      </Row>
+      
+      {/* Stack component for vertical spacing */}
+      <Stack gap={3}>
+        <div className="bg-light p-2">First item</div>
+        <div className="bg-light p-2">Second item</div>
+        <div className="bg-light p-2">Third item</div>
+      </Stack>
+    </Container>
+  );
+}
+
+// ========== PART 3: FORM COMPONENTS ==========
+import { Form, Button, InputGroup, FloatingLabel } from 'react-bootstrap';
+import { useState } from 'react';
+
+function BootstrapForm() {
+  const [validated, setValidated] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    remember: false
+  });
+  
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData({
+      ...formData,
+      [name]: type === 'checkbox' ? checked : value
+    });
+  };
+  
+  const handleSubmit = (e) => {
+    const form = e.currentTarget;
+    if (form.checkValidity() === false) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setValidated(true);
+  };
+  
+  return (
+    <Form noValidate validated={validated} onSubmit={handleSubmit}>
+      {/* Basic input */}
+      <Form.Group className="mb-3" controlId="formEmail">
+        <Form.Label>Email address</Form.Label>
+        <Form.Control 
+          type="email" 
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Enter email"
+          required
+        />
+        <Form.Text className="text-muted">
+          We'll never share your email.
+        </Form.Text>
+        <Form.Control.Feedback type="invalid">
+          Please provide a valid email.
+        </Form.Control.Feedback>
+      </Form.Group>
+      
+      {/* Input group with addon */}
+      <InputGroup className="mb-3">
+        <InputGroup.Text>@</InputGroup.Text>
+        <Form.Control placeholder="Username" />
+        <InputGroup.Text>.com</InputGroup.Text>
+      </InputGroup>
+      
+      {/* Floating label */}
+      <FloatingLabel controlId="floatingPassword" label="Password" className="mb-3">
+        <Form.Control type="password" placeholder="Password" />
+      </FloatingLabel>
+      
+      {/* Checkbox */}
+      <Form.Group className="mb-3" controlId="formCheckbox">
+        <Form.Check 
+          type="checkbox"
+          name="remember"
+          checked={formData.remember}
+          onChange={handleChange}
+          label="Remember me"
+        />
+      </Form.Group>
+      
+      {/* Select dropdown */}
+      <Form.Select className="mb-3" aria-label="Default select">
+        <option>Open this select menu</option>
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+        <option value="3">Option 3</option>
+      </Form.Select>
+      
+      {/* Range slider */}
+      <Form.Range className="mb-3" />
+      
+      {/* Switch */}
+      <Form.Switch className="mb-3" label="Dark mode" />
+      
+      <Button type="submit" variant="primary">Submit</Button>
+    </Form>
+  );
+}
+
+// ========== PART 4: MODAL COMPONENT ==========
+import { Modal, Button } from 'react-bootstrap';
+import { useState } from 'react';
+
+function BootstrapModal() {
+  const [show, setShow] = useState(false);
+  const [showLarge, setShowLarge] = useState(false);
+  const [showFullscreen, setShowFullscreen] = useState(false);
+  
+  return (
+    <>
+      <Button variant="primary" onClick={() => setShow(true)}>
+        Launch Modal
+      </Button>
+      
+      {/* Standard modal */}
+      <Modal show={show} onHide={() => setShow(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Modal Title</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Modal body content goes here.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => setShow(false)}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
+      
+      {/* Large modal */}
+      <Button variant="info" onClick={() => setShowLarge(true)}>
+        Large Modal
+      </Button>
+      <Modal size="lg" show={showLarge} onHide={() => setShowLarge(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Large Modal</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>This is a large modal with more space for content.</p>
+        </Modal.Body>
+      </Modal>
+      
+      {/* Fullscreen modal */}
+      <Button variant="dark" onClick={() => setShowFullscreen(true)}>
+        Fullscreen Modal
+      </Button>
+      <Modal 
+        size="xl" 
+        fullscreen="xl-down" 
+        show={showFullscreen} 
+        onHide={() => setShowFullscreen(false)}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Fullscreen Modal</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>This modal becomes fullscreen on large devices and below.</p>
+        </Modal.Body>
+      </Modal>
+    </>
+  );
+}
+
+// ========== PART 5: NAVIGATION COMPONENTS ==========
+import { Navbar, Nav, NavDropdown, Container, Badge } from 'react-bootstrap';
+
+function BootstrapNavbar() {
+  return (
+    <>
+      {/* Basic navbar */}
+      <Navbar bg="dark" variant="dark" expand="lg">
+        <Container>
+          <Navbar.Brand href="#home">React-Bootstrap</Navbar.Brand>
+          <Navbar.Toggle aria-controls="basic-navbar-nav" />
+          <Navbar.Collapse id="basic-navbar-nav">
+            <Nav className="me-auto">
+              <Nav.Link href="#home">Home</Nav.Link>
+              <Nav.Link href="#features">Features</Nav.Link>
+              <Nav.Link href="#pricing">Pricing</Nav.Link>
+              <NavDropdown title="Dropdown" id="basic-nav-dropdown">
+                <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
+                <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
+                <NavDropdown.Divider />
+                <NavDropdown.Item href="#action/3.4">Separated link</NavDropdown.Item>
+              </NavDropdown>
+            </Nav>
+            <Nav>
+              <Nav.Link href="#login">
+                Login <Badge bg="secondary">New</Badge>
+              </Nav.Link>
+            </Nav>
+          </Navbar.Collapse>
+        </Container>
+      </Navbar>
+      
+      {/* Tabs */}
+      <Tab.Container defaultActiveKey="home">
+        <Row>
+          <Col sm={3}>
+            <Nav variant="pills" className="flex-column">
+              <Nav.Item>
+                <Nav.Link eventKey="home">Home</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="profile">Profile</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="settings">Settings</Nav.Link>
+              </Nav.Item>
+            </Nav>
+          </Col>
+          <Col sm={9}>
+            <Tab.Content>
+              <Tab.Pane eventKey="home">
+                <h3>Home Content</h3>
+                <p>Welcome to the dashboard!</p>
+              </Tab.Pane>
+              <Tab.Pane eventKey="profile">
+                <h3>Profile Content</h3>
+                <p>User profile information.</p>
+              </Tab.Pane>
+              <Tab.Pane eventKey="settings">
+                <h3>Settings Content</h3>
+                <p>Application settings panel.</p>
+              </Tab.Pane>
+            </Tab.Content>
+          </Col>
+        </Row>
+      </Tab.Container>
+    </>
+  );
+}
+
+// ========== PART 6: CARD & DATA COMPONENTS ==========
+import { Card, Button, Table, Pagination, Spinner, Alert } from 'react-bootstrap';
+
+function BootstrapComponents() {
+  return (
+    <>
+      {/* Card grid */}
+      <Row xs={1} md={2} lg={3} className="g-4">
+        {[1, 2, 3, 4, 5, 6].map((num) => (
+          <Col key={num}>
+            <Card className="h-100 shadow-sm">
+              <Card.Img variant="top" src={\`https://picsum.photos/300/200?random=\${num}\`} />
+              <Card.Body>
+                <Card.Title>Card Title {num}</Card.Title>
+                <Card.Text>
+                  Some quick example text to build on the card title and make up the bulk of the card's content.
+                </Card.Text>
+                <Button variant="primary">Go somewhere</Button>
+              </Card.Body>
+              <Card.Footer className="text-muted">
+                2 days ago
+              </Card.Footer>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+      
+      {/* Data table */}
+      <Table striped bordered hover responsive className="mt-4">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Username</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Mark</td>
+            <td>Otto</td>
+            <td>@mdo</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Jacob</td>
+            <td>Thornton</td>
+            <td>@fat</td>
+          </tr>
+        </tbody>
+      </Table>
+      
+      {/* Pagination */}
+      <Pagination>
+        <Pagination.First />
+        <Pagination.Prev />
+        <Pagination.Item active>{1}</Pagination.Item>
+        <Pagination.Item>{2}</Pagination.Item>
+        <Pagination.Item>{3}</Pagination.Item>
+        <Pagination.Next />
+        <Pagination.Last />
+      </Pagination>
+      
+      {/* Loading spinner */}
+      <div className="text-center">
+        <Spinner animation="border" variant="primary" />
+        <Spinner animation="grow" variant="success" />
+        <Button variant="primary" disabled>
+          <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
+          Loading...
+        </Button>
+      </div>
+      
+      {/* Alerts */}
+      <Alert variant="success" dismissible>
+        <Alert.Heading>Success!</Alert.Heading>
+        <p>Your operation completed successfully.</p>
+      </Alert>
+      
+      <Alert variant="danger">
+        <Alert.Heading>Error!</Alert.Heading>
+        <p>Something went wrong. Please try again.</p>
+      </Alert>
+    </>
+  );
+}
+
+// ========== PART 7: TOAST NOTIFICATIONS ==========
+import { Toast, ToastContainer } from 'react-bootstrap';
+import { useState } from 'react';
+
+function ToastNotifications() {
+  const [showToast, setShowToast] = useState(false);
+  const [showPositionedToast, setShowPositionedToast] = useState(false);
+  
+  return (
+    <>
+      <Button onClick={() => setShowToast(true)}>Show Toast</Button>
+      <Button onClick={() => setShowPositionedToast(true)}>Positioned Toast</Button>
+      
+      {/* Standard toast */}
+      <Toast onClose={() => setShowToast(false)} show={showToast} delay={3000} autohide>
+        <Toast.Header>
+          <img src="holder.js/20x20?text=%20" className="rounded me-2" alt="" />
+          <strong className="me-auto">Bootstrap</strong>
+          <small>11 mins ago</small>
+        </Toast.Header>
+        <Toast.Body>Hello, world! This is a toast message.</Toast.Body>
+      </Toast>
+      
+      {/* Positioned toast container */}
+      <ToastContainer position="bottom-end" className="p-3">
+        <Toast onClose={() => setShowPositionedToast(false)} show={showPositionedToast} delay={3000} autohide>
+          <Toast.Header>
+            <strong className="me-auto">Notification</strong>
+          </Toast.Header>
+          <Toast.Body>This toast is positioned at bottom-end.</Toast.Body>
+        </Toast>
+      </ToastContainer>
+    </>
+  );
+}
+
+// ========== PART 8: CUSTOMIZING REACT-BOOTSTRAP ==========
+// theme/custom.scss
+$primary: #4361ee;
+$secondary: #6c757d;
+$success: #06ffa5;
+$danger: #ef233c;
+$warning: #ffb703;
+$info: #00b4d8;
+
+// Import Bootstrap after custom variables
+@import 'bootstrap/scss/bootstrap';
+
+// App.js with custom theme
+import './theme/custom.scss';
+import { ThemeProvider } from 'react-bootstrap';
+
+function ThemedApp() {
+  return (
+    <ThemeProvider
+      prefixes={{
+        btn: 'btn',
+        card: 'card'
+      }}
+    >
+      <div className="bg-primary text-white p-4">
+        Custom themed Bootstrap components
+      </div>
+    </ThemeProvider>
+  );
+}
+
+// ========== PART 9: TOOLTIPS & POPOVERS ==========
+import { OverlayTrigger, Tooltip, Popover, Button } from 'react-bootstrap';
+
+function BootstrapOverlays() {
+  // Tooltip placement
+  const renderTooltip = (props) => (
+    <Tooltip id="button-tooltip" {...props}>
+      Simple tooltip
+    </Tooltip>
+  );
+  
+  // Popover content
+  const popover = (
+    <Popover id="popover-basic">
+      <Popover.Header as="h3">Popover Header</Popover.Header>
+      <Popover.Body>
+        And here's some <strong>amazing</strong> content. It's very engaging.
+      </Popover.Body>
+    </Popover>
+  );
+  
+  return (
+    <div className="d-flex gap-3">
+      {/* Tooltip on hover */}
+      <OverlayTrigger placement="top" overlay={renderTooltip}>
+        <Button variant="secondary">Top tooltip</Button>
+      </OverlayTrigger>
+      
+      <OverlayTrigger placement="right" overlay={renderTooltip}>
+        <Button variant="secondary">Right tooltip</Button>
+      </OverlayTrigger>
+      
+      {/* Popover */}
+      <OverlayTrigger trigger="click" placement="right" overlay={popover}>
+        <Button variant="danger">Click for popover</Button>
+      </OverlayTrigger>
+    </div>
+  );
+}
+
+// ========== PART 10: ADVANCED PATTERNS ==========
+// Custom component that uses Bootstrap internally
+import { Button, Modal, Form } from 'react-bootstrap';
+
+const ConfirmDialog = ({ show, onConfirm, onCancel, title, message }) => {
+  return (
+    <Modal show={show} onHide={onCancel} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>{title}</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>{message}</Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button variant="danger" onClick={onConfirm}>
+          Confirm
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  );
+};
+
+// Usage pattern
+function App() {
+  const [showDialog, setShowDialog] = useState(false);
+  
+  const handleDelete = () => {
+    console.log('Item deleted');
+    setShowDialog(false);
+  };
+  
+  return (
+    <>
+      <Button variant="danger" onClick={() => setShowDialog(true)}>
+        Delete Item
+      </Button>
+      
+      <ConfirmDialog
+        show={showDialog}
+        onConfirm={handleDelete}
+        onCancel={() => setShowDialog(false)}
+        title="Confirm Delete"
+        message="Are you sure you want to delete this item? This action cannot be undone."
+      />
+    </>
+  );
+}`,
+        lineByLine: [
+          "Line 4-10: Installation - npm install react-bootstrap bootstrap",
+          "Line 13-21: Basic setup - Import CSS and components",
+          "Line 24-58: Responsive grid - Container, Row, Col with responsive props",
+          "Line 61-120: Form components - Form.Group, FloatingLabel, InputGroup",
+          "Line 123-189: Modal component - Show/hide state, sizes, fullscreen",
+          "Line 192-263: Navigation - Navbar, Tabs, NavDropdown, Badge",
+          "Line 266-328: Card grid - Bootstrap Card with grid layout",
+          "Line 331-361: Data table - Table, Pagination, Spinner components",
+          "Line 364-386: Toast notifications - Toast and ToastContainer",
+          "Line 389-404: Custom theming - Override Bootstrap variables",
+          "Line 407-431: Tooltips & Popovers - OverlayTrigger component",
+          "Line 434-466: Custom component - Wrapping Bootstrap components"
+        ],
+        simpleMeaning: "React-Bootstrap provides Bootstrap components as true React components with props, state, and no jQuery dependency.",
+        output: "Fully functional React components with Bootstrap styling that work seamlessly with React's component model.",
+        note: "Import only needed components for better performance. Use React state for component visibility. No jQuery needed. TypeScript definitions included."
       }
     ]
   }

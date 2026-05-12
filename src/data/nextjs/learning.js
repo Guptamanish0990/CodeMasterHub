@@ -578,7 +578,1322 @@ export function DarkModeComponent() {
         simpleMeaning: "Tailwind gives you small utility classes to style elements without writing custom CSS.",
         output: "Responsive grid: 1 column on mobile, 2 on tablet, 3 on desktop. Dark mode support.",
         note: "Use className with utility classes directly. Create reusable components to avoid repetition."
-      }
+      },
+      // ========== 11. USING CSS MODULES IN NEXT.JS ==========
+{
+  name: "11. CSS Modules in Next.js",
+  description: "CSS Modules let you write component-scoped CSS. Class names are automatically unique, preventing conflicts between components.",
+  code: `// app/components/Button.module.css
+.button {
+  background-color: blue;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: darkblue;
+}
+
+.primary {
+  background-color: green;
+}
+
+.large {
+  padding: 15px 30px;
+  font-size: 18px;
+}
+
+// app/components/Button.js
+import styles from './Button.module.css';
+
+export default function Button({ children, variant = 'default', size = 'default' }) {
+  return (
+    <button 
+      className={\`
+        \${styles.button} 
+        \${variant === 'primary' ? styles.primary : ''}
+        \${size === 'large' ? styles.large : ''}
+      \`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// app/components/Card.module.css
+.card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 10px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.content {
+  color: #666;
+  line-height: 1.5;
+}
+
+// app/components/Card.js
+import styles from './Card.module.css';
+
+export default function Card({ title, children }) {
+  return (
+    <div className={styles.card}>
+      <h3 className={styles.title}>{title}</h3>
+      <div className={styles.content}>{children}</div>
+    </div>
+  );
+}
+
+// app/page.js (using both components)
+import Button from './components/Button';
+import Card from './components/Card';
+
+export default function HomePage() {
+  return (
+    <div>
+      <Card title="Welcome">
+        <p>This is a card component with CSS Modules!</p>
+        <Button>Click Me</Button>
+        <Button variant="primary" size="large">Primary Button</Button>
+      </Card>
+    </div>
+  );
+}`,
+  lineByLine: [
+    "Button.module.css - File naming convention",
+    "styles.button - Imported styles as object",
+    "Local scope - Classes don't leak to other components",
+    "Composition - Combine multiple classes",
+    "Unique names - Next.js automatically generates unique class names"
+  ],
+  simpleMeaning: "CSS Modules keep your CSS confined to one component, so no class name conflicts.",
+  output: "Buttons and cards look styled without worrying about CSS class name collisions.",
+  note: "CSS Modules work out of the box. No extra setup needed."
+},
+
+// ========== 12. USING FONTS IN NEXT.JS ==========
+{
+  name: "12. Using Fonts in Next.js",
+  description: "Next.js has built-in font optimization with next/font. It automatically optimizes fonts, prevents layout shift, and uses system fonts as fallback.",
+  code: `// app/layout.js (Google Fonts)
+import { Inter, Roboto, Open_Sans } from 'next/font/google';
+
+// Load Inter font
+const inter = Inter({
+  subsets: ['latin'],      // Character sets
+  display: 'swap',         // FOIT vs FOUT behavior
+  variable: '--font-inter', // CSS variable
+});
+
+// Load Roboto with specific weight
+const roboto = Roboto({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+});
+
+// Load Open Sans with multiple weights
+const openSans = Open_Sans({
+  weight: ['300', '400', '600', '700'],
+  subsets: ['latin'],
+  style: ['normal', 'italic'],
+});
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en" className={inter.className}>
+      <body>{children}</body>
+    </html>
+  );
+}
+
+// Using multiple fonts
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body className={\`\${inter.variable} \${roboto.variable}\`}>
+        <h1 className="font-inter">This uses Inter</h1>
+        <p className="font-roboto">This uses Roboto</p>
+        {children}
+      </body>
+    </html>
+  );
+}
+
+// app/globals.css
+.font-inter {
+  font-family: var(--font-inter);
+}
+
+.font-roboto {
+  font-family: var(--font-roboto);
+}
+
+// Using local font files
+// Place font files in public/fonts/
+import localFont from 'next/font/local';
+
+const myFont = localFont({
+  src: './fonts/MyFont.woff2',
+  display: 'swap',
+});
+
+// Multiple local font files
+const customFont = localFont({
+  src: [
+    {
+      path: './fonts/CustomFont-Light.woff2',
+      weight: '300',
+      style: 'normal',
+    },
+    {
+      path: './fonts/CustomFont-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/CustomFont-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-custom',
+});
+
+// Tailwind CSS with next/font
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        inter: ['var(--font-inter)'],
+        custom: ['var(--font-custom)'],
+      },
+    },
+  },
+};
+
+// Then use in components:
+<h1 className="font-inter">Tailwind + Custom Font</h1>`,
+  lineByLine: [
+    "next/font/google - Import Google Fonts",
+    "subsets: ['latin'] - Which character sets to include",
+    "variable - Create CSS variable",
+    "className={inter.className} - Apply font",
+    "localFont - Use local font files",
+    "Automatic optimization - No layout shift"
+  ],
+  simpleMeaning: "Next.js automatically optimizes fonts so they load fast without shifting your layout.",
+  output: "Text displays in your chosen fonts with no layout shift (CLS) issues.",
+  note: "next/font works without any external network requests, improving privacy."
+},
+
+// ========== 13. ADDING META TAGS (SEO) ==========
+{
+  name: "13. Adding Meta Tags for SEO",
+  description: "Next.js has a Metadata API for SEO. You can add titles, descriptions, Open Graph tags, and Twitter cards to improve search rankings.",
+  code: `// app/layout.js (Root metadata for all pages)
+export const metadata = {
+  title: 'My Awesome Website',
+  description: 'This is my awesome website built with Next.js',
+  keywords: ['next.js', 'react', 'web development'],
+  authors: [{ name: 'John Doe', url: 'https://johndoe.com' }],
+  openGraph: {
+    title: 'My Awesome Website',
+    description: 'This is my awesome website',
+    url: 'https://mywebsite.com',
+    siteName: 'My Website',
+    images: [
+      {
+        url: 'https://mywebsite.com/og-image.jpg',
+        width: 1200,
+        height: 630,
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'My Awesome Website',
+    description: 'This is my awesome website',
+    images: ['https://mywebsite.com/twitter-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  verification: {
+    google: 'google-site-verification-code',
+  },
+};
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>{children}</body>
+    </html>
+  );
+}
+
+// app/about/page.js (Page-specific metadata)
+export const metadata = {
+  title: 'About Us | My Website',
+  description: 'Learn more about our company and mission',
+  openGraph: {
+    title: 'About Us',
+    description: 'Learn about our company',
+  },
+};
+
+export default function AboutPage() {
+  return <h1>About Us</h1>;
+}
+
+// app/blog/[slug]/page.js (Dynamic metadata)
+export async function generateMetadata({ params }) {
+  const { slug } = params;
+  const post = await getPost(slug);
+  
+  return {
+    title: post.title,
+    description: post.excerpt,
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      images: [post.image],
+    },
+  };
+}
+
+// Alternative: Using generateMetadata function
+export async function generateMetadata({ params, searchParams }) {
+  const product = await getProduct(params.id);
+  
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: product.name,
+      description: product.description,
+      images: [product.image],
+      price: product.price,
+    },
+  };
+}
+
+// app/products/[id]/page.js
+export default async function ProductPage({ params }) {
+  const product = await getProduct(params.id);
+  
+  return (
+    <div>
+      <h1>{product.name}</h1>
+      <p>{product.description}</p>
+    </div>
+  );
+}`,
+  lineByLine: [
+    "metadata object - Define SEO data",
+    "title - Browser tab title",
+    "description - SEO description",
+    "openGraph - Social media sharing",
+    "twitter - Twitter card preview",
+    "generateMetadata - Dynamic SEO for routes"
+  ],
+  simpleMeaning: "Metadata API helps search engines and social media understand your pages.",
+  output: "Search engines show your titles and descriptions. Social sharing shows pretty cards.",
+  note: "Good SEO = more visitors from Google and social media."
+},
+
+// ========== 14. FETCHING DATA IN NEXT.JS ==========
+{
+  name: "14. Fetching Data in Next.js",
+  description: "Next.js supports multiple data fetching methods. Server Components can fetch data directly with async/await.",
+  code: `// app/users/page.js (Basic data fetching)
+async function getUsers() {
+  const res = await fetch('https://jsonplaceholder.typicode.com/users');
+  const data = await res.json();
+  return data;
+}
+
+export default async function UsersPage() {
+  const users = await getUsers();
+  
+  return (
+    <div>
+      <h1>Users List</h1>
+      {users.map(user => (
+        <div key={user.id}>
+          <h2>{user.name}</h2>
+          <p>Email: {user.email}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// With loading state
+// app/users/loading.js
+export default function Loading() {
+  return <div>Loading users...</div>;
+}
+
+// Caching and revalidation
+async function getPosts() {
+  const res = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    cache: 'force-cache',  // Cache data (default)
+    // cache: 'no-store',  // Don't cache, fetch fresh every time
+    next: {
+      revalidate: 3600,     // Revalidate every hour (ISR)
+    },
+  });
+  return res.json();
+}
+
+// Parallel data fetching
+async function getData() {
+  const [users, posts, comments] = await Promise.all([
+    fetch('https://api.example.com/users').then(res => res.json()),
+    fetch('https://api.example.com/posts').then(res => res.json()),
+    fetch('https://api.example.com/comments').then(res => res.json()),
+  ]);
+  
+  return { users, posts, comments };
+}
+
+export default async function DashboardPage() {
+  const { users, posts, comments } = await getData();
+  
+  return (
+    <div>
+      <div>Users: {users.length}</div>
+      <div>Posts: {posts.length}</div>
+      <div>Comments: {comments.length}</div>
+    </div>
+  );
+}
+
+// With error handling
+async function getProducts() {
+  try {
+    const res = await fetch('https://api.example.com/products');
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+}
+
+// app/products/error.js (Error boundary)
+'use client';
+export default function Error({ error, reset }) {
+  return (
+    <div>
+      <h2>Something went wrong!</h2>
+      <button onClick={() => reset()}>Try again</button>
+    </div>
+  );
+}`,
+  lineByLine: [
+    "async function - Server Components can be async",
+    "await fetch() - Fetch data directly",
+    "cache: 'force-cache' - Store for reuse",
+    "revalidate - Time-based cache refresh",
+    "Promise.all - Fetch multiple things at once",
+    "error.js - Error boundary for graceful failures"
+  ],
+  simpleMeaning: "Just use async/await to fetch data in your components - it's that simple.",
+  output: "Data loads and displays in your page with built-in loading and error states.",
+  note: "Server Components fetch data on the server. No API routes needed for simple data."
+},
+
+// ========== 15. CLIENT COMPONENTS VS SERVER COMPONENTS ==========
+{
+  name: "15. Client vs Server Components",
+  description: "Next.js 13+ uses React Server Components by default. Client Components add 'use client' for interactive features.",
+  code: `// app/components/ServerComponent.js (Default - NO 'use client')
+// Runs on server only. Cannot use useState, useEffect, onClick, etc.
+export default function ServerComponent() {
+  // ✅ Can use async/await
+  // ✅ Can access database directly
+  // ✅ Can read environment variables
+  // ❌ Cannot use useState
+  // ❌ Cannot use onClick handlers
+  // ❌ Cannot use browser APIs
+  
+  return (
+    <div>
+      <h1>I run on the server</h1>
+      <p>Environment: {process.env.NODE_ENV}</p>
+    </div>
+  );
+}
+
+// app/components/ClientComponent.js (WITH 'use client')
+'use client';
+
+import { useState, useEffect } from 'react';
+
+export default function ClientComponent() {
+  // ✅ Can use useState
+  const [count, setCount] = useState(0);
+  
+  // ✅ Can use useEffect
+  useEffect(() => {
+    console.log('Component mounted');
+  }, []);
+  
+  // ✅ Can use event handlers
+  const handleClick = () => {
+    setCount(count + 1);
+  };
+  
+  // ✅ Can use browser APIs
+  const handleLocalStorage = () => {
+    localStorage.setItem('key', 'value');
+  };
+  
+  return (
+    <div>
+      <h1>I run on the client</h1>
+      <p>Count: {count}</p>
+      <button onClick={handleClick}>Increment</button>
+    </div>
+  );
+}
+
+// Mixing both - Server component can import Client component
+// app/page.js (Server Component)
+import ServerComponent from './components/ServerComponent';
+import ClientComponent from './components/ClientComponent';
+
+export default function HomePage() {
+  return (
+    <div>
+      <ServerComponent />  {/* Runs on server */}
+      <ClientComponent />  {/* Runs on client */}
+    </div>
+  );
+}
+
+// Passing props from Server to Client
+// app/page.js
+async function getData() {
+  return { user: 'John', role: 'admin' };
+}
+
+export default async function HomePage() {
+  const data = await getData();
+  
+  return (
+    <div>
+      {/* Server data passed to client component */}
+      <InteractiveProfile userData={data} />
+    </div>
+  );
+}
+
+// app/components/InteractiveProfile.js
+'use client';
+
+export default function InteractiveProfile({ userData }) {
+  const [showDetails, setShowDetails] = useState(false);
+  
+  return (
+    <div>
+      <h3>{userData.user}</h3>
+      <button onClick={() => setShowDetails(!showDetails)}>
+        Toggle Details
+      </button>
+      {showDetails && <p>Role: {userData.role}</p>}
+    </div>
+  );
+}`,
+  lineByLine: [
+    "No 'use client' - Server Component (default)",
+    "'use client' - Client Component directive",
+    "Server Component - Runs only on server",
+    "Client Component - Runs in browser",
+    "useState/useEffect - Only in Client Components",
+    "Props - Server can pass data to Client"
+  ],
+  simpleMeaning: "Server Components are for static content. Add 'use client' when you need buttons, forms, or interactivity.",
+  output: "Server renders what it can, client handles interactions. Best of both worlds.",
+  note: "Use Server Components by default. Only add 'use client' when needed."
+},
+
+// ========== 16. USING USESTATE AND USEEFFECT ==========
+{
+  name: "16. Using useState and useEffect",
+  description: "React hooks for managing state and side effects. Works only in Client Components with 'use client' directive.",
+  code: `// app/components/Counter.js
+'use client';
+import { useState } from 'react';
+
+export default function Counter() {
+  // useState returns [current value, function to update]
+  const [count, setCount] = useState(0);  // Initialize with 0
+  const [name, setName] = useState('');    // Initialize with empty string
+  
+  return (
+    <div>
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
+      
+      <input 
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Enter your name"
+      />
+      <p>Hello, {name || 'stranger'}!</p>
+    </div>
+  );
+}
+
+// app/components/TodoList.js
+'use client';
+import { useState } from 'react';
+
+export default function TodoList() {
+  const [todos, setTodos] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+  
+  const addTodo = () => {
+    if (inputValue.trim()) {
+      setTodos([...todos, { id: Date.now(), text: inputValue, completed: false }]);
+      setInputValue('');
+    }
+  };
+  
+  const toggleTodo = (id) => {
+    setTodos(todos.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    ));
+  };
+  
+  const deleteTodo = (id) => {
+    setTodos(todos.filter(todo => todo.id !== id));
+  };
+  
+  return (
+    <div>
+      <h2>Todo List</h2>
+      <div>
+        <input 
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && addTodo()}
+        />
+        <button onClick={addTodo}>Add</button>
+      </div>
+      
+      <ul>
+        {todos.map(todo => (
+          <li key={todo.id}>
+            <span 
+              style={{ textDecoration: todo.completed ? 'line-through' : 'none' }}
+              onClick={() => toggleTodo(todo.id)}
+            >
+              {todo.text}
+            </span>
+            <button onClick={() => deleteTodo(todo.id)}>Delete</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// app/components/UserProfile.js (useEffect example)
+'use client';
+import { useState, useEffect } from 'react';
+
+export default function UserProfile({ userId }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  
+  useEffect(() => {
+    // This runs after component mounts
+    // And when userId changes
+    async function fetchUser() {
+      setLoading(true);
+      const res = await fetch(\`https://api.example.com/users/\${userId}\`);
+      const data = await res.json();
+      setUser(data);
+      setLoading(false);
+    }
+    
+    fetchUser();
+  }, [userId]); // Re-run when userId changes
+  
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>User not found</div>;
+  
+  return (
+    <div>
+      <h2>{user.name}</h2>
+      <p>Email: {user.email}</p>
+    </div>
+  );
+}
+
+// app/components/WindowWidth.js
+'use client';
+import { useState, useEffect } from 'react';
+
+export default function WindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 0);
+  
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    
+    // Cleanup - removes event listener when component unmounts
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // Empty array = run once on mount
+  
+  return <div>Window width: {width}px</div>;
+}`,
+  lineByLine: [
+    "useState(0) - Create state variable",
+    "setCount() - Update state variable",
+    "useEffect - Run code after render",
+    "[userId] - Dependencies array",
+    "Cleanup function - Remove event listeners",
+    "loadMore() - Update state to re-render"
+  ],
+  simpleMeaning: "useState stores data that changes. useEffect runs code when component loads or data changes.",
+  output: "Counter increments, todo list adds items, user data loads from API.",
+  note: "Always add 'use client' at the top when using hooks."
+},
+
+// ========== 17. HANDLING FORMS IN NEXT.JS ==========
+{
+  name: "17. Handling Forms in Next.js",
+  description: "Forms in Next.js can be handled on client side (with useState) or server side (with Server Actions).",
+  code: `// METHOD 1: Client-side form handling
+// app/components/ContactForm.js
+'use client';
+import { useState } from 'react';
+
+export default function ContactForm() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    message: ''
+  });
+  const [status, setStatus] = useState('');
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    
+    const res = await fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    });
+    
+    if (res.ok) {
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+    } else {
+      setStatus('error');
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <label>Name:</label>
+        <input
+          type="text"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      
+      <div>
+        <label>Email:</label>
+        <input
+          type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      
+      <div>
+        <label>Message:</label>
+        <textarea
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
+          required
+        />
+      </div>
+      
+      <button type="submit" disabled={status === 'sending'}>
+        {status === 'sending' ? 'Sending...' : 'Send Message'}
+      </button>
+      
+      {status === 'success' && <p>Message sent!</p>}
+      {status === 'error' && <p>Error sending message</p>}
+    </form>
+  );
+}
+
+// API Route for form submission
+// app/api/contact/route.js
+export async function POST(request) {
+  const { name, email, message } = await request.json();
+  
+  // Save to database or send email
+  console.log('Form submission:', { name, email, message });
+  
+  return Response.json({ success: true });
+}
+
+// METHOD 2: Server Actions (Simpler, no API route needed)
+// app/actions/contact.js
+'use server';
+
+export async function submitContactForm(formData) {
+  const name = formData.get('name');
+  const email = formData.get('email');
+  const message = formData.get('message');
+  
+  // Validate
+  if (!name || !email || !message) {
+    return { error: 'All fields required' };
+  }
+  
+  // Process the data
+  console.log('Form submitted:', { name, email, message });
+  
+  // Return success
+  return { success: true };
+}
+
+// app/contact/page.js (Using Server Action)
+import { submitContactForm } from '../actions/contact';
+
+export default function ContactPage() {
+  return (
+    <form action={submitContactForm}>
+      <div>
+        <label>Name:</label>
+        <input type="text" name="name" required />
+      </div>
+      
+      <div>
+        <label>Email:</label>
+        <input type="email" name="email" required />
+      </div>
+      
+      <div>
+        <label>Message:</label>
+        <textarea name="message" required />
+      </div>
+      
+      <button type="submit">Send Message</button>
+    </form>
+  );
+}
+
+// With loading state (using useFormStatus)
+'use client';
+import { useFormStatus } from 'react-dom';
+import { submitContactForm } from '../actions/contact';
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  
+  return (
+    <button type="submit" disabled={pending}>
+      {pending ? 'Sending...' : 'Send Message'}
+    </button>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <form action={submitContactForm}>
+      {/* form fields */}
+      <SubmitButton />
+    </form>
+  );
+}`,
+  lineByLine: [
+    "useState - Store form data",
+    "handleChange - Update state on input",
+    "handleSubmit - Send data to server",
+    "Server Actions - Alternative to API routes",
+    "useFormStatus - Get loading state",
+    "'use server' - Mark function as Server Action"
+  ],
+  simpleMeaning: "Client forms = useState + API. Server forms = form action + Server Action.",
+  output: "User submits form, data saves, shows success or error message.",
+  note: "Server Actions are simpler but newer. Start with client forms if unsure."
+},
+
+// ========== 18. DYNAMIC ROUTES AND PARAMS ==========
+{
+  name: "18. Dynamic Routes and Params",
+  description: "Dynamic routes let you create pages with variable URLs like /products/123 or /blog/my-post-title.",
+  code: `// Folder structure:
+// app/
+//   products/
+//     [id]/           (Dynamic segment folder)
+//       page.js       (Handles /products/1, /products/2, etc.)
+//   blog/
+//     [slug]/
+//       page.js       (Handles /blog/my-first-post)
+
+// Example 1: Basic dynamic route
+// app/products/[id]/page.js
+export default function ProductPage({ params }) {
+  const { id } = params;
+  
+  return (
+    <div>
+      <h1>Product ID: {id}</h1>
+      <p>Showing details for product #{id}</p>
+    </div>
+  );
+}
+
+// Example 2: Fetching data based on dynamic params
+// app/products/[id]/page.js (Alternative version with data fetching)
+async function getProduct(id) {
+  const res = await fetch(\`https://api.example.com/products/\${id}\`);
+  return res.json();
+}
+
+export default async function ProductDetailPage({ params }) {
+  const product = await getProduct(params.id);
+  
+  return (
+    <div>
+      <h1>{product.name}</h1>
+      <p>Price: \${product.price}</p>
+      <p>{product.description}</p>
+    </div>
+  );
+}
+
+// Example 3: Multiple dynamic segments
+// app/store/[category]/[productId]/page.js
+export default async function StorePage({ params }) {
+  const { category, productId } = params;
+  
+  return (
+    <div>
+      <p>Category: {category}</p>
+      <p>Product: {productId}</p>
+    </div>
+  );
+  // URL: /store/electronics/phone123
+}
+
+// Example 4: Catch-all routes (handle any depth)
+// app/docs/[...slug]/page.js
+export default function DocsPage({ params }) {
+  const { slug } = params;
+  
+  return (
+    <div>
+      <h1>Documentation</h1>
+      <p>Path: {slug?.join(' / ')}</p>
+      {/* 
+        /docs/getting-started → "Path: getting-started"
+        /docs/advanced/deployment → "Path: advanced / deployment"
+        /docs → slug is undefined
+      */}
+    </div>
+  );
+}
+
+// Example 5: Optional catch-all routes ([[...slug]])
+// app/blog/[[...slug]]/page.js
+export default function BlogPage({ params }) {
+  const { slug = [] } = params;
+  
+  if (slug.length === 0) {
+    return <h1>Blog Homepage</h1>;
+  }
+  
+  return <h1>Blog Post: {slug.join('/')}</h1>;
+  // /blog → Blog Homepage
+  // /blog/my-post → "Blog Post: my-post"
+}
+
+// Example 6: Generate static paths for dynamic routes (SSG)
+// app/products/[id]/page.js
+export async function generateStaticParams() {
+  // Fetch all product IDs at build time
+  const products = await fetch('https://api.example.com/products').then(r => r.json());
+  
+  return products.map(product => ({
+    id: product.id.toString(),
+  }));
+  // Pre-builds /products/1, /products/2, etc. at build time
+}
+
+// Example 7: Create navigation links for dynamic routes
+// app/products/page.js
+import Link from 'next/link';
+
+async function getProducts() {
+  const res = await fetch('https://api.example.com/products');
+  return res.json();
+}
+
+export default async function ProductsList() {
+  const products = await getProducts();
+  
+  return (
+    <div>
+      {products.map(product => (
+        <Link key={product.id} href={\`/products/\${product.id}\`}>
+          {product.name}
+        </Link>
+      ))}
+    </div>
+  );
+}`,
+  lineByLine: [
+    "[id] - Dynamic segment folder name",
+    "params - Object containing URL params",
+    "params.id - Access the dynamic value",
+    "[...slug] - Catch all segments",
+    "[[...slug]] - Optional catch all",
+    "generateStaticParams - Pre-build pages"
+  ],
+  simpleMeaning: "Square brackets [param] in folder names create dynamic URLs.",
+  output: "URL /products/123 displays product 123. URL /blog/hello shows blog post hello.",
+  note: "Dynamic routes are powerful for product pages, blog posts, and user profiles."
+},
+
+// ========== 19. API ROUTES IN NEXT.JS ==========
+{
+  name: "19. API Routes in Next.js",
+  description: "API routes let you build backend endpoints inside your Next.js app. Create REST APIs, handle form submissions, or connect to databases.",
+  code: `// app/api/hello/route.js (Simple GET endpoint)
+export async function GET() {
+  return Response.json({ message: 'Hello World!' });
+}
+
+// app/api/users/route.js (GET and POST)
+export async function GET() {
+  const users = [
+    { id: 1, name: 'John', email: 'john@example.com' },
+    { id: 2, name: 'Jane', email: 'jane@example.com' },
+  ];
+  
+  return Response.json(users);
+}
+
+export async function POST(request) {
+  const body = await request.json();
+  const { name, email } = body;
+  
+  // Save to database here
+  const newUser = { id: Date.now(), name, email };
+  
+  return Response.json(newUser, { status: 201 });
+}
+
+// app/api/users/[id]/route.js (Dynamic API routes)
+export async function GET(request, { params }) {
+  const { id } = params;
+  
+  // Fetch user from database
+  const user = { id, name: 'John Doe', email: 'john@example.com' };
+  
+  if (!user) {
+    return Response.json({ error: 'User not found' }, { status: 404 });
+  }
+  
+  return Response.json(user);
+}
+
+export async function PUT(request, { params }) {
+  const { id } = params;
+  const body = await request.json();
+  
+  // Update user in database
+  const updatedUser = { id, ...body };
+  
+  return Response.json(updatedUser);
+}
+
+export async function DELETE(request, { params }) {
+  const { id } = params;
+  
+  // Delete user from database
+  
+  return Response.json({ success: true });
+}
+
+// app/api/todos/route.js (With error handling)
+export async function GET() {
+  try {
+    const todos = await db.todo.findMany();
+    return Response.json(todos);
+  } catch (error) {
+    return Response.json({ error: 'Failed to fetch todos' }, { status: 500 });
+  }
+}
+
+// app/api/contact/route.js (Send email)
+export async function POST(request) {
+  const { name, email, message } = await request.json();
+  
+  // Validate
+  if (!name || !email || !message) {
+    return Response.json({ error: 'Missing fields' }, { status: 400 });
+  }
+  
+  // Send email (example with Resend)
+  // await resend.emails.send({ ... });
+  
+  return Response.json({ success: true });
+}
+
+// Using API routes from client components
+'use client';
+import { useState } from 'react';
+
+export default function CreateUser() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email })
+    });
+    
+    if (res.ok) {
+      const newUser = await res.json();
+      console.log('User created:', newUser);
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <input value={name} onChange={(e) => setName(e.target.value)} />
+      <input value={email} onChange={(e) => setEmail(e.target.value)} />
+      <button type="submit">Create User</button>
+    </form>
+  );
+}
+
+// Middleware for API routes (authentication)
+// middleware.js
+import { NextResponse } from 'next/server';
+
+export function middleware(request) {
+  const token = request.headers.get('authorization');
+  
+  if (!token && request.nextUrl.pathname.startsWith('/api/protected')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
+  return NextResponse.next();
+}
+
+// Query parameters in API routes
+export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const page = searchParams.get('page') || 1;
+  const limit = searchParams.get('limit') || 10;
+  
+  // Use page and limit for pagination
+  const data = await db.post.findMany({
+    skip: (page - 1) * limit,
+    take: limit
+  });
+  
+  return Response.json(data);
+}`,
+  lineByLine: [
+    "export async function GET - Handle GET requests",
+    "request.json() - Parse POST body",
+    "params - Access dynamic route values",
+    "Response.json() - Send JSON response",
+    "status: 404 - Set HTTP status code",
+    "searchParams - Get query parameters"
+  ],
+  simpleMeaning: "API routes let you create backend endpoints without a separate server.",
+  output: "/api/hello returns JSON. POST to /api/users creates new user.",
+  note: "API routes run server-side. Perfect for form submissions and database operations."
+},
+
+// ========== 20. ENVIRONMENT VARIABLES ==========
+{
+  name: "20. Environment Variables",
+  description: "Environment variables store configuration like API keys, database URLs, and secret values. Next.js loads them from .env files.",
+  code: `# .env.local (Local development)
+# Never commit this file to git!
+DATABASE_URL="postgresql://localhost:5432/mydb"
+API_SECRET_KEY="supersecretkey123"
+STRIPE_API_KEY="sk_test_12345"
+
+# .env.production (Production)
+DATABASE_URL="postgresql://prod-server:5432/proddb"
+API_SECRET_KEY="realsecretkey456"
+
+# .env (Default, can be committed)
+NEXT_PUBLIC_APP_NAME="My Awesome App"
+NEXT_PUBLIC_API_URL="https://api.example.com"
+
+// Using environment variables in server components
+// app/page.js (Server Component)
+export default function HomePage() {
+  // Server-side env vars (NOT exposed to browser)
+  const dbUrl = process.env.DATABASE_URL;
+  const apiKey = process.env.API_SECRET_KEY;
+  
+  // Public env vars (exposed to browser)
+  const appName = process.env.NEXT_PUBLIC_APP_NAME;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  console.log('DB URL:', dbUrl);  // Works on server only
+  
+  return (
+    <div>
+      <h1>{appName}</h1>
+      <p>API URL: {apiUrl}</p>
+      {/* dbUrl and apiKey won't show in browser! */}
+    </div>
+  );
+}
+
+// Using env vars in client components
+'use client';
+
+export default function ClientComponent() {
+  // Only NEXT_PUBLIC_* variables work in client
+  const appName = process.env.NEXT_PUBLIC_APP_NAME;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  
+  // This WON'T work (undefined)
+  const secretKey = process.env.API_SECRET_KEY;
+  
+  return (
+    <div>
+      <p>App: {appName}</p>
+      <p>API: {apiUrl}</p>
+    </div>
+  );
+}
+
+// Using env vars in API routes
+// app/api/stripe/route.js
+export async function POST() {
+  const stripeKey = process.env.STRIPE_API_KEY;
+  
+  if (!stripeKey) {
+    return Response.json({ error: 'Stripe key missing' }, { status: 500 });
+  }
+  
+  // Use stripeKey securely (not exposed to client)
+  return Response.json({ success: true });
+}
+
+// Using env vars in next.config.js
+// next.config.js
+module.exports = {
+  env: {
+    CUSTOM_VAR: process.env.CUSTOM_VAR,
+  },
+  images: {
+    domains: [process.env.IMAGE_DOMAIN],
+  },
+};
+
+// Validation with Zod (recommended)
+// lib/env.js
+import { z } from 'zod';
+
+const envSchema = z.object({
+  DATABASE_URL: z.string().url(),
+  API_SECRET_KEY: z.string().min(1),
+  NEXT_PUBLIC_APP_NAME: z.string().optional(),
+});
+
+const parsedEnv = envSchema.safeParse(process.env);
+
+if (!parsedEnv.success) {
+  console.error('Invalid environment variables:', parsedEnv.error);
+  throw new Error('Invalid environment variables');
+}
+
+export const env = parsedEnv.data;
+
+// .env.example (Commit this file as template)
+# Database
+DATABASE_URL=postgresql://localhost:5432/mydb
+
+# API Keys
+API_SECRET_KEY=your-secret-key-here
+STRIPE_API_KEY=sk_test_...
+
+# Public (starts with NEXT_PUBLIC_)
+NEXT_PUBLIC_APP_NAME=My App
+NEXT_PUBLIC_API_URL=https://api.example.com
+
+# Git rules
+# .gitignore
+.env
+.env.local
+.env.production.local
+.env.development.local`,
+  lineByLine: [
+    ".env.local - Local development (git ignored)",
+    "process.env.VAR - Access environment variable",
+    "NEXT_PUBLIC_ - Prefix exposes to browser",
+    "Server components - Can access all env vars",
+    "Client components - Only NEXT_PUBLIC_*",
+    ".env.example - Template to share"
+  ],
+  simpleMeaning: "Environment variables store secret keys and configuration separately from code.",
+  output: "API keys stay secret. App name shows publicly. Different values for dev/production.",
+  note: "Never commit .env.local to git. Use .env.example as template."
+}
     ]
   },
   advanced: {
