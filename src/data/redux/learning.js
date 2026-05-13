@@ -1,1060 +1,797 @@
+// /data/redux/learning.js – Complete Redux Documentation (30+ topics)
+
 export const learning = {
   basic: {
-    title: "🔄 REDUX: COMPLETE STATE MANAGEMENT DOCUMENTATION",
-    description: "Comprehensive Redux guide covering everything from core concepts to advanced patterns. Redux is a predictable state container for JavaScript applications, commonly used with React, Angular, Vue, and vanilla JS. This documentation includes 15+ topics with practical code examples, line-by-line explanations, and real-world use cases. Perfect for beginners learning state management and experienced developers mastering Redux Toolkit, Thunks, Sagas, and RTK Query.",
-    
+    title: "🔄 REDUX BASICS: FUNDAMENTALS",
+    description: "Comprehensive Redux guide covering core concepts: store, reducers, actions, dispatch, subscribe, middleware, and devtools. Perfect for beginners.",
     topics: [
       {
-        name: "1. STORE & REDUCER - Core Concepts",
-        description: "Store holds the entire application state. Reducer is a pure function that takes current state and action, returns new state. Actions are plain objects with type property. Store.dispatch() sends actions. Store.getState() returns current state. Create store using createStore() from Redux.",
-        code: `// Import Redux
+        name: "1. Redux Principles & Architecture",
+        description: "Redux follows three core principles: Single source of truth (one store), State is read-only (only actions can change state), Changes are made with pure functions (reducers). The data flow is unidirectional: action -> reducer -> store -> view -> action.",
+        code: `// Redux data flow
+// 1. Store holds the state
+// 2. View dispatches an action
+// 3. Reducer updates the state immutably
+// 4. Store notifies subscribers
+// 5. View re-renders
+
+// Example counter implementation
 const { createStore } = require('redux');
 
-// Reducer function (pure function)
+// Reducer (pure function)
 const counterReducer = (state = 0, action) => {
-    // Check action type and return new state
+    switch (action.type) {
+        case 'INCREMENT': return state + 1;
+        case 'DECREMENT': return state - 1;
+        default: return state;
+    }
+};
+
+// Store
+const store = createStore(counterReducer);
+
+// Dispatch action
+store.dispatch({ type: 'INCREMENT' });`,
+        lineByLine: [
+          "Line 1: Single source of truth – one store",
+          "Line 2: State is read-only – only actions trigger changes",
+          "Line 3: Reducers are pure functions (no side effects)",
+          "Line 4: Unidirectional data flow: action → reducer → store → view",
+          "Line 6: createStore creates the Redux store",
+          "Line 7: Reducer function with initial state and action",
+          "Line 8: switch on action.type",
+          "Line 9: Return new state (immutable)",
+          "Line 12: dispatch sends action to reducer"
+        ],
+        simpleMeaning: "Redux is a predictable state container. One store holds the entire app state. You can only change state by dispatching actions. Reducers specify how state changes.",
+        output: "State updates from 0 to 1 after dispatch",
+        note: "Redux works with any UI layer, not just React."
+      },
+      {
+        name: "2. Store, Reducer, Actions - Deep Dive",
+        description: "Store holds state, reducer defines state transitions, actions are plain objects with type. Use createStore to instantiate store. getState reads state, dispatch sends actions, subscribe listens to changes.",
+        code: `const { createStore } = require('redux');
+
+// Initial state
+const initialState = { count: 0, user: null };
+
+// Reducer
+const rootReducer = (state = initialState, action) => {
     switch (action.type) {
         case 'INCREMENT':
-            return state + 1;
-        case 'DECREMENT':
-            return state - 1;
-        case 'RESET':
-            return 0;
+            return { ...state, count: state.count + 1 };
+        case 'SET_USER':
+            return { ...state, user: action.payload };
         default:
             return state;
     }
 };
 
-// Create store with reducer
-const store = createStore(counterReducer);
+// Create store
+const store = createStore(rootReducer);
 
-// Get initial state
-console.log('Initial state:', store.getState());
+// Get state
+console.log(store.getState()); // { count: 0, user: null }
 
-// Subscribe to state changes
-store.subscribe(() => {
-    console.log('State changed to:', store.getState());
+// Subscribe
+const unsubscribe = store.subscribe(() => {
+    console.log('State changed:', store.getState());
 });
 
 // Dispatch actions
-store.dispatch({ type: 'INCREMENT' });  // state: 1
-store.dispatch({ type: 'INCREMENT' });  // state: 2
-store.dispatch({ type: 'DECREMENT' });  // state: 1
-store.dispatch({ type: 'RESET' });      // state: 0
+store.dispatch({ type: 'INCREMENT' });
+store.dispatch({ type: 'SET_USER', payload: { name: 'John' } });
 
-// Multiple reducers with combineReducers
-const { combineReducers } = require('redux');
-
-const userReducer = (state = null, action) => {
-    if (action.type === 'SET_USER') {
-        return action.payload;
-    }
-    return state;
-};
-
-const rootReducer = combineReducers({
-    counter: counterReducer,
-    user: userReducer
-});
-
-const mainStore = createStore(rootReducer);`,
+// Unsubscribe
+unsubscribe();`,
         lineByLine: [
-          "Line 1: const { createStore } = require('redux') - Imports createStore function from Redux",
-          "Line 2: // Reducer function - Pure function that calculates new state",
-          "Line 3: const counterReducer = (state = 0, action) => {} - Reducer with initial state 0",
-          "Line 4: switch (action.type) - Checks action type to determine state change",
-          "Line 5: case 'INCREMENT': return state + 1 - Increases state by 1",
-          "Line 6: case 'DECREMENT': return state - 1 - Decreases state by 1",
-          "Line 7: case 'RESET': return 0 - Resets state to 0",
-          "Line 8: default: return state - Returns unchanged state for unknown actions",
-          "Line 9: const store = createStore(counterReducer) - Creates store with reducer",
-          "Line 10: store.getState() - Returns current state value",
-          "Line 11: store.subscribe(() => {}) - Listens for state changes",
-          "Line 12: store.dispatch({ type: 'INCREMENT' }) - Sends action to reducer",
-          "Line 13: combineReducers() - Combines multiple reducers",
-          "Line 14: const rootReducer = combineReducers({...}) - Creates root reducer with multiple slices"
+          "Line 2: createStore imports",
+          "Line 5: initial state object",
+          "Line 8-15: reducer handles multiple actions",
+          "Line 9: spread operator for immutable update",
+          "Line 11: payload from action",
+          "Line 18: createStore with reducer",
+          "Line 21: getState returns current state",
+          "Line 24: subscribe registers listener",
+          "Line 25: listener runs on every state change",
+          "Line 28: dispatch sends action",
+          "Line 32: unsubscribe stops listening"
         ],
-        simpleMeaning: "Store is like a central database for your app. Reducer is like a cashier - takes current state and action, returns new state. Dispatch is like placing an order. Subscribe listens for changes. One store, many reducers (one per feature).",
-        output: "Initial state: 0, State changed to: 1, State changed to: 2, State changed to: 1, State changed to: 0",
-        note: "Reducers must be pure functions (no side effects, same input = same output). Never mutate state directly - always return new object. Use combineReducers for multiple state slices."
+        simpleMeaning: "Store is the state container. Reducer tells how state changes. Actions are messages. Subscribe watches for changes.",
+        output: "State changed: { count: 1, user: null } then { count: 1, user: { name: 'John' } }",
+        note: "Always return a new object from reducer. Never mutate state directly."
       },
-      
       {
-        name: "2. DISPATCH ACTIONS - Sending Events",
-        description: "Actions are plain JavaScript objects with type property describing what happened. Action creators are functions that return action objects. Dispatch sends actions to store. Actions can have payload (extra data). Types are usually constants to avoid typos.",
-        code: `// Action type constants (prevents typos)
+        name: "3. Action Creators & Action Types",
+        description: "Action creators are functions that return action objects. Action type constants prevent typos and make refactoring easier. Actions should have a type and optionally a payload. Use payload convention for extra data.",
+        code: `// Action types as constants
 const INCREMENT = 'INCREMENT';
 const DECREMENT = 'DECREMENT';
-const ADD_BY_VALUE = 'ADD_BY_VALUE';
+const ADD_BY = 'ADD_BY';
 const SET_USER = 'SET_USER';
 
-// Action creators (functions that return action objects)
-const increment = () => ({
-    type: INCREMENT
-});
+// Action creators
+const increment = () => ({ type: INCREMENT });
+const decrement = () => ({ type: DECREMENT });
+const addBy = (amount) => ({ type: ADD_BY, payload: amount });
+const setUser = (user) => ({ type: SET_USER, payload: user });
 
-const decrement = () => ({
-    type: DECREMENT
-});
-
-const addByValue = (amount) => ({
-    type: ADD_BY_VALUE,
-    payload: amount  // Additional data for the action
-});
-
-const setUser = (user) => ({
-    type: SET_USER,
-    payload: user
-});
-
-// Reducer handling payload
+// Reducer using action creators
 const counterReducer = (state = 0, action) => {
     switch (action.type) {
         case INCREMENT:
             return state + 1;
         case DECREMENT:
             return state - 1;
-        case ADD_BY_VALUE:
-            return state + action.payload;  // Use payload value
+        case ADD_BY:
+            return state + action.payload;
         default:
             return state;
     }
 };
 
+// Dispatch using action creators
+store.dispatch(increment());
+store.dispatch(addBy(5));
+store.dispatch(setUser({ id: 1, name: 'Alice' }));`,
+        lineByLine: [
+          "Line 2-5: Action type constants (prevents typos)",
+          "Line 8-11: Action creators – functions returning action objects",
+          "Line 10: Action with payload",
+          "Line 14-21: Reducer using constants",
+          "Line 18: action.payload for value",
+          "Line 24-26: Dispatching actions using creators"
+        ],
+        simpleMeaning: "Action types are constants. Action creators are factories for actions. Use them to avoid typos and keep code DRY.",
+        output: "State increments by 1, then by 5, user set to Alice.",
+        note: "Action creators are optional but highly recommended. Use PascalCase or UPPER_SNAKE_CASE for types."
+      },
+      {
+        name: "4. combineReducers - Multiple Reducers",
+        description: "combineReducers merges multiple reducers into one root reducer. Each reducer manages its own slice of state. Useful for modularity and separation of concerns.",
+        code: `import { createStore, combineReducers } from 'redux';
+
+// Reducer for counter slice
+const counterReducer = (state = 0, action) => {
+    switch (action.type) {
+        case 'INCREMENT': return state + 1;
+        case 'DECREMENT': return state - 1;
+        default: return state;
+    }
+};
+
+// Reducer for user slice
 const userReducer = (state = null, action) => {
     switch (action.type) {
-        case SET_USER:
-            return action.payload;
-        default:
-            return state;
+        case 'SET_USER': return action.payload;
+        case 'CLEAR_USER': return null;
+        default: return state;
     }
 };
 
-// Usage with action creators
-import { createStore, combineReducers } from 'redux';
-
+// Root reducer
 const rootReducer = combineReducers({
-    count: counterReducer,
+    counter: counterReducer,
     user: userReducer
 });
 
 const store = createStore(rootReducer);
 
-// Dispatch using action creators
-store.dispatch(increment());      // count: 1
-store.dispatch(increment());      // count: 2
-store.dispatch(addByValue(5));    // count: 7
-store.dispatch(decrement());      // count: 6
-store.dispatch(setUser({ name: 'John', age: 30 }));  // user: {name: 'John', age: 30}
+// State shape: { counter: 0, user: null }
+store.dispatch({ type: 'INCREMENT' });
+store.dispatch({ type: 'SET_USER', payload: { name: 'Bob' } });
 
-// Dynamic action creation
-const createAction = (type, payload) => ({ type, payload });
-store.dispatch(createAction('CUSTOM_ACTION', { data: 'test' }));
-
-// Batch dispatch pattern
-const batchActions = (actions) => {
-    actions.forEach(action => store.dispatch(action));
-};
-
-batchActions([increment(), increment(), addByValue(10)]);`,
+console.log(store.getState()); // { counter: 1, user: { name: 'Bob' } }`,
         lineByLine: [
-          "Line 1: const INCREMENT = 'INCREMENT' - Action type constant (prevents typos)",
-          "Line 2: const DECREMENT = 'DECREMENT' - Another action type constant",
-          "Line 3: const ADD_BY_VALUE = 'ADD_BY_VALUE' - Action with payload example",
-          "Line 4: const SET_USER = 'SET_USER' - User action type",
-          "Line 7: const increment = () => ({ type: INCREMENT }) - Action creator returning INCREMENT action",
-          "Line 8: { type: INCREMENT } - Action object with type property",
-          "Line 9: const addByValue = (amount) => ({ type: ADD_BY_VALUE, payload: amount }) - Action with payload",
-          "Line 10: payload: amount - Extra data for the action",
-          "Line 11: switch (action.type) - Reducer checking action type",
-          "Line 12: case ADD_BY_VALUE: return state + action.payload - Using payload value",
-          "Line 13: store.dispatch(increment()) - Dispatching action using creator"
+          "Line 4: counterReducer manages counter slice",
+          "Line 11: userReducer manages user slice",
+          "Line 18: combineReducers merges them",
+          "Line 19-20: Each reducer gets its own state slice",
+          "Line 22: createStore with root reducer",
+          "Line 25-26: Dispatching actions updates respective slices",
+          "Line 28: State is an object with both slices"
         ],
-        simpleMeaning: "Actions are like messages sent to the store. 'I want to increment counter' or 'Add 5 to counter'. Action creators are factories that build these messages. Dispatch delivers the message. Payload carries extra info like how much to add.",
-        output: "count: 1, count: 2, count: 7, count: 6, user: { name: 'John', age: 30 }",
-        note: "Always use action type constants to avoid typos. Action creators are optional but recommended. Keep actions serializable (no functions, promises). Use payload convention for action data."
+        simpleMeaning: "combineReducers lets you split state management across multiple reducers. Each reducer handles its own part of the state tree.",
+        output: "State: { counter: 1, user: { name: 'Bob' } }",
+        note: "Each reducer is responsible for its own slice. Action types can clash but reducers only respond to relevant types."
       },
-      
       {
-        name: "3. SUBSCRIBE - Listening to State Changes",
-        description: "Subscribe method registers a listener function that runs whenever state changes. Unsubscribe by calling returned function. Used for side effects (localStorage, APIs, logging). React-Redux handles subscription automatically. Multiple subscribers can listen.",
-        code: `// Basic subscription
-import { createStore } from 'redux';
+        name: "5. Middleware - Customizing Dispatch",
+        description: "Middleware intercepts actions before they reach the reducer. Used for logging, crash reporting, async operations, routing, etc. Middleware has access to dispatch and getState.",
+        code: `// Logger middleware
+const loggerMiddleware = (store) => (next) => (action) => {
+    console.log('Dispatching:', action);
+    console.log('Previous state:', store.getState());
+    const result = next(action);
+    console.log('Next state:', store.getState());
+    return result;
+};
 
-const reducer = (state = 0, action) => {
-    switch (action.type) {
-        case 'INC': return state + 1;
-        default: return state;
+// Thunk middleware (handles function actions)
+const thunkMiddleware = (store) => (next) => (action) => {
+    if (typeof action === 'function') {
+        return action(store.dispatch, store.getState);
+    }
+    return next(action);
+};
+
+// Apply middleware
+import { createStore, applyMiddleware } from 'redux';
+const store = createStore(rootReducer, applyMiddleware(loggerMiddleware, thunkMiddleware));
+
+// Using thunk for async
+const fetchUser = (id) => async (dispatch) => {
+    dispatch({ type: 'FETCH_USER_START' });
+    try {
+        const response = await fetch(\`/api/users/\${id}\`);
+        const user = await response.json();
+        dispatch({ type: 'FETCH_USER_SUCCESS', payload: user });
+    } catch (error) {
+        dispatch({ type: 'FETCH_USER_ERROR', payload: error.message });
     }
 };
 
-const store = createStore(reducer);
-
-// Subscribe to state changes
-const unsubscribe = store.subscribe(() => {
-    console.log('State updated:', store.getState());
-});
-
-// Dispatch actions (triggers subscriber)
-store.dispatch({ type: 'INC' });  // Logs: State updated: 1
-store.dispatch({ type: 'INC' });  // Logs: State updated: 2
-
-// Unsubscribe (stop listening)
-unsubscribe();
-store.dispatch({ type: 'INC' });  // No log (unsubscribed)
-
-// Multiple subscribers
-const logToFile = () => {
-    console.log('File: state is', store.getState());
-};
-
-const updateUI = () => {
-    console.log('UI: refreshing with', store.getState());
-};
-
-const saveToStorage = () => {
-    localStorage.setItem('state', JSON.stringify(store.getState()));
-};
-
-store.subscribe(logToFile);
-store.subscribe(updateUI);
-store.subscribe(saveToStorage);
-
-// Selective subscription (only when condition met)
-let previousState = store.getState();
-store.subscribe(() => {
-    const currentState = store.getState();
-    if (currentState.count !== previousState.count) {
-        console.log('Count changed!');
-    }
-    previousState = currentState;
-});
-
-// Real-world: Persist state to localStorage
-const persistState = () => {
-    const state = store.getState();
-    localStorage.setItem('redux_state', JSON.stringify(state));
-};
-store.subscribe(persistState);`,
+store.dispatch(fetchUser(1));`,
         lineByLine: [
-          "Line 1: const store = createStore(reducer) - Creates Redux store",
-          "Line 2: const unsubscribe = store.subscribe(() => {}) - Registers listener, returns unsubscribe function",
-          "Line 3: console.log('State updated:', store.getState()) - Logs current state on each change",
-          "Line 4: store.dispatch({ type: 'INC' }) - Triggers state change and subscriber",
-          "Line 5: unsubscribe() - Stops the listener from running",
-          "Line 6: store.subscribe(logToFile) - Multiple independent subscribers",
-          "Line 7: localStorage.setItem('state', JSON.stringify(store.getState())) - Persists state",
-          "Line 8: let previousState = store.getState() - Tracks previous state for conditional subscription"
+          "Line 2-7: logger middleware logs actions and state",
+          "Line 10-14: thunk middleware detects function actions",
+          "Line 11: if action is a function, call it with dispatch and getState",
+          "Line 17: applyMiddleware composes middleware chain",
+          "Line 18-19: thunk allows async actions",
+          "Line 21-28: async action creator using thunk",
+          "Line 22: dispatch start action",
+          "Line 24-25: await API call",
+          "Line 26: dispatch success action",
+          "Line 31: dispatch the thunk"
         ],
-        simpleMeaning: "Subscribe is like having a notification system. When state changes, all subscribers get notified. Like followers on social media - post a change, everyone sees it. Unsubscribe to stop notifications. React-Redux handles this for React components.",
-        output: "State updated: 1, State updated: 2, File: state is 2, UI: refreshing with 2",
-        note: "Call unsubscribe to prevent memory leaks. Avoid expensive operations in subscribers. React-Redux connect() and useSelector() use subscribe internally."
+        simpleMeaning: "Middleware intercepts actions to add side effects like logging, async calls, or crash reporting. Thunk middleware allows dispatching functions instead of plain actions.",
+        output: "Logger prints actions; async action dispatches loading, success, or error states.",
+        note: "Redux Toolkit includes thunk by default. Middleware order matters."
+      },
+      {
+        name: "6. Redux DevTools Integration",
+        description: "Redux DevTools Extension provides time‑travel debugging, action inspection, state diffing, and performance monitoring. In development, it's automatically enabled. You can also configure it manually.",
+        code: `// Redux Toolkit automatically enables DevTools
+import { configureStore } from '@reduxjs/toolkit';
+const store = configureStore({ reducer: rootReducer });
+
+// Manual configuration for vanilla Redux
+const store = createStore(
+    rootReducer,
+    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+);
+
+// Custom DevTools options
+const store = configureStore({
+    reducer: rootReducer,
+    devTools: {
+        name: 'My App',
+        trace: true,               // Show action stack traces
+        maxAge: 50,                // Limit action history
+        actionSanitizer: (action) => {
+            // Hide sensitive data
+            if (action.type === 'LOGIN') {
+                return { ...action, password: '***' };
+            }
+            return action;
+        }
+    }
+});`,
+        lineByLine: [
+          "Line 2: RTK auto‑enables DevTools",
+          "Line 5-6: Manual enabling for vanilla Redux",
+          "Line 9-15: Custom configuration",
+          "Line 10-11: trace shows which component dispatched action",
+          "Line 12: maxAge limits history",
+          "Line 13-14: actionSanitizer hides sensitive data"
+        ],
+        simpleMeaning: "Redux DevTools lets you inspect every action, travel in time, and debug state changes easily.",
+        output: "DevTools shows action history, state diffs, and performance charts.",
+        note: "Always enable DevTools in development. Use sanitizers to protect sensitive data."
       }
     ]
   },
-  
   advanced: {
     title: "🚀 ADVANCED REDUX: MASTERING STATE MANAGEMENT",
-    description: "Advanced Redux techniques including Redux Toolkit (modern Redux), Async Thunks for side effects, RTK Query for data fetching, middleware, selectors for derived data, and performance optimization. Master these to build scalable, maintainable applications with predictable state management.",
-    
+    description: "Deep dive into Redux Toolkit, async thunks, selectors, entity adapters, RTK Query, normalization, persistence, testing, and performance optimization.",
     topics: [
       {
-        name: "4. REDUX TOOLKIT - Modern Redux",
-        description: "Redux Toolkit (RTK) is the official, recommended way to write Redux. Simplifies store setup, reduces boilerplate, includes immer for immutable updates, and thunk for async actions. Features: configureStore, createSlice, createAsyncThunk, and createEntityAdapter.",
-        code: `// Install: npm install @reduxjs/toolkit react-redux
+        name: "7. Redux Toolkit (RTK) - configureStore & createSlice",
+        description: "Redux Toolkit is the official, recommended way to write Redux. configureStore sets up store with good defaults (thunk, devtools). createSlice automatically generates actions and reducers with Immer for immutable updates.",
+        code: `import { configureStore, createSlice } from '@reduxjs/toolkit';
 
-import { configureStore, createSlice, createAction } from '@reduxjs/toolkit';
-
-// Create slice (combines actions + reducer)
+// Create slice
 const counterSlice = createSlice({
     name: 'counter',
     initialState: 0,
     reducers: {
-        increment: (state) => state + 1,  // Immer handles immutability
+        increment: (state) => state + 1,
         decrement: (state) => state - 1,
-        addByAmount: (state, action) => state + action.payload,
+        addBy: (state, action) => state + action.payload,
         reset: () => 0
     }
 });
 
-// Extract action creators and reducer
-export const { increment, decrement, addByAmount, reset } = counterSlice.actions;
+// Extract actions and reducer
+export const { increment, decrement, addBy, reset } = counterSlice.actions;
 const counterReducer = counterSlice.reducer;
 
-// Multiple slices
-const userSlice = createSlice({
-    name: 'user',
-    initialState: { name: '', email: '', loading: false },
-    reducers: {
-        setUser: (state, action) => {
-            state.name = action.payload.name;
-            state.email = action.payload.email;
-        },
-        clearUser: (state) => {
-            state.name = '';
-            state.email = '';
-        },
-        setLoading: (state, action) => {
-            state.loading = action.payload;
-        }
-    }
-});
-
-export const { setUser, clearUser, setLoading } = userSlice.actions;
-
-// Configure store (automatically adds thunk middleware, devtools)
+// Create store
 const store = configureStore({
     reducer: {
         counter: counterReducer,
-        user: userSlice.reducer
+        // other slices
     }
 });
 
-// Use in components
-// dispatch(increment());
-// dispatch(addByAmount(5));
-// const count = useSelector(state => state.counter);
-
-// createAction - simple action creator without slice
-const customAction = createAction('custom/action');
-store.dispatch(customAction({ data: 'test' }));
-
-// createReducer - alternative way (if not using createSlice)
-const todoReducer = createReducer([], (builder) => {
-    builder
-        .addCase('ADD_TODO', (state, action) => {
-            state.push(action.payload);
-        })
-        .addCase('REMOVE_TODO', (state, action) => {
-            return state.filter(todo => todo.id !== action.payload);
-        });
-});
-
-// createSelector - memoized selectors
-import { createSelector } from '@reduxjs/toolkit';
-
-const selectCount = (state) => state.counter;
-const doubleCountSelector = createSelector(
-    [selectCount],
-    (count) => count * 2
-);`,
+// Use in component
+// dispatch(increment());`,
         lineByLine: [
-          "Line 1: import { configureStore, createSlice } from '@reduxjs/toolkit' - Imports RTK functions",
-          "Line 2: const counterSlice = createSlice({}) - Creates slice with name, state, reducers",
-          "Line 3: name: 'counter' - Slice name for action prefix (counter/increment)",
-          "Line 4: initialState: 0 - Initial state value",
-          "Line 5: reducers: { increment: (state) => state + 1 } - Reducer functions",
-          "Line 6: (state) => state + 1 - Immer allows direct mutation (safe)",
-          "Line 7: addByAmount: (state, action) => state + action.payload - Reducer with payload",
-          "Line 8: export const { increment, decrement } = counterSlice.actions - Exports action creators",
-          "Line 9: const store = configureStore({ reducer }) - Creates store with good defaults",
-          "Line 10: createSelector() - Creates memoized selectors for performance"
+          "Line 5: createSlice defines name, initialState, reducers",
+          "Line 6: name becomes prefix for action types (counter/increment)",
+          "Line 8: Immer allows direct mutation (e.g., state += 1)",
+          "Line 9: action.payload available",
+          "Line 14: actions generated automatically",
+          "Line 16: reducer is the slice reducer",
+          "Line 19: configureStore combines reducers and adds middleware"
         ],
-        simpleMeaning: "Redux Toolkit is Redux made easy. No more switch statements, action constants, or immutable code. Just create slice with name, state, and reducers. It automatically generates actions, handles immutability, and sets up store with best practices. Less code, fewer bugs.",
-        output: "Store configured with counter and user slices. Actions: increment, decrement, addByAmount, setUser. State updates handled immutably.",
-        note: "Redux Toolkit is the official standard for Redux 2.0+. Includes Immer for mutable syntax, Thunk for async, and DevTools integration. Use createSlice for all reducers."
+        simpleMeaning: "Redux Toolkit simplifies Redux with less boilerplate. createSlice auto‑generates actions and reducers. Immer lets you write mutable code that produces immutable updates.",
+        output: "Store configured with counter slice. Actions: increment, decrement, addBy, reset.",
+        note: "Always use Redux Toolkit for new projects. It's the standard since Redux 2.0."
       },
-      
       {
-        name: "5. ASYNC THUNK - Handling Side Effects",
-        description: "createAsyncThunk handles async operations (API calls). Generates pending, fulfilled, and rejected action types. Use extraReducers to handle these states. Thunk middleware (included in configureStore) allows dispatching functions that perform async work.",
-        code: `// Async thunk for API calls
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+        name: "8. createAsyncThunk - Async Actions",
+        description: "createAsyncThunk simplifies handling async logic. It generates pending, fulfilled, and rejected action types. Use extraReducers to handle these states. You can also access getState for conditional fetching.",
+        code: `import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Create async thunk
+// Async thunk
 export const fetchUsers = createAsyncThunk(
-    'users/fetchUsers',  // Action type prefix
+    'users/fetchUsers',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get('https://jsonplaceholder.typicode.com/users');
-            return response.data;  // This becomes action.payload on fulfilled
-        } catch (error) {
-            return rejectWithValue(error.message);  // Custom error payload
-        }
-    }
-);
-
-export const addUser = createAsyncThunk(
-    'users/addUser',
-    async (userData, { dispatch, getState, rejectWithValue }) => {
-        try {
-            const response = await axios.post('https://jsonplaceholder.typicode.com/users', userData);
+            const response = await axios.get('/api/users');
             return response.data;
-        } catch (error) {
-            return rejectWithValue(error.response.data);
+        } catch (err) {
+            return rejectWithValue(err.message);
         }
     }
 );
 
-// Slice with loading states
 const usersSlice = createSlice({
     name: 'users',
-    initialState: {
-        list: [],
-        loading: false,
-        error: null,
-        currentUser: null
-    },
-    reducers: {
-        clearError: (state) => {
-            state.error = null;
-        }
-    },
+    initialState: { items: [], loading: false, error: null },
+    reducers: {},
     extraReducers: (builder) => {
         builder
-            // Fetch Users - Pending
             .addCase(fetchUsers.pending, (state) => {
                 state.loading = true;
                 state.error = null;
             })
-            // Fetch Users - Fulfilled
             .addCase(fetchUsers.fulfilled, (state, action) => {
                 state.loading = false;
-                state.list = action.payload;
+                state.items = action.payload;
             })
-            // Fetch Users - Rejected
             .addCase(fetchUsers.rejected, (state, action) => {
-                state.loading = false;
-                state.error = action.payload || action.error.message;
-            })
-            // Add User - Pending
-            .addCase(addUser.pending, (state) => {
-                state.loading = true;
-            })
-            // Add User - Fulfilled
-            .addCase(addUser.fulfilled, (state, action) => {
-                state.loading = false;
-                state.list.push(action.payload);
-            })
-            // Add User - Rejected
-            .addCase(addUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });
     }
 });
 
-export const { clearError } = usersSlice.actions;
-export default usersSlice.reducer;
-
-// Usage in component
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, addUser } from './usersSlice';
-
-function UserList() {
-    const dispatch = useDispatch();
-    const { list, loading, error } = useSelector(state => state.users);
-    
-    useEffect(() => {
-        dispatch(fetchUsers());
-    }, [dispatch]);
-    
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-    
-    return (
-        <div>
-            {list.map(user => <div key={user.id}>{user.name}</div>)}
-            <button onClick={() => dispatch(addUser({ name: 'New User' }))}>
-                Add User
-            </button>
-        </div>
-    );
-}
-
-// Thunk with getState access
-export const updateIfNeeded = createAsyncThunk(
-    'data/updateIfNeeded',
-    async (_, { getState, dispatch }) => {
-        const state = getState();
-        const lastUpdated = state.data.lastUpdated;
-        const now = Date.now();
-        
-        if (now - lastUpdated > 60000) {  // Update if older than 1 minute
-            const response = await fetch('/api/data');
-            return response.json();
-        }
-        return state.data.list;  // Return existing data
-    }
-);
-
-// Manual thunk (without createAsyncThunk)
-const manualThunk = () => async (dispatch, getState) => {
-    dispatch({ type: 'FETCH_START' });
-    try {
-        const response = await fetch('/api/data');
-        const data = await response.json();
-        dispatch({ type: 'FETCH_SUCCESS', payload: data });
-    } catch (error) {
-        dispatch({ type: 'FETCH_ERROR', payload: error.message });
-    }
-};`,
+export default usersSlice.reducer;`,
         lineByLine: [
-          "Line 1: import { createSlice, createAsyncThunk } from '@reduxjs/toolkit' - Imports thunk creator",
-          "Line 2: export const fetchUsers = createAsyncThunk('users/fetchUsers', async () => {}) - Creates async thunk",
-          "Line 3: 'users/fetchUsers' - Base action type (pending, fulfilled, rejected variants)",
-          "Line 4: async () => {} - Async function containing side effect",
-          "Line 5: rejectWithValue(error.message) - Returns custom error payload",
-          "Line 6: extraReducers: (builder) => {} - Handles async action states",
-          "Line 7: builder.addCase(fetchUsers.pending, (state) => {}) - Loading state",
-          "Line 8: builder.addCase(fetchUsers.fulfilled, (state, action) => {}) - Success state",
-          "Line 9: action.payload - Contains returned data from async function",
-          "Line 10: builder.addCase(fetchUsers.rejected, (state, action) => {}) - Error state",
-          "Line 11: useDispatch() - React hook to get dispatch function",
-          "Line 12: dispatch(fetchUsers()) - Dispatches async thunk"
+          "Line 5: createAsyncThunk with action type prefix and async function",
+          "Line 7: async function throws error -> catches",
+          "Line 8: await API call",
+          "Line 9: return data (becomes action.payload on fulfilled)",
+          "Line 11: rejectWithValue (custom error payload)",
+          "Line 19: extraReducers handles async states",
+          "Line 21-23: pending state (loading, clear error)",
+          "Line 24-27: fulfilled state (loading false, set data)",
+          "Line 28-31: rejected state (loading false, set error)"
         ],
-        simpleMeaning: "Async Thunk handles API calls and other async work. Instead of fighting Redux's synchronous nature, thunk lets you dispatch functions that can wait for promises. It automatically creates pending/fulfilled/rejected states - perfect for showing loaders and errors.",
-        output: "Loading → Fetched 10 users → User list displayed → Add User → New user added to list",
-        note: "Always handle loading and error states. Use rejectWithValue for custom error messages. Thunks can access getState() for conditional logic. configureStore includes thunk middleware automatically."
+        simpleMeaning: "createAsyncThunk handles API calls automatically. It dispatches pending, fulfilled, and rejected actions. Use extraReducers to manage loading and error states.",
+        output: "Loading → Fetched users → Display list. On error, show error message.",
+        note: "Thunk can also read getState() for conditional fetching, e.g., avoid refetch if data is fresh."
       },
-      
       {
-        name: "6. MIDDLEWARE - Customizing Dispatch",
-        description: "Middleware intercepts actions before they reach reducer. Used for logging, crash reporting, async operations, routing, etc. Middleware functions have access to dispatch and getState. configureStore supports custom middleware array.",
-        code: `// Basic logging middleware
-const loggerMiddleware = (store) => (next) => (action) => {
-    console.log('Dispatching:', action);
-    console.log('Previous state:', store.getState());
-    
-    const result = next(action);  // Pass action to next middleware/reducer
-    
-    console.log('Next state:', store.getState());
-    return result;
-};
+        name: "9. Selectors & Reselect (createSelector)",
+        description: "Selectors are functions that extract data from state. createSelector memoizes derived data, recomputing only when inputs change. This improves performance and avoids unnecessary recalculations.",
+        code: `import { createSelector } from '@reduxjs/toolkit';
 
-// Redux Thunk middleware (handles function actions)
-const thunkMiddleware = (store) => (next) => (action) => {
-    if (typeof action === 'function') {
-        // It's a thunk - call it with dispatch and getState
-        return action(store.dispatch, store.getState);
-    }
-    return next(action);
-};
-
-// Error handling middleware
-const errorMiddleware = (store) => (next) => (action) => {
-    try {
-        return next(action);
-    } catch (error) {
-        console.error('Caught error in middleware:', error);
-        store.dispatch({ type: 'ERROR_OCCURRED', payload: error.message });
-        throw error;  // Re-throw to maintain error flow
-    }
-};
-
-// Performance monitoring middleware
-const performanceMiddleware = (store) => (next) => (action) => {
-    const start = performance.now();
-    const result = next(action);
-    const end = performance.now();
-    
-    if (end - start > 50) {  // Slow action > 50ms
-        console.warn(\`Action \${action.type} took \${end - start}ms\`);
-    }
-    
-    return result;
-};
-
-// Redux Persist middleware (save to localStorage)
-const persistMiddleware = (store) => (next) => (action) => {
-    const result = next(action);
-    const state = store.getState();
-    localStorage.setItem('redux_state', JSON.stringify(state));
-    return result;
-};
-
-// Apply middleware
-import { createStore, applyMiddleware } from 'redux';
-
-const store = createStore(
-    rootReducer,
-    applyMiddleware(loggerMiddleware, thunkMiddleware, errorMiddleware)
-);
-
-// Redux Toolkit with custom middleware
-import { configureStore } from '@reduxjs/toolkit';
-
-const store = configureStore({
-    reducer: rootReducer,
-    middleware: (getDefaultMiddleware) => 
-        getDefaultMiddleware().concat(loggerMiddleware, errorMiddleware)
-});
-
-// API call middleware (pattern)
-const apiMiddleware = (store) => (next) => async (action) => {
-    if (!action.meta || action.meta.type !== 'api') {
-        return next(action);
-    }
-    
-    const { url, method = 'GET', onSuccess, onError } = action.payload;
-    
-    store.dispatch({ type: 'API_REQUEST_START', meta: action.meta });
-    
-    try {
-        const response = await fetch(url, { method });
-        const data = await response.json();
-        
-        store.dispatch({ type: 'API_REQUEST_SUCCESS', payload: data });
-        
-        if (onSuccess) {
-            store.dispatch(onSuccess(data));
-        }
-    } catch (error) {
-        store.dispatch({ type: 'API_REQUEST_ERROR', payload: error });
-        
-        if (onError) {
-            store.dispatch(onError(error));
-        }
-    }
-    
-    store.dispatch({ type: 'API_REQUEST_END' });
-};
-
-// Usage
-store.dispatch({
-    type: 'FETCH_DATA',
-    meta: { type: 'api' },
-    payload: {
-        url: '/api/users',
-        onSuccess: (data) => ({ type: 'USERS_LOADED', payload: data })
-    }
-});`,
-        lineByLine: [
-          "Line 1: const loggerMiddleware = (store) => (next) => (action) => {} - Middleware signature",
-          "Line 2: console.log('Dispatching:', action) - Logs action before processing",
-          "Line 3: const result = next(action) - Passes to next middleware/reducer",
-          "Line 4: console.log('Next state:', store.getState()) - Logs updated state",
-          "Line 5: return result - Returns result for chaining",
-          "Line 8-13: thunkMiddleware - Handles function actions (async)",
-          "Line 9: if (typeof action === 'function') - Detects thunk",
-          "Line 10: action(store.dispatch, store.getState) - Calls function with dispatch",
-          "Line 16-24: errorMiddleware - Catches errors in action processing",
-          "Line 27-36: performanceMiddleware - Measures action execution time",
-          "Line 39-44: persistMiddleware - Auto-saves state to localStorage",
-          "Line 47-50: applyMiddleware() - Applies middleware chain",
-          "Line 53-56: configureStore with custom middleware - RTK approach"
-        ],
-        simpleMeaning: "Middleware is like security checkpoint for actions. Before action reaches reducer, middleware can log it, modify it, delay it, or stop it. Useful for async operations, error handling, logging, and analytics. Like airport security for your redux actions.",
-        output: "Action logged → Performance measured → Error handled → State persisted",
-        note: "Middleware order matters - they execute in sequence. Thunk middleware is included in configureStore. Use middleware for side effects, not business logic."
-      },
-      
-      {
-        name: "7. SELECTORS & RESELECT - Derived Data",
-        description: "Selectors are functions that extract and optionally compute derived data from Redux state. Reselect (or createSelector in RTK) creates memoized selectors that only recompute when inputs change. Improves performance by avoiding unnecessary recalculations.",
-        code: `// Basic selector (no memoization)
+// Basic selectors
 const selectTodos = (state) => state.todos;
 const selectFilter = (state) => state.filter;
 
-// Derived selector without memoization (recomputes every time)
-const selectVisibleTodos = (state) => {
-    const todos = selectTodos(state);
-    const filter = selectFilter(state);
-    
-    if (filter === 'COMPLETED') {
-        return todos.filter(todo => todo.completed);
-    }
-    if (filter === 'ACTIVE') {
-        return todos.filter(todo => !todo.completed);
-    }
-    return todos;
-};
-
-// Memoized selector with Reselect
-import { createSelector } from 'reselect';  // or from '@reduxjs/toolkit'
-
-const selectTodos = (state) => state.todos;
-const selectFilter = (state) => state.filter;
-
+// Memoized selector
 const selectVisibleTodos = createSelector(
-    [selectTodos, selectFilter],  // Input selectors
-    (todos, filter) => {          // Output function (only recomputes when inputs change)
+    [selectTodos, selectFilter],
+    (todos, filter) => {
         switch (filter) {
-            case 'COMPLETED': return todos.filter(todo => todo.completed);
-            case 'ACTIVE': return todos.filter(todo => !todo.completed);
+            case 'COMPLETED': return todos.filter(t => t.completed);
+            case 'ACTIVE': return todos.filter(t => !t.completed);
             default: return todos;
         }
     }
 );
 
-// Complex derived data with multiple inputs
-const selectSearchTerm = (state) => state.searchTerm;
-const selectSortBy = (state) => state.sortBy;
-
-const selectProcessedTodos = createSelector(
-    [selectTodos, selectFilter, selectSearchTerm, selectSortBy],
-    (todos, filter, searchTerm, sortBy) => {
-        // Apply filter
-        let result = todos;
-        
-        if (filter === 'COMPLETED') {
-            result = result.filter(todo => todo.completed);
-        } else if (filter === 'ACTIVE') {
-            result = result.filter(todo => !todo.completed);
-        }
-        
-        // Apply search
-        if (searchTerm) {
-            result = result.filter(todo => 
-                todo.text.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
-        
-        // Apply sorting
-        if (sortBy === 'DATE') {
-            result = [...result].sort((a, b) => a.date - b.date);
-        } else if (sortBy === 'PRIORITY') {
-            result = [...result].sort((a, b) => b.priority - a.priority);
-        }
-        
-        return result;
-    }
-);
-
-// Selector composition
-const selectTodoStats = createSelector(
+// Composed selectors
+const selectCompletedCount = createSelector(
     [selectTodos],
-    (todos) => ({
-        total: todos.length,
-        completed: todos.filter(t => t.completed).length,
-        active: todos.filter(t => !t.completed).length,
-        percentComplete: todos.length > 0 
-            ? (todos.filter(t => t.completed).length / todos.length) * 100 
-            : 0
-    })
+    (todos) => todos.filter(t => t.completed).length
 );
 
-// Parameterized selectors (factory pattern)
-const makeSelectTodoById = () => {
-    return createSelector(
-        [selectTodos, (state, todoId) => todoId],
-        (todos, todoId) => todos.find(todo => todo.id === todoId)
-    );
-};
+// Parameterized selector (factory)
+const makeSelectTodoById = () => createSelector(
+    [selectTodos, (state, id) => id],
+    (todos, id) => todos.find(todo => todo.id === id)
+);
 
 // Usage in component
-import { useSelector } from 'react-redux';
-
-function TodoList() {
-    const visibleTodos = useSelector(selectVisibleTodos);
-    const stats = useSelector(selectTodoStats);
-    const todoById = useSelector(state => makeSelectTodoById()(state, 1));
-    
-    return (
-        <div>
-            <div>Total: {stats.total} | Completed: {stats.completed}</div>
-            {visibleTodos.map(todo => <div key={todo.id}>{todo.text}</div>)}
-        </div>
-    );
-}
-
-// Selector with props (inline - not memoized per component)
-// Not recommended for performance
-const selectTodoByPropId = (state, props) => 
-    state.todos.find(todo => todo.id === props.id);
-
-// Better: use createSelector factory per component instance
-function TodoItem({ id }) {
-    const todo = useSelector(state => 
-        state.todos.find(todo => todo.id === id)
-    );
-    return <div>{todo.text}</div>;
-}`,
+// const visibleTodos = useSelector(selectVisibleTodos);`,
         lineByLine: [
-          "Line 1: const selectTodos = (state) => state.todos - Simple selector",
-          "Line 2: const selectFilter = (state) => state.filter - Another simple selector",
-          "Line 5-13: selectVisibleTodos - Derives filtered data (recomputes every time)",
-          "Line 16-26: createSelector([selectTodos, selectFilter], (todos, filter) => {}) - Memoized selector",
-          "Line 17: Input selectors - Only recomputes when these change",
-          "Line 18: Output function - Computes derived data",
-          "Line 29-48: Complex selector - Multiple inputs and transformations",
-          "Line 51-61: Selector composition - Reuses other selectors",
-          "Line 64-70: Parameterized selector - Factory pattern for dynamic selects",
-          "Line 73: useSelector(selectVisibleTodos) - Using selector in component"
+          "Line 2: createSelector from RTK",
+          "Line 5-6: input selectors",
+          "Line 9: output selector (only runs when inputs change)",
+          "Line 10-13: derived filtering logic",
+          "Line 18-20: composed selector using another selector",
+          "Line 23-26: factory function for parameterized selector"
         ],
-        simpleMeaning: "Selectors are like queries for your Redux state. Instead of computing filtered data in every component, create a selector that does it once. Reselect remembers the last result - if inputs didn't change, it returns cached result instantly. Much faster!",
-        output: "Visible todos filtered by status, sorted by date, searched by term. Stats: total, completed, active, percent complete. Only recomputed when data changes.",
-        note: "Always use createSelector for expensive computations. Selectors can be composed and reused. Memoization prevents unnecessary recalculations. Parameterized selectors need memoization per component instance."
+        simpleMeaning: "Selectors compute derived data. createSelector caches the result; if inputs haven't changed, it returns the cached result instead of recalculating.",
+        output: "Visible todos filtered, computed counts. No re‑computation if todos/filter unchanged.",
+        note: "Always memoize expensive computations. Use createSelector to avoid performance issues."
       },
-      
       {
-        name: "8. REACT-REDUX HOOKS - Connect Components",
-        description: "React-Redux provides hooks to connect React components to Redux store. useSelector extracts data from store (subscribes to changes). useDispatch returns dispatch function. useStore returns store instance. Hooks are simpler than connect() HOC.",
-        code: `// Install: npm install react-redux @reduxjs/toolkit
-
-import React from 'react';
-import { useSelector, useDispatch, useStore } from 'react-redux';
-import { increment, decrement, addByAmount } from './counterSlice';
-
-// Basic usage
-function Counter() {
-    const count = useSelector((state) => state.counter);
-    const dispatch = useDispatch();
-    
-    return (
-        <div>
-            <p>Count: {count}</p>
-            <button onClick={() => dispatch(increment())}>+</button>
-            <button onClick={() => dispatch(decrement())}>-</button>
-            <button onClick={() => dispatch(addByAmount(5))}>+5</button>
-        </div>
-    );
-}
-
-// Multiple selectors
-function UserProfile() {
-    const name = useSelector((state) => state.user.name);
-    const email = useSelector((state) => state.user.email);
-    const isLoading = useSelector((state) => state.user.loading);
-    const dispatch = useDispatch();
-    
-    if (isLoading) return <div>Loading...</div>;
-    
-    return (
-        <div>
-            <h2>{name}</h2>
-            <p>{email}</p>
-        </div>
-    );
-}
-
-// Equality function (custom comparison)
-function TodoList() {
-    const todos = useSelector(
-        (state) => state.todos,
-        (left, right) => left.length === right.length  // Custom compare
-    );
-    // Only re-renders if todos length changes, not content
-    
-    return <div>{todos.length} todos</div>;
-}
-
-// Shallow equality with multiple values
-import { shallowEqual } from 'react-redux';
-
-function Dashboard() {
-    const { user, settings, notifications } = useSelector(
-        (state) => ({
-            user: state.user,
-            settings: state.settings,
-            notifications: state.notifications
-        }),
-        shallowEqual  // Only re-render if any property changed
-    );
-    
-    return <div>Dashboard content</div>;
-}
-
-// useDispatch with async actions
-function AsyncActions() {
-    const dispatch = useDispatch();
-    
-    const handleFetch = async () => {
-        try {
-            await dispatch(fetchUserData()).unwrap();
-            console.log('Success');
-        } catch (error) {
-            console.error('Failed:', error);
-        }
-    };
-    
-    return <button onClick={handleFetch}>Fetch Data</button>;
-}
-
-// useStore (rarely needed)
-function StoreInspector() {
-    const store = useStore();
-    const state = store.getState();
-    
-    return <pre>{JSON.stringify(state, null, 2)}</pre>;
-}
-
-// useSelector with props
-function TodoItem({ id }) {
-    const todo = useSelector((state) => 
-        state.todos.find(todo => todo.id === id)
-    );
-    
-    if (!todo) return null;
-    return <div>{todo.text}</div>;
-}
-
-// Reselect with useSelector
-import { createSelector } from '@reduxjs/toolkit';
-
-const selectVisibleTodos = createSelector(
-    (state) => state.todos,
-    (state) => state.filter,
-    (todos, filter) => {
-        // Filter logic
-        return todos.filter(t => t.status === filter);
-    }
-);
-
-function FilteredTodoList() {
-    const visibleTodos = useSelector(selectVisibleTodos);
-    return <div>{visibleTodos.length} items</div>;
-}
-
-// Conditional dispatch
-function ConditionalDispatch() {
-    const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
-    const dispatch = useDispatch();
-    
-    const handleAction = () => {
-        if (isAuthenticated) {
-            dispatch(performAction());
-        } else {
-            dispatch(showLoginModal());
-        }
-    };
-    
-    return <button onClick={handleAction}>Action</button>;
-}`,
-        lineByLine: [
-          "Line 1: import { useSelector, useDispatch } from 'react-redux' - Imports Redux hooks",
-          "Line 2: const count = useSelector((state) => state.counter) - Extracts counter value",
-          "Line 3: const dispatch = useDispatch() - Returns dispatch function",
-          "Line 4: dispatch(increment()) - Dispatches increment action",
-          "Line 6: Multiple selectors - Each useSelector subscribes separately",
-          "Line 7: Custom equality function - Prevents unnecessary re-renders",
-          "Line 8: shallowEqual - Compares object properties shallowly",
-          "Line 9: async dispatch with unwrap() - Handles promise resolution",
-          "Line 10: useStore() - Gets store instance (rarely needed)",
-          "Line 11: Selector with props - Computes based on component props"
-        ],
-        simpleMeaning: "React-Redux hooks connect your React components to Redux store. useSelector pulls data from store (auto-subscribes). useDispatch sends actions. Like two-way radio - listen to channel (useSelector) and transmit messages (useDispatch). Simpler than older connect() pattern.",
-        output: "Counter increments, user profile loads, todos filtered, async handled with loading states.",
-        note: "useSelector subscribes to store - component re-renders when selected data changes. Use shallowEqual for objects with multiple values. Avoid dispatching in useEffect without dependencies."
-      },
-      
-      {
-        name: "9. REDUX DEVTOOLS - Debugging",
-        description: "Redux DevTools Extension provides time-travel debugging, action inspection, state diffing, and performance monitoring. Configure with devTools option in configureStore. Supports features like jumping to past states, importing/exporting state, and dispatching custom actions.",
-        code: `// Redux Toolkit automatically enables DevTools in development
+        name: "10. Redux Persist - Saving State to Storage",
+        description: "redux-persist saves the Redux store to localStorage, AsyncStorage, or other engines. It automatically rehydrates the state when the app loads. Useful for persisting user sessions, preferences, or drafts.",
+        code: `// Install: npm install redux-persist
 import { configureStore } from '@reduxjs/toolkit';
+import { persistStore, persistReducer } from 'redux-persist';
+import storage from 'redux-persist/lib/storage'; // localStorage
+import rootReducer from './reducers';
 
-const store = configureStore({
-    reducer: rootReducer,
-    devTools: process.env.NODE_ENV !== 'production'  // Auto-enabled
-});
-
-// Custom DevTools configuration
-const store = configureStore({
-    reducer: rootReducer,
-    devTools: {
-        name: 'My App',                    // Instance name
-        trace: true,                       // Track action stack traces
-        traceLimit: 25,                    // Stack trace limit
-        maxAge: 50,                        // Number of actions to keep
-        serialize: {                       // Serialize non-serializable data
-            options: {
-                undefined: true,
-                function: (fn) => fn.toString()
-            }
-        },
-        actionSanitizer: (action) => {    // Clean sensitive data
-            if (action.type === 'LOGIN') {
-                return { ...action, payload: '***HIDDEN***' };
-            }
-            return action;
-        },
-        stateSanitizer: (state) => {       // Clean state before logging
-            if (state.auth) {
-                return { ...state, auth: { ...state.auth, token: '***' } };
-            }
-            return state;
-        }
-    }
-});
-
-// Manual DevTools connection (Vanilla JS)
-const store = createStore(
-    reducer,
-    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__({
-        trace: true,
-        features: {
-            pause: true,      // Pause recording
-            export: true,     // Export state
-            import: true,     // Import state
-            jump: true,       // Jump to state
-            persist: true,    // Persist state
-            lock: true,       // Lock state
-            reorder: true,    // Reorder actions
-            test: true        // Test generators
-        }
-    })
-);
-
-// Programmatic DevTools actions
-// window.__REDUX_DEVTOOLS_EXTENSION__.disconnect();  // Disconnect
-// window.__REDUX_DEVTOOLS_EXTENSION__.send(action, state);  // Send custom
-
-// DevTools features in browser
-// 1. Time Travel: Jump to any past state
-// 2. Action Inspector: See every action with diff
-// 3. State Explorer: Browse full state tree
-// 4. Chart: Visualize action frequency
-// 5. Import/Export: Save/load action sequences
-// 6. Dispatch: Test actions directly
-
-// Custom action debugging middleware
-const actionLogger = (store) => (next) => (action) => {
-    console.group(\`Action: \${action.type}\`);
-    console.log('Payload:', action.payload);
-    console.log('Previous State:', store.getState());
-    const result = next(action);
-    console.log('Next State:', store.getState());
-    console.groupEnd();
-    return result;
+const persistConfig = {
+    key: 'root',
+    storage,
+    whitelist: ['auth', 'settings'], // only these reducers persist
+    blacklist: ['temp'] // exclude these
 };
 
-// Configure store with multiple DevTools features
+const persistedReducer = persistReducer(persistConfig, rootReducer);
+
 const store = configureStore({
-    reducer: rootReducer,
-    devTools: {
-        name: 'Production App',
-        trace: true,
-        traceLimit: 25,
-        actionsBlacklist: ['REFRESH_TOKEN'], // Don't log these actions
-        actionsDenylist: ['HEARTBEAT'],
-        actionsWhitelist: ['USER_LOGIN', 'ORDER_PLACED'], // Only log these
-        features: {
-            pause: true,
-            export: true,
-            test: true
-        }
-    },
-    middleware: (getDefault) => getDefault().concat(actionLogger)
+    reducer: persistedReducer,
+    middleware: (getDefault) =>
+        getDefault({
+            serializableCheck: {
+                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE']
+            }
+        })
 });
 
-// Detect DevTools in component
-function DevToolsStatus() {
-    const [isDevToolsActive, setIsDevToolsActive] = React.useState(false);
-    
-    React.useEffect(() => {
-        if (window.__REDUX_DEVTOOLS_EXTENSION__) {
-            setIsDevToolsActive(true);
-        }
-    }, []);
-    
-    return isDevToolsActive ? 'DevTools connected' : 'DevTools not detected';
+const persistor = persistStore(store);
+
+// In your app, wrap with PersistGate
+// import { PersistGate } from 'redux-persist/integration/react';
+// <PersistGate loading={null} persistor={persistor}>
+//   <App />
+// </PersistGate>`,
+        lineByLine: [
+          "Line 4: persistReducer from redux‑persist",
+          "Line 5: storage engine (localStorage)",
+          "Line 8-11: config – key, storage, whitelist, blacklist",
+          "Line 13: wrap rootReducer with persistReducer",
+          "Line 15-20: configureStore with serialization check ignored for persist actions",
+          "Line 22: persistor for controlling persistence",
+          "Line 25: PersistGate delays rendering until rehydration"
+        ],
+        simpleMeaning: "redux‑persist automatically saves and restores the Redux state. User stays logged in, settings remembered across page reloads.",
+        output: "State saved to localStorage; on reload, state is rehydrated.",
+        note: "Avoid persisting sensitive data (e.g., tokens with short expiration). Use whitelist to persist only needed slices."
+      },
+      {
+        name: "11. RTK Query - Data Fetching & Caching",
+        description: "RTK Query is a powerful data fetching and caching solution built into Redux Toolkit. It automatically manages loading states, caching, deduplication, and invalidation. Define API endpoints with createApi.",
+        code: `import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+// Define API service
+export const api = createApi({
+    reducerPath: 'api',
+    baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+    tagTypes: ['User', 'Post'],
+    endpoints: (builder) => ({
+        getUsers: builder.query({
+            query: () => 'users',
+            providesTags: ['User']
+        }),
+        getUserById: builder.query({
+            query: (id) => \`users/\${id}\`,
+            providesTags: (result, error, id) => [{ type: 'User', id }]
+        }),
+        addUser: builder.mutation({
+            query: (user) => ({
+                url: 'users',
+                method: 'POST',
+                body: user
+            }),
+            invalidatesTags: ['User']
+        }),
+        updateUser: builder.mutation({
+            query: ({ id, ...patch }) => ({
+                url: \`users/\${id}\`,
+                method: 'PATCH',
+                body: patch
+            }),
+            invalidatesTags: (result, error, { id }) => [{ type: 'User', id }]
+        })
+    })
+});
+
+export const {
+    useGetUsersQuery,
+    useGetUserByIdQuery,
+    useAddUserMutation,
+    useUpdateUserMutation
+} = api;
+
+// In component
+function UserList() {
+    const { data: users, isLoading, error } = useGetUsersQuery();
+    const [addUser] = useAddUserMutation();
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error.message}</div>;
+
+    return (
+        <div>
+            {users.map(user => <div key={user.id}>{user.name}</div>)}
+            <button onClick={() => addUser({ name: 'New' })}>Add</button>
+        </div>
+    );
 }`,
         lineByLine: [
-          "Line 1: configureStore({ devTools: true }) - Enables DevTools automatically",
-          "Line 2: name: 'My App' - Identifies store in DevTools",
-          "Line 3: trace: true - Shows which component dispatched action",
-          "Line 4: maxAge: 50 - Limits stored action history",
-          "Line 5: actionSanitizer - Hides sensitive data in actions",
-          "Line 6: stateSanitizer - Hides sensitive data in state",
-          "Line 7: window.__REDUX_DEVTOOLS_EXTENSION__ - Manual connection",
-          "Line 8: features - Enables specific DevTools features",
-          "Line 9: actionsBlacklist/Whitelist - Filters logged actions"
+          "Line 4: createApi defines API service",
+          "Line 5: reducerPath (store key), baseQuery (fetch wrapper)",
+          "Line 6: tagTypes for cache invalidation",
+          "Line 8-10: query endpoint – GET request",
+          "Line 9: query function returns URL",
+          "Line 10: providesTags tells RTK Query to cache with these tags",
+          "Line 12-14: query with parameter",
+          "Line 16-22: mutation – POST request",
+          "Line 21: invalidatesTags triggers refetch of related queries",
+          "Line 28: auto‑generated React hooks"
         ],
-        simpleMeaning: "Redux DevTools is like a time machine for your app state. See every action, inspect state changes, travel back in time to any previous state, even export and replay action sequences. Essential for debugging complex state issues.",
-        output: "DevTools shows action history, state diffs, time travel controls, performance charts, and import/export options.",
-        note: "DevTools automatically enabled in development with Redux Toolkit. Never expose sensitive data in actions. Use actionSanitizer for production logging. DevTools adds minimal performance overhead."
+        simpleMeaning: "RTK Query handles all data fetching, caching, and loading/error states. Write zero fetching logic – just define endpoints.",
+        output: "Auto‑generated hooks: useGetUsersQuery, useAddUserMutation, etc. Cache is managed automatically.",
+        note: "RTK Query deduplicates requests, caches responses, and refetches when tags invalidate."
+      },
+      {
+        name: "12. Normalization with Normalizr & Entity Adapter",
+        description: "Normalization flattens nested data to avoid duplication and improve update performance. Normalizr converts nested JSON to normalized shape. createEntityAdapter provides pre‑built reducers and selectors for normalized data.",
+        code: `import { createEntityAdapter, createSlice } from '@reduxjs/toolkit';
+import { normalize, schema } from 'normalizr';
+
+// Normalizr schema
+const userSchema = new schema.Entity('users');
+const articleSchema = new schema.Entity('articles', {
+    author: userSchema
+});
+
+// Sample nested data
+const nestedData = {
+    id: 1,
+    title: 'Article',
+    author: { id: 1, name: 'John' }
+};
+
+// Normalize
+const normalized = normalize(nestedData, articleSchema);
+// Result: { entities: { users: { 1: { id:1, name:'John' } }, articles: { 1: { id:1, title:'Article', author:1 } } }, result: 1 }
+
+// Entity adapter for users
+const usersAdapter = createEntityAdapter();
+const usersSlice = createSlice({
+    name: 'users',
+    initialState: usersAdapter.getInitialState(),
+    reducers: {
+        usersReceived: (state, action) => {
+            usersAdapter.setAll(state, action.payload);
+        },
+        userAdded: usersAdapter.addOne,
+        userUpdated: usersAdapter.updateOne,
+        userRemoved: usersAdapter.removeOne
+    }
+});
+
+// Selectors
+const { selectAll: selectAllUsers, selectById: selectUserById } = usersAdapter.getSelectors(state => state.users);`,
+        lineByLine: [
+          "Line 4: createEntityAdapter provides CRUD reducers",
+          "Line 6-8: Normalizr schemas – user and article",
+          "Line 15-16: normalize converts nested data to flat entities",
+          "Line 19: usersAdapter instance",
+          "Line 21: initialState with { ids: [], entities: {} }",
+          "Line 23: setAll replaces entire collection",
+          "Line 25-27: addOne, updateOne, removeOne",
+          "Line 30: getSelectors creates selectors (selectAll, selectById)"
+        ],
+        simpleMeaning: "Normalization avoids nested data in Redux, making updates easier. Entity adapter provides ready‑to‑use reducers and selectors for collections.",
+        output: "State becomes flat { users: { ids: [1], entities: {1:{...}} } }. Updates are simple.",
+        note: "Use normalizr when API returns deeply nested data. Entity adapter eliminates boilerplate for CRUD operations."
+      },
+      {
+        name: "13. Redux with TypeScript",
+        description: "Typed Redux ensures type safety for actions, state, and dispatch. Define RootState and AppDispatch types. Use typed hooks (useAppSelector, useAppDispatch). Action creators and reducers benefit from TypeScript's inference.",
+        code: `// store.ts
+import { configureStore } from '@reduxjs/toolkit';
+import { useDispatch, useSelector, TypedUseSelectorHook } from 'react-redux';
+
+// State type
+export interface RootState {
+    counter: number;
+    user: { name: string } | null;
+}
+
+// Action types
+type Action = 
+    | { type: 'INCREMENT' }
+    | { type: 'DECREMENT' }
+    | { type: 'SET_USER'; payload: { name: string } };
+
+// Reducer with typed state and action
+const counterReducer = (state: number = 0, action: Action): number => {
+    switch (action.type) {
+        case 'INCREMENT': return state + 1;
+        case 'DECREMENT': return state - 1;
+        default: return state;
+    }
+};
+
+// Store
+const store = configureStore({
+    reducer: {
+        counter: counterReducer,
+        user: (state = null, action: Action) => 
+            action.type === 'SET_USER' ? action.payload : state
+    }
+});
+
+export type AppDispatch = typeof store.dispatch;
+export const useAppDispatch: () => AppDispatch = useDispatch;
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+
+// Usage in component
+// const dispatch = useAppDispatch();
+// const count = useAppSelector(state => state.counter);
+// dispatch({ type: 'INCREMENT' });`,
+        lineByLine: [
+          "Line 4: import hooks",
+          "Line 7-10: RootState interface",
+          "Line 13-17: Action union type (discriminated union)",
+          "Line 19-24: Reducer with typed state and action",
+          "Line 31-34: Store creation",
+          "Line 36-37: AppDispatch and typed hooks",
+          "Line 40: useAppSelector for typed state"
+        ],
+        simpleMeaning: "TypeScript catches errors early. Typed hooks provide autocompletion and type safety for state and dispatch.",
+        output: "Full type safety in Redux code. No more 'any' for state or actions.",
+        note: "Use `createSlice` from RTK – it infers types automatically, reducing manual typing."
+      },
+      {
+        name: "14. Redux Performance Optimization",
+        description: "Optimize Redux performance by memoizing selectors, avoiding unnecessary re‑renders, using shallow equality checks, splitting reducers, and leveraging RTK Query’s caching.",
+        code: `// 1. Memoized selectors with createSelector
+const selectTodos = (state) => state.todos;
+const selectFilter = (state) => state.filter;
+const selectVisibleTodos = createSelector(
+    [selectTodos, selectFilter],
+    (todos, filter) => filter === 'active' ? todos.filter(t => !t.completed) : todos
+);
+
+// 2. Shallow equality in useSelector
+import { shallowEqual } from 'react-redux';
+const { user, settings } = useSelector(state => ({
+    user: state.user,
+    settings: state.settings
+}), shallowEqual); // only re‑renders if user or settings reference changed
+
+// 3. Avoid unnecessary dispatch inside effects
+useEffect(() => {
+    if (!state.data) dispatch(fetchData());
+}, [dispatch, state.data]); // dependency array includes data to prevent duplicate fetches
+
+// 4. Use batched updates (React 18+ or redux-batched-actions)
+import { batch } from 'react-redux';
+const handleClick = () => {
+    batch(() => {
+        dispatch(action1());
+        dispatch(action2());
+    });
+};
+
+// 5. Reducer performance – use createSlice (Immer) which is efficient
+const slice = createSlice({
+    name: 'items',
+    initialState: [],
+    reducers: {
+        addItem: (state, action) => {
+            // direct mutation – Immer produces immutable update
+            state.push(action.payload);
+        }
+    }
+});`,
+        lineByLine: [
+          "Line 2-7: createSelector memoizes derived data",
+          "Line 10-14: shallowEqual prevents re‑renders when nested object properties change",
+          "Line 16-18: Guard against unnecessary dispatches",
+          "Line 20-23: batch multiple dispatches to reduce re‑renders",
+          "Line 25-30: Immer produces efficient immutable updates"
+        ],
+        simpleMeaning: "Memoize selectors, use shallow equality, batch updates, and avoid useless dispatches to keep Redux fast.",
+        output: "Fewer re‑renders, faster updates, better user experience.",
+        note: "Redux is already performant; most optimizations prevent wasted renders, not state updates."
+      },
+      {
+        name: "15. Testing Redux",
+        description: "Test Redux reducers and async thunks in isolation. Use `@testing-library/react` to test components with Redux. Mock API calls and assert dispatched actions.",
+        code: `// test counter reducer
+import counterReducer from './counterSlice';
+
+test('increment action', () => {
+    const previousState = 0;
+    const newState = counterReducer(previousState, { type: 'INCREMENT' });
+    expect(newState).toBe(1);
+});
+
+// test async thunk
+import { fetchUser } from './userSlice';
+import configureMockStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+
+const middlewares = [thunk];
+const mockStore = configureMockStore(middlewares);
+
+test('fetchUser dispatches success', () => {
+    const store = mockStore({});
+    const mockUser = { id: 1, name: 'John' };
+    jest.spyOn(api, 'getUser').mockResolvedValue(mockUser);
+
+    return store.dispatch(fetchUser(1)).then(() => {
+        const actions = store.getActions();
+        expect(actions[0]).toEqual({ type: 'FETCH_USER_PENDING' });
+        expect(actions[1]).toEqual({ type: 'FETCH_USER_FULFILLED', payload: mockUser });
+    });
+});
+
+// test component with Redux
+import { render, screen } from '@testing-library/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import UserList from './UserList';
+
+test('displays users', () => {
+    const store = configureStore({
+        reducer: { users: () => ({ items: [{ id: 1, name: 'Alice' }] }) }
+    });
+    render(
+        <Provider store={store}>
+            <UserList />
+        </Provider>
+    );
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+});`,
+        lineByLine: [
+          "Line 2-6: Unit test for reducer – pure function test",
+          "Line 9-21: Async thunk test with mock store",
+          "Line 10: redux‑mock‑store creates store for testing",
+          "Line 18: mock API response",
+          "Line 21-23: assert dispatched actions sequence",
+          "Line 25-35: Component test with Provider wrapper"
+        ],
+        simpleMeaning: "Test reducers as pure functions. Test async thunks by checking dispatched actions. Wrap components with Provider for integration tests.",
+        output: "Tests ensure reducers produce correct state, thunks dispatch expected actions, components render correctly.",
+        note: "Mock API calls to avoid real network requests. Use `redux-mock-store` for thunk testing."
       }
     ]
   }

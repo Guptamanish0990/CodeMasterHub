@@ -1,2554 +1,1117 @@
+// /data/mysql/learning.js – Complete MySQL guide with 50 basic + 50 advanced topics + use cases
+
 export const learning = {
   basic: {
-    title: "🐬 MYSQL: COMPLETE DATABASE DOCUMENTATION",
-    description: "Comprehensive MySQL database guide covering everything from fundamentals to enterprise-level database management. MySQL is the world's most popular open-source relational database management system (RDBMS), powering millions of applications worldwide including Facebook, Twitter, YouTube, and WordPress. This documentation includes 35+ topics with real-world examples, line-by-line explanations, and practical use cases. Perfect for beginners and experienced developers building production applications.",
-    
+    title: "🐬 MYSQL BASICS: 50+ TOPICS FOR BEGINNERS",
+    description: "Complete beginner's guide to MySQL. Covers installation, CRUD, data types, constraints, joins, subqueries, views, stored procedures, functions, triggers, events, transactions, locking, user management, backup, performance tuning, and more. Each topic includes detailed description, code example, line‑by‑line explanation, sample output, and real‑world use case.",
     topics: [
       {
-        name: "1. INTRODUCTION TO MYSQL & DATABASE CONCEPTS",
-        description: "MySQL is an open-source RDBMS that stores data in structured tables with rows and columns. A database organizes information for easy access, management, and updating. Key concepts include tables (data storage), rows (records), columns (fields), primary keys (unique identifiers), and foreign keys (table relationships). MySQL architecture includes connection management, SQL parser, optimizer, storage engines (InnoDB, MyISAM), and cache buffers.",
-        code: `-- Check MySQL version
-SELECT VERSION();
-
--- Show all databases
-SHOW DATABASES;
-
--- Create new database
-CREATE DATABASE company_db;
-USE company_db;
-
--- Create first table
-CREATE TABLE employees (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    first_name VARCHAR(50) NOT NULL,
-    last_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE,
-    salary DECIMAL(10,2),
-    hire_date DATE,
-    department VARCHAR(50),
-    is_active BOOLEAN DEFAULT TRUE
-);
-
--- Insert sample data
-INSERT INTO employees (first_name, last_name, email, salary, hire_date, department)
-VALUES 
-('John', 'Doe', 'john.doe@company.com', 75000.00, '2023-01-15', 'Engineering'),
-('Jane', 'Smith', 'jane.smith@company.com', 85000.00, '2023-02-20', 'Marketing'),
-('Bob', 'Johnson', 'bob.johnson@company.com', 65000.00, '2023-03-10', 'Sales');
-
--- Query the table
-SELECT * FROM employees;
-
--- Basic queries with conditions
-SELECT first_name, last_name, salary 
-FROM employees 
-WHERE salary > 70000;
-
--- Count records
-SELECT COUNT(*) as total_employees FROM employees;`,
-        lineByLine: [
-          "Line 1: SELECT VERSION() - Returns MySQL server version information",
-          "Line 2: SHOW DATABASES - Lists all databases on the server",
-          "Line 3: CREATE DATABASE - Creates new database",
-          "Line 4: USE - Switches to specified database",
-          "Line 7-16: CREATE TABLE - Defines table structure",
-          "Line 8: id - Primary key, auto-increments",
-          "Line 9-10: first_name, last_name - Required text columns",
-          "Line 11: email - Must be unique across all rows",
-          "Line 12: salary - Decimal with 2 decimal places",
-          "Line 15: is_active - Boolean default TRUE",
-          "Line 19-28: INSERT INTO - Adds sample records",
-          "Line 31: SELECT * - Retrieves all columns",
-          "Line 34-36: SELECT with WHERE - Filters rows"
-        ],
-        simpleMeaning: "MySQL is like a digital filing cabinet storing organized information. Tables are like folders, rows are individual files, and columns are file details. The database helps you save, find, and organize data quickly, like a super-powered Excel that millions can use at once.",
-        output: `+----------------+
-| VERSION()      |
-+----------------+
-| 8.0.35         |
-+----------------+
-
-+----+------------+-----------+-------------------------+----------+------------+-------------+
-| id | first_name | last_name | email                   | salary   | hire_date  | department  |
-+----+------------+-----------+-------------------------+----------+------------+-------------+
-| 1  | John       | Doe       | john.doe@company.com    | 75000.00 | 2023-01-15 | Engineering |
-| 2  | Jane       | Smith     | jane.smith@company.com  | 85000.00 | 2023-02-20 | Marketing   |
-| 3  | Bob        | Johnson   | bob.johnson@company.com | 65000.00 | 2023-03-10 | Sales       |
-+----+------------+-----------+-------------------------+----------+------------+-------------+`,
-        note: "MySQL 8.0+ recommended. Always use InnoDB engine for production. Primary keys are mandatory for good database design. Use meaningful table/column names in snake_case."
+        name: "1. MySQL Introduction & Installation",
+        description: "MySQL is an open‑source relational database management system (RDBMS) used by millions of applications. It stores data in tables with rows and columns, supports ACID transactions, and offers high performance. Installation on Ubuntu involves `sudo apt install mysql-server`. After installation, you connect using `mysql -u root -p`. The default port is 3306. Always run `mysql_secure_installation` after installing to improve security.",
+        code: "sudo apt update\nsudo apt install mysql-server\nmysql --version\nmysql -u root -p",
+        lineByLine: ["Update package list", "Install MySQL server", "Check version", "Login as root"],
+        simpleMeaning: "Set up MySQL database server on your machine.",
+        output: "mysql Ver 8.0.35",
+        note: "Default port 3306. Use strong passwords.",
+        use_case: "Used in web apps (e‑commerce, CMS, banking) to store user data, products, orders, and transactions."
       },
-      
       {
-        name: "2. MYSQL DATA TYPES - COMPLETE REFERENCE",
-        description: "MySQL data types define what kind of data each column can store. Numeric types include TINYINT (very small numbers), INT (regular integers), BIGINT (large numbers), DECIMAL (exact money values), FLOAT/DOUBLE (approximate decimals). String types include CHAR (fixed-length), VARCHAR (variable-length), TEXT (long text), BLOB (binary data), ENUM (predefined options), and JSON (flexible schema). Date/Time types include DATE (just date), TIME (just time), DATETIME (date and time), TIMESTAMP (auto-updating), and YEAR.",
-        code: `-- Numeric Types Examples
-CREATE TABLE numeric_examples (
-    tiny_val TINYINT,              -- -128 to 127
-    tiny_unsigned TINYINT UNSIGNED, -- 0 to 255
-    int_val INT,                    -- -2.1B to 2.1B
-    big_val BIGINT,                 -- -9.2Q to 9.2Q
-    exact_price DECIMAL(10,2),      -- 8 digits before, 2 after decimal
-    float_approx FLOAT,             -- Approximate, 4 bytes
-    id INT PRIMARY KEY AUTO_INCREMENT
-);
-
--- String Types Examples
-CREATE TABLE string_examples (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    fixed_code CHAR(10),             -- Always 10 characters
-    variable_name VARCHAR(100),       -- Up to 100 characters
-    short_text TEXT,                  -- Up to 65,535 characters
-    status ENUM('active', 'inactive', 'pending'),
-    tags SET('sale','new','featured','hot')
-);
-
--- Date/Time Types Examples
-CREATE TABLE date_examples (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    birth_date DATE,                  -- YYYY-MM-DD
-    meeting_time TIME,                -- HH:MM:SS
-    created_at DATETIME,              -- YYYY-MM-DD HH:MM:SS
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- JSON Type Example
-CREATE TABLE product_examples (
-    id INT PRIMARY KEY,
-    name VARCHAR(100),
-    attributes JSON
-);
-
--- Insert and query JSON data
-INSERT INTO product_examples VALUES 
-(1, 'Laptop', '{"color": "silver", "ram": "16GB"}');
-
-SELECT name, attributes->>'$.color' as color FROM product_examples;`,
-        lineByLine: [
-          "Line 1-10: Numeric types - Different sizes for different number needs",
-          "Line 2: TINYINT - Smallest integer, saves space",
-          "Line 3: TINYINT UNSIGNED - Only positive numbers",
-          "Line 4: INT - Most common for IDs and counters",
-          "Line 5: BIGINT - For very large numbers like timestamps",
-          "Line 6: DECIMAL(10,2) - Perfect for money (exact, no rounding)",
-          "Line 12-19: String types - For text and character data",
-          "Line 14: CHAR(10) - Fixed length, faster but wastes space",
-          "Line 15: VARCHAR(100) - Variable length, space efficient",
-          "Line 16: TEXT - For paragraphs and longer content",
-          "Line 17: ENUM - Limited to specific values",
-          "Line 18: SET - Can store multiple predefined values",
-          "Line 22-29: Date/Time types - For temporal data",
-          "Line 24: DATE - Just calendar date",
-          "Line 25: TIME - Just clock time",
-          "Line 26: DATETIME - Both date and time",
-          "Line 27: TIMESTAMP - Auto-updates on row change",
-          "Line 32-35: JSON - Flexible semi-structured data",
-          "Line 38: Extract JSON value using ->> operator"
-        ],
-        simpleMeaning: "Data types are like different containers: INT is a small box for whole numbers, DECIMAL is a precise scale for money, VARCHAR is a stretchy bag for names (varies in length), TEXT is a large box for paragraphs, DATE is a calendar, and JSON is a flexible drawer that can hold different things. Choose the smallest container that fits your data.",
-        output: `+------+----------+---------------+---------+-------------+
-| id   | tiny_val | tiny_unsigned | int_val | exact_price |
-+------+----------+---------------+---------+-------------+
-| 1    | 100      | 200           | 1000000 | 1234.56     |
-+------+----------+---------------+---------+-------------+
-
-+----+------------+----------------+-------------+----------+
-| id | fixed_code | variable_name  | short_text  | status   |
-+----+------------+----------------+-------------+----------+
-| 1  | ABC123     | John Doe       | Hello World | active   |
-+----+------------+----------------+-------------+----------+
-
-+----+------------+--------------+---------------------+---------------------+
-| id | birth_date | meeting_time | created_at          | updated_at          |
-+----+------------+--------------+---------------------+---------------------+
-| 1  | 1990-05-15 | 14:30:00     | 2024-01-15 10:30:00 | 2024-01-15 10:30:00 |
-+----+------------+--------------+---------------------+---------------------+
-
-+------+--------+----------------+
-| name | color  | ram            |
-+------+--------+----------------+
-| Laptop| silver | 16GB           |
-+------+--------+----------------+`,
-        note: "Use smallest data type that fits your data (TINYINT vs INT saves 75% storage). Use DECIMAL for money (FLOAT causes rounding errors). VARCHAR(255) is common for short strings. TEXT types cannot have default values. TIMESTAMP converts to UTC, DATETIME does not."
+        name: "2. Database Create / Drop / Use",
+        description: "A database is a container for tables. `CREATE DATABASE` creates a new database, `USE` selects it for subsequent queries, and `DROP DATABASE` permanently deletes a database and all its tables. Use `SHOW DATABASES` to list all databases. Always double‑check before dropping a database because the action is irreversible. In production, create separate databases for different environments (dev, test, prod).",
+        code: "CREATE DATABASE company;\nSHOW DATABASES;\nUSE company;\nDROP DATABASE company;",
+        lineByLine: ["Create database", "List all databases", "Switch to it", "Delete it"],
+        simpleMeaning: "Manage multiple databases on the same server.",
+        output: "Database created.",
+        note: "DROP is irreversible.",
+        use_case: "Separate databases for different projects (e.g., `ecommerce_db`, `blog_db`, `analytics_db`) on one server."
       },
-      
       {
-        name: "3. MYSQL CONSTRAINTS - DATA INTEGRITY RULES",
-        description: "Constraints enforce rules on data to ensure accuracy and reliability. PRIMARY KEY uniquely identifies each row (must be unique and never NULL). FOREIGN KEY links tables together maintaining referential integrity. UNIQUE prevents duplicate values in a column. NOT NULL requires a value (cannot be empty). CHECK validates data against conditions (age >= 18). DEFAULT provides automatic values when none specified.",
-        code: `-- Parent table with PRIMARY KEY
-CREATE TABLE departments (
-    dept_id INT PRIMARY KEY AUTO_INCREMENT,
-    dept_code VARCHAR(10) UNIQUE NOT NULL,
-    dept_name VARCHAR(100) NOT NULL,
-    budget DECIMAL(15,2) DEFAULT 0.00
-);
-
--- Child table with FOREIGN KEY and CHECK constraints
-CREATE TABLE employees (
-    emp_id INT PRIMARY KEY AUTO_INCREMENT,
-    emp_code VARCHAR(20) UNIQUE NOT NULL,
-    first_name VARCHAR(50) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    age INT CHECK (age >= 18 AND age <= 65),
-    salary DECIMAL(10,2) CHECK (salary > 0),
-    hire_date DATE NOT NULL,
-    dept_id INT,
-    
-    CONSTRAINT fk_employee_department 
-        FOREIGN KEY (dept_id) 
-        REFERENCES departments(dept_id)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
-);
-
--- Composite Primary Key (two columns together as unique identifier)
-CREATE TABLE order_items (
-    order_id INT,
-    product_id INT,
-    quantity INT NOT NULL CHECK (quantity > 0),
-    PRIMARY KEY (order_id, product_id)
-);
-
--- Insert valid data
-INSERT INTO departments (dept_code, dept_name, budget) VALUES
-('ENG', 'Engineering', 500000.00),
-('MKT', 'Marketing', 300000.00);
-
-INSERT INTO employees (emp_code, first_name, email, age, salary, hire_date, dept_id) 
-VALUES ('E001', 'John', 'john@company.com', 25, 75000, '2024-01-15', 1);
-
--- This would fail (age 16 violates CHECK constraint)
--- INSERT INTO employees VALUES ('E002', 'Young', 'young@company.com', 16, 50000, '2024-03-01', 1);`,
-        lineByLine: [
-          "Line 1-7: Parent table departments with PRIMARY KEY",
-          "Line 3: dept_id INT PRIMARY KEY - Unique identifier for each department",
-          "Line 4: dept_code UNIQUE NOT NULL - Must be unique and never empty",
-          "Line 6: budget DEFAULT 0.00 - Default value if not specified",
-          "Line 10-23: Child table employees with multiple constraints",
-          "Line 12: emp_id PRIMARY KEY - Each employee has unique ID",
-          "Line 13: emp_code UNIQUE NOT NULL - Must be unique",
-          "Line 15: email UNIQUE NOT NULL - No duplicate emails",
-          "Line 16: age CHECK - Must be between 18-65",
-          "Line 17: salary CHECK - Must be positive",
-          "Line 18: hire_date NOT NULL - Cannot be empty",
-          "Line 20-23: FOREIGN KEY - Links to departments table",
-          "Line 22: REFERENCES departments(dept_id)",
-          "Line 23: ON DELETE SET NULL - Sets dept_id to NULL if department deleted",
-          "Line 24: ON UPDATE CASCADE - Updates dept_id if department ID changes",
-          "Line 27-32: Composite Primary Key - Two columns together as unique identifier",
-          "Line 31: PRIMARY KEY (order_id, product_id) - Pair must be unique",
-          "Line 35-38: Insert valid data - Works within constraints",
-          "Line 41-42: Invalid insert - Would violate CHECK constraint"
-        ],
-        simpleMeaning: "Constraints are like rules protecting your data. PRIMARY KEY is a unique ID card for each row. FOREIGN KEY says 'this must belong to an existing department'. UNIQUE means no two people can share an email. NOT NULL means you can't leave required fields blank. CHECK ensures valid ages (like 25, not 150). DEFAULT fills in values automatically. These rules keep your database clean and trustworthy.",
-        output: `Query OK, 2 rows affected
-
-+---------+-----------+-------------+-----------+
-| dept_id | dept_code | dept_name   | budget    |
-+---------+-----------+-------------+-----------+
-| 1       | ENG       | Engineering | 500000.00 |
-| 2       | MKT       | Marketing   | 300000.00 |
-+---------+-----------+-------------+-----------+
-
-Query OK, 1 row affected
-
-+--------+----------+------------+---------------------+------+----------+------------+----------+
-| emp_id | emp_code | first_name | email               | age  | salary   | hire_date  | dept_id |
-+--------+----------+------------+---------------------+------+----------+------------+----------+
-| 1      | E001     | John       | john@company.com    | 25   | 75000.00 | 2024-01-15 | 1        |
-+--------+----------+------------+---------------------+------+----------+------------+----------+
-
--- Error when inserting invalid age:
-ERROR 3819 (HY000): Check constraint 'employees_chk_1' is violated.`,
-        note: "Always define PRIMARY KEY for every table. FOREIGN KEY columns must have matching data types. ON DELETE CASCADE removes child records when parent deleted (use carefully!). CHECK constraints fully supported in MySQL 8.0.15+. Foreign keys require InnoDB storage engine."
+        name: "3. MySQL Data Types",
+        description: "Data types define what kind of data a column can store. Choose the smallest type that fits your data to save space and improve performance. Numeric types: `INT`, `DECIMAL` (exact for money), `FLOAT` (approximate). String types: `VARCHAR` (variable length), `CHAR` (fixed length), `TEXT` (long text). Date/Time: `DATE`, `DATETIME`, `TIMESTAMP` (auto‑updates). Using the correct type prevents errors and optimises storage.",
+        code: "CREATE TABLE products (\n    id INT,\n    name VARCHAR(100),\n    price DECIMAL(10,2),\n    created DATE\n);",
+        lineByLine: ["INT for ID", "VARCHAR for variable text", "DECIMAL for exact money", "DATE for date"],
+        simpleMeaning: "Define column storage format.",
+        output: "Table created.",
+        note: "Use DECIMAL for money; TIMESTAMP auto‑updates.",
+        use_case: "Product ID (INT), product name (VARCHAR), price (DECIMAL), release date (DATE)."
       },
-      
       {
-        name: "4. MYSQL JOINS - COMBINING DATA FROM TABLES",
-        description: "JOINs combine rows from multiple tables based on related columns. INNER JOIN returns only matching rows from both tables. LEFT JOIN returns all rows from left table plus matches from right (NULL if no match). RIGHT JOIN is opposite of LEFT JOIN. SELF JOIN joins a table with itself. Multiple JOINs can chain several tables together. JOINs are essential for normalized database design where data is spread across related tables.",
-        code: `-- Create sample tables
-CREATE TABLE customers (
-    customer_id INT PRIMARY KEY,
-    name VARCHAR(100)
-);
-
-CREATE TABLE orders (
-    order_id INT PRIMARY KEY,
-    customer_id INT,
-    total_amount DECIMAL(10,2)
-);
-
--- Insert sample data
-INSERT INTO customers VALUES (1, 'Alice'), (2, 'Bob'), (3, 'Carol');
-INSERT INTO orders VALUES (101, 1, 250.00), (102, 1, 150.00), (103, 2, 500.00);
-
--- INNER JOIN (only matching records)
-SELECT c.name, o.order_id, o.total_amount
-FROM customers c
-INNER JOIN orders o ON c.customer_id = o.customer_id;
-
--- LEFT JOIN (all customers, matching orders)
-SELECT c.name, COUNT(o.order_id) as order_count
-FROM customers c
-LEFT JOIN orders o ON c.customer_id = o.customer_id
-GROUP BY c.customer_id;
-
--- Multiple JOINs (three tables)
-CREATE TABLE order_items (
-    item_id INT PRIMARY KEY,
-    order_id INT,
-    product_name VARCHAR(100)
-);
-
-INSERT INTO order_items VALUES (1, 101, 'Laptop'), (2, 102, 'Mouse');
-
-SELECT c.name, o.order_id, oi.product_name
-FROM customers c
-INNER JOIN orders o ON c.customer_id = o.customer_id
-INNER JOIN order_items oi ON o.order_id = oi.order_id;`,
-        lineByLine: [
-          "Line 1-8: Create customers and orders tables with relationship",
-          "Line 4: customer_id INT PRIMARY KEY - Unique customer identifier",
-          "Line 8: customer_id INT - Foreign key referencing customers",
-          "Line 11-13: Insert sample customer and order data",
-          "Line 16-19: INNER JOIN - Returns only customers who have orders",
-          "Line 18: ON c.customer_id = o.customer_id - Join condition",
-          "Line 22-27: LEFT JOIN - Returns all customers, even without orders",
-          "Line 25: LEFT JOIN - Includes customers with zero orders",
-          "Line 26: GROUP BY - Groups by customer for COUNT",
-          "Line 30-42: Multiple JOINs - Chain three tables together",
-          "Line 38-42: Two INNER JOINs - Connect customers to orders to items"
-        ],
-        simpleMeaning: "JOINs connect information from different tables, like merging two spreadsheets. INNER JOIN gives you only what exists in both (like overlapping circles). LEFT JOIN gives everything from the left table plus matches from the right (or empty if none). SELF JOIN compares a table to itself (finding pairs). With JOINs, you can answer 'Which customer bought which product?'",
-        output: `-- INNER JOIN results (customers with orders)
-+-------+----------+--------------+
-| name  | order_id | total_amount |
-+-------+----------+--------------+
-| Alice | 101      | 250.00       |
-| Alice | 102      | 150.00       |
-| Bob   | 103      | 500.00       |
-+-------+----------+--------------+
-
--- LEFT JOIN results (all customers)
-+-------+-------------+
-| name  | order_count |
-+-------+-------------+
-| Alice | 2           |
-| Bob   | 1           |
-| Carol | 0           |
-+-------+-------------+
-
--- Multiple JOINs results
-+-------+----------+--------------+
-| name  | order_id | product_name |
-+-------+----------+--------------+
-| Alice | 101      | Laptop       |
-| Alice | 102      | Mouse        |
-+-------+----------+--------------+`,
-        note: "Always index foreign key columns used in JOINs. INNER JOIN is default (JOIN means INNER JOIN). LEFT JOIN is more common than RIGHT JOIN. Use table aliases (c, o) for readability. Test JOINs with EXPLAIN before production use."
+        name: "4. CREATE TABLE",
+        description: "`CREATE TABLE` defines a new table with specified columns and constraints. Each column has a data type and optional constraints (NOT NULL, UNIQUE, PRIMARY KEY, etc.). Always define a PRIMARY KEY to uniquely identify each row. You can also set AUTO_INCREMENT for auto‑generated IDs. The table is created in the currently selected database (USE db).",
+        code: "CREATE TABLE users (\n    user_id INT PRIMARY KEY AUTO_INCREMENT,\n    username VARCHAR(50) NOT NULL,\n    email VARCHAR(100) UNIQUE,\n    age INT CHECK (age >= 18)\n);",
+        lineByLine: ["PRIMARY KEY + AUTO_INCREMENT", "NOT NULL", "UNIQUE", "CHECK constraint"],
+        simpleMeaning: "Create a new table with columns and constraints.",
+        output: "Table created.",
+        note: "Always set a PRIMARY KEY.",
+        use_case: "Creating user accounts table for a website with unique email and age validation."
       },
-      
       {
-        name: "5. MYSQL INDEXES - PERFORMANCE OPTIMIZATION",
-        description: "Indexes dramatically speed up data retrieval, like a book's table of contents. CREATE INDEX on columns used in WHERE, JOIN, and ORDER BY clauses. UNIQUE INDEX prevents duplicate values. Composite indexes cover multiple columns. Too many indexes slow down INSERT/UPDATE/DELETE. Use EXPLAIN to see if queries use indexes. Invisible indexes let you test without removing them.",
-        code: `-- Create table for indexing examples
-CREATE TABLE users (
-    user_id INT PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100),
-    age INT,
-    city VARCHAR(50),
-    created_at DATETIME
-);
-
--- Single column index (most common)
-CREATE INDEX idx_email ON users(email);
-
--- Unique index (prevents duplicates)
-CREATE UNIQUE INDEX idx_email_unique ON users(email);
-
--- Composite index (multiple columns)
-CREATE INDEX idx_name_age ON users(name, age);
-
--- Full-text index (for searching text)
-CREATE FULLTEXT INDEX idx_name_fulltext ON users(name);
-
--- Descending index (for reverse order queries)
-CREATE INDEX idx_created_desc ON users(created_at DESC);
-
--- Invisible index (test without removing)
-CREATE INDEX idx_test ON users(city) INVISIBLE;
-
--- View indexes on table
-SHOW INDEX FROM users;
-
--- Drop index when no longer needed
-DROP INDEX idx_email ON users;
-
--- See if query uses index
-EXPLAIN SELECT * FROM users WHERE email = 'john@example.com';
-
--- Index for JOIN performance
-CREATE INDEX idx_user_id ON orders(user_id);
-
--- Index for WHERE with multiple conditions
-CREATE INDEX idx_age_city ON users(age, city);
-
--- Partial index (MySQL 8.0+ - using generated columns)
-ALTER TABLE users ADD COLUMN first_name VARCHAR(50) 
-GENERATED ALWAYS AS (SUBSTRING_INDEX(name, ' ', 1)) STORED;
-CREATE INDEX idx_first_name ON users(first_name);`,
-        lineByLine: [
-          "Line 1-9: Create users table for indexing examples",
-          "Line 11: CREATE INDEX - Basic single column index on email",
-          "Line 14: UNIQUE INDEX - Prevents duplicate email addresses",
-          "Line 17: Composite index - Covers name and age together",
-          "Line 20: FULLTEXT INDEX - For text searching (LIKE with wildcards)",
-          "Line 23: Descending index - Optimizes ORDER BY created_at DESC",
-          "Line 26: INVISIBLE index - Index exists but optimizer ignores it",
-          "Line 29: SHOW INDEX - Lists all indexes on table",
-          "Line 32: DROP INDEX - Removes index",
-          "Line 35: EXPLAIN - Shows if query uses index",
-          "Line 38: Index for JOIN - Speeds up JOIN operations",
-          "Line 41: Composite index - For multiple WHERE conditions",
-          "Line 44-46: Generated column - Creates partial index on first word"
-        ],
-        simpleMeaning: "Indexes are like a book's index - they help MySQL find data fast without reading every row. Index on email means finding 'john@email.com' is instant. Too many indexes slow down saving data (like updating every index in a book). Use indexes on columns you search for often. Composite indexes cover multiple columns at once, like looking up by last name then first name.",
-        output: `-- EXPLAIN output showing index usage
-+----+-------------+-------+------+---------------+----------+---------+-------+------+-------------+
-| id | select_type | table | type | possible_keys | key      | key_len | ref   | rows | Extra       |
-+----+-------------+-------+------+---------------+----------+---------+-------+------+-------------+
-| 1  | SIMPLE      | users | ref  | idx_email     | idx_email| 403     | const | 1    | Using where |
-+----+-------------+-------+------+---------------+----------+---------+-------+------+-------------+
-
--- SHOW INDEX output (sample)
-+-------+------------+---------------+--------------+-------------+-----------+
-| Table | Non_unique | Key_name      | Seq_in_index | Column_name | Collation |
-+-------+------------+---------------+--------------+-------------+-----------+
-| users | 0          | PRIMARY       | 1            | user_id     | A         |
-| users | 0          | idx_email_unique | 1         | email       | A         |
-| users | 1          | idx_name_age  | 1            | name        | A         |
-| users | 1          | idx_name_age  | 2            | age         | A         |
-+-------+------------+---------------+--------------+-------------+-----------+`,
-        note: "Indexes speed up SELECT but slow down INSERT/UPDATE/DELETE. Composite index order matters (most selective column first). Use UNIQUE indexes for natural keys (email, username). FULLTEXT indexes better than LIKE '%text%' for searching. Invisible indexes perfect for testing removal impact."
+        name: "5. INSERT INTO",
+        description: "`INSERT INTO` adds new rows (records) to a table. You can specify column names (order matters) or omit them if you provide values for all columns in the same order as the table definition. Use `AUTO_INCREMENT` columns – they are automatically generated and should be omitted or given NULL. You can insert multiple rows in one statement by separating value lists with commas.",
+        code: "INSERT INTO users (username, email, age) VALUES ('john_doe', 'john@example.com', 25);",
+        lineByLine: ["Specify columns", "Provide corresponding values"],
+        simpleMeaning: "Add new records to a table.",
+        output: "1 row inserted.",
+        note: "Omit AUTO_INCREMENT column.",
+        use_case: "Adding a new customer to the `customers` table in an e‑commerce application."
       },
-      
       {
-        name: "6. MYSQL SUBQUERIES - QUERIES INSIDE QUERIES",
-        description: "Subqueries are SELECT statements nested inside other queries. They can be in WHERE clause (filtering), SELECT clause (calculations), FROM clause (temporary tables), or HAVING clause (group filtering). Correlated subqueries reference outer query and run row-by-row (slower). Scalar subqueries return single value. EXISTS checks if subquery returns any rows. Subqueries can often be rewritten as JOINs for better performance.",
-        code: `-- Setup sample tables
-CREATE TABLE employees (
-    emp_id INT PRIMARY KEY,
-    name VARCHAR(100),
-    salary DECIMAL(10,2),
-    dept_id INT
-);
-
-CREATE TABLE departments (
-    dept_id INT PRIMARY KEY,
-    dept_name VARCHAR(100),
-    location VARCHAR(50)
-);
-
-INSERT INTO departments VALUES (1, 'Engineering', 'NYC'), (2, 'Sales', 'LA');
-INSERT INTO employees VALUES 
-(1, 'Alice', 75000, 1), (2, 'Bob', 85000, 1), (3, 'Carol', 65000, 2);
-
--- Subquery in WHERE (find employees earning more than average)
-SELECT name, salary
-FROM employees
-WHERE salary > (SELECT AVG(salary) FROM employees);
-
--- Subquery with IN (employees in specific departments)
-SELECT name, dept_id
-FROM employees
-WHERE dept_id IN (SELECT dept_id FROM departments WHERE location = 'NYC');
-
--- Correlated subquery (runs per row - slower)
-SELECT e1.name, e1.salary
-FROM employees e1
-WHERE salary > (SELECT AVG(salary) FROM employees e2 WHERE e2.dept_id = e1.dept_id);
-
--- Subquery in SELECT (scalar subquery)
-SELECT name, salary,
-    (SELECT AVG(salary) FROM employees) as company_avg
-FROM employees;
-
--- Subquery in FROM (derived table)
-SELECT dept_id, avg_salary
-FROM (SELECT dept_id, AVG(salary) as avg_salary 
-      FROM employees 
-      GROUP BY dept_id) as dept_avg
-WHERE avg_salary > 70000;
-
--- EXISTS subquery (efficient for existence checks)
-SELECT d.dept_name
-FROM departments d
-WHERE EXISTS (SELECT 1 FROM employees e WHERE e.dept_id = d.dept_id);
-
--- NOT EXISTS (departments with no employees)
-SELECT d.dept_name
-FROM departments d
-WHERE NOT EXISTS (SELECT 1 FROM employees e WHERE e.dept_id = d.dept_id);`,
-        lineByLine: [
-          "Line 1-11: Create employees and departments tables",
-          "Line 14-16: Insert sample data",
-          "Line 19-21: Subquery in WHERE - Compare each salary to company average",
-          "Line 20: (SELECT AVG(salary) FROM employees) - Runs once, returns single value",
-          "Line 24-26: Subquery with IN - Returns multiple values for IN clause",
-          "Line 25: Selects department IDs in NYC, then finds employees in those depts",
-          "Line 29-32: Correlated subquery - References outer query (e1.dept_id)",
-          "Line 31: Runs once per employee, slower but useful for per-group comparisons",
-          "Line 35-38: Subquery in SELECT - Adds calculated value to each row",
-          "Line 36: Shows each employee's salary and company average side by side",
-          "Line 41-47: Subquery in FROM - Derived table (temporary result set)",
-          "Line 42-45: Inner query calculates average per department",
-          "Line 46-47: Outer query filters results",
-          "Line 50-53: EXISTS - Checks if any employee exists in department",
-          "Line 51: SELECT 1 (doesn't matter what you select, just checks existence)",
-          "Line 56-59: NOT EXISTS - Finds departments with no employees"
-        ],
-        simpleMeaning: "Subqueries are questions within questions. Like asking 'Show employees who earn more than average' - first you find average, then compare everyone. IN subquery is like 'Show employees in departments that are in NYC' - find NYC departments first, then their employees. EXISTS just checks 'Does this department have any employees?' without caring how many.",
-        output: `-- Salaries above company average (75,000)
-+-------+--------+
-| name  | salary |
-+-------+--------+
-| Bob   | 85000  |
-+-------+--------+
-
--- Employees in NYC departments
-+-------+---------+
-| name  | dept_id |
-+-------+---------+
-| Alice | 1       |
-| Bob   | 1       |
-+-------+---------+
-
--- With department average (correlated)
-+-------+--------+------------------+
-| name  | salary | company_avg      |
-+-------+--------+------------------+
-| Alice | 75000  | 75000.0000       |
-| Bob   | 85000  | 75000.0000       |
-| Carol | 65000  | 75000.0000       |
-+-------+--------+------------------+
-
--- Departments with average > 70,000
-+---------+-----------+
-| dept_id | avg_salary|
-+---------+-----------+
-| 1       | 80000.00  |
-+---------+-----------+
-
--- Departments with employees (EXISTS)
-+-------------+
-| dept_name   |
-+-------------+
-| Engineering |
-| Sales       |
-+-------------+`,
-        note: "Correlated subqueries run row-by-row (slow on large tables). EXISTS often faster than IN for large datasets. Subqueries in FROM create temporary tables. Scalar subqueries must return exactly one value. Many subqueries can be rewritten as JOINs for better performance."
+        name: "6. SELECT Statement",
+        description: "`SELECT` retrieves data from one or more tables. You can select all columns (`*`) or specific columns. Use `WHERE` to filter rows, `ORDER BY` to sort, `GROUP BY` to aggregate, and `LIMIT` to restrict number of rows. Always prefer selecting only needed columns rather than `*` for better performance, especially on large tables.",
+        code: "SELECT username, email FROM users WHERE age > 18;",
+        lineByLine: ["Select specific columns", "Filter rows"],
+        simpleMeaning: "Fetch data from the database.",
+        output: "Rows matching the condition.",
+        note: "Avoid `SELECT *` in production.",
+        use_case: "Display a list of active customers over 18 on a dashboard."
       },
-      
       {
-        name: "7. MYSQL STORED PROCEDURES - REUSABLE SQL CODE",
-        description: "Stored procedures are precompiled SQL code blocks stored in the database, like functions but can have multiple statements. They accept input parameters (IN), output parameters (OUT), and INOUT (both). Procedures reduce network traffic by executing multiple statements on server. They encapsulate business logic, improve security (no direct table access), and ensure consistent operations. Use DELIMITER to handle semicolons inside procedure body.",
-        code: `DELIMITER //
-
--- Simple procedure with IN parameter
-CREATE PROCEDURE GetEmployee(IN emp_id_param INT)
-BEGIN
-    SELECT * FROM employees WHERE emp_id = emp_id_param;
-END //
-
--- Procedure with OUT parameter (returns value)
-CREATE PROCEDURE GetEmployeeCount(OUT total_count INT)
-BEGIN
-    SELECT COUNT(*) INTO total_count FROM employees;
-END //
-
--- Procedure with INOUT parameter (both input and output)
-CREATE PROCEDURE IncreaseSalary(INOUT current_salary DECIMAL(10,2), 
-                                 IN percentage DECIMAL(5,2))
-BEGIN
-    SET current_salary = current_salary * (1 + percentage / 100);
-END //
-
--- Procedure with multiple statements and variables
-CREATE PROCEDURE UpdateEmployeeDepartment(
-    IN emp_id_param INT,
-    IN new_dept_id INT,
-    OUT old_dept_id INT,
-    OUT status_message VARCHAR(100)
-)
-BEGIN
-    DECLARE dept_exists INT;
-    
-    -- Get current department
-    SELECT dept_id INTO old_dept_id FROM employees WHERE emp_id = emp_id_param;
-    
-    -- Check if new department exists
-    SELECT COUNT(*) INTO dept_exists FROM departments WHERE dept_id = new_dept_id;
-    
-    IF dept_exists > 0 THEN
-        UPDATE employees SET dept_id = new_dept_id WHERE emp_id = emp_id_param;
-        SET status_message = 'Department updated successfully';
-    ELSE
-        SET status_message = 'Department not found';
-    END IF;
-END //
-
--- Procedure with transaction and error handling
-CREATE PROCEDURE TransferEmployee(
-    IN emp_id_param INT,
-    IN from_dept INT,
-    IN to_dept INT
-)
-BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SELECT 'Transaction failed' AS message;
-    END;
-    
-    START TRANSACTION;
-    
-    UPDATE employees SET dept_id = to_dept WHERE emp_id = emp_id_param;
-    INSERT INTO department_log(emp_id, from_dept, to_dept, change_date)
-    VALUES (emp_id_param, from_dept, to_dept, NOW());
-    
-    COMMIT;
-    SELECT 'Employee transferred successfully' AS message;
-END //
-
-DELIMITER ;
-
--- Call procedures
-CALL GetEmployee(1);
-CALL GetEmployeeCount(@total);
-SELECT @total as total_employees;
-
-SET @salary = 50000;
-CALL IncreaseSalary(@salary, 10);
-SELECT @salary as increased_salary;  -- 55000
-
-CALL UpdateEmployeeDepartment(1, 2, @old_dept, @status);
-SELECT @old_dept, @status;
-
--- Drop procedure
-DROP PROCEDURE IF EXISTS GetEmployee;`,
-        lineByLine: [
-          "Line 1: DELIMITER // - Changes statement separator to //",
-          "Line 4-7: Simple procedure - SELECTs employee by ID",
-          "Line 5: IN parameter receives input value",
-          "Line 10-13: Procedure with OUT parameter - Returns count",
-          "Line 11: SELECT INTO - Stores result in OUT variable",
-          "Line 16-20: INOUT parameter - Modifies and returns value",
-          "Line 18: SET current_salary - Calculates new salary",
-          "Line 23-40: Complex procedure with variables and conditionals",
-          "Line 25: DECLARE - Declares local variable",
-          "Line 28: Gets current department before update",
-          "Line 31: Checks if new department exists",
-          "Line 33-38: IF/ELSE conditional logic",
-          "Line 37: Sets output parameter",
-          "Line 43-57: Procedure with transaction and error handling",
-          "Line 45: EXIT HANDLER - Catches any SQL exception",
-          "Line 46-48: ROLLBACK on error and returns error message",
-          "Line 50: START TRANSACTION - Begins transaction",
-          "Line 52: UPDATE - Changes department",
-          "Line 53-54: INSERT - Logs the change",
-          "Line 56: COMMIT - Saves changes if no error",
-          "Line 61: CALL GetEmployee(1) - Execute procedure",
-          "Line 62-63: GetEmployeeCount - Uses user variable @total",
-          "Line 65-67: IncreaseSalary - INOUT parameter example",
-          "Line 69-70: UpdateEmployeeDepartment - Multiple OUT parameters"
-        ],
-        simpleMeaning: "Stored procedures are like saved recipes in your database. Instead of sending multiple instructions from your app, you send one command: 'CALL TransferEmployee(1,2,3)'. The database does all the work - checking, updating, logging - in one go. This is faster (less network travel) and safer (consistent logic). You can even undo everything if something goes wrong using transactions.",
-        output: `-- CALL GetEmployee(1)
-+--------+-------+--------+---------+
-| emp_id | name  | salary | dept_id |
-+--------+-------+--------+---------+
-| 1      | Alice | 75000  | 1       |
-+--------+-------+--------+---------+
-
--- GetEmployeeCount
-+------------------+
-| total_employees  |
-+------------------+
-| 3                |
-+------------------+
-
--- IncreaseSalary
-+------------------+
-| increased_salary |
-+------------------+
-| 55000.00         |
-+------------------+
-
--- UpdateEmployeeDepartment
-+--------+----------------------------------+
-| @old_dept | @status                       |
-+-----------+-------------------------------+
-| 1         | Department updated successfully |
-+-----------+-------------------------------+
-
--- TransferEmployee
-+-----------------------------------+
-| message                           |
-+-----------------------------------+
-| Employee transferred successfully |
-+-----------------------------------+`,
-        note: "DELIMITER changes statement separator (use //, $$, or other). IN parameters are input only, OUT returns values, INOUT does both. Variables declared with DECLARE at start of BEGIN block. Always include error handling for transactions. Procedures improve security by preventing direct table access."
+        name: "7. WHERE Clause",
+        description: "`WHERE` filters rows based on one or more conditions. You can use `=`, `!=`, `>`, `<`, `>=`, `<=`, `BETWEEN`, `LIKE`, `IN`, `IS NULL`, and logical operators `AND`, `OR`, `NOT`. For best performance, ensure columns used in `WHERE` are indexed. Conditions are evaluated row by row; only rows that satisfy all conditions are returned.",
+        code: "SELECT * FROM orders WHERE total > 1000 AND status = 'paid';",
+        lineByLine: ["Condition on total", "AND connects multiple conditions"],
+        simpleMeaning: "Filter results based on conditions.",
+        output: "Filtered rows.",
+        note: "Use indexes on WHERE columns for speed.",
+        use_case: "Show only paid orders above $1000 for a finance report."
       },
-      
       {
-        name: "8. MYSQL FUNCTIONS - REUSABLE VALUE RETURNERS",
-        description: "Functions differ from procedures by always returning a single value. Use RETURNS clause to specify return type. DETERMINISTIC means same input gives same output (for replication safety). Functions can be used in SELECT, WHERE, and ORDER BY clauses. Built-in functions include string (CONCAT, SUBSTRING), numeric (ROUND, ABS), date (NOW, DATE_FORMAT), and aggregate (SUM, AVG, COUNT). User-defined functions must be deterministic for replication.",
-        code: `DELIMITER //
-
--- Simple function with single calculation
-CREATE FUNCTION GetFullName(first_name VARCHAR(50), last_name VARCHAR(50))
-RETURNS VARCHAR(101)
-DETERMINISTIC
-BEGIN
-    RETURN CONCAT(first_name, ' ', last_name);
-END //
-
--- Function with conditional logic
-CREATE FUNCTION GetSalaryGrade(salary DECIMAL(10,2))
-RETURNS VARCHAR(20)
-DETERMINISTIC
-BEGIN
-    DECLARE grade VARCHAR(20);
-    
-    IF salary >= 80000 THEN
-        SET grade = 'Grade A (Executive)';
-    ELSEIF salary >= 60000 THEN
-        SET grade = 'Grade B (Senior)';
-    ELSEIF salary >= 40000 THEN
-        SET grade = 'Grade C (Mid-Level)';
-    ELSE
-        SET grade = 'Grade D (Junior)';
-    END IF;
-    
-    RETURN grade;
-END //
-
--- Function calculating age from birthdate
-CREATE FUNCTION CalculateAge(birth_date DATE)
-RETURNS INT
-DETERMINISTIC
-BEGIN
-    DECLARE age INT;
-    SET age = YEAR(CURDATE()) - YEAR(birth_date);
-    
-    IF DATE_FORMAT(birth_date, '%m%d') > DATE_FORMAT(CURDATE(), '%m%d') THEN
-        SET age = age - 1;
-    END IF;
-    
-    RETURN age;
-END //
-
--- Function returning JSON data
-CREATE FUNCTION GetEmployeeSummary(emp_id_param INT)
-RETURNS JSON
-READS SQL DATA
-BEGIN
-    DECLARE result JSON;
-    
-    SELECT JSON_OBJECT(
-        'id', emp_id,
-        'name', name,
-        'salary', salary,
-        'grade', GetSalaryGrade(salary)
-    ) INTO result
-    FROM employees
-    WHERE emp_id = emp_id_param;
-    
-    RETURN result;
-END //
-
--- Function using aggregation
-CREATE FUNCTION GetDepartmentAvgSalary(dept_id_param INT)
-RETURNS DECIMAL(10,2)
-READS SQL DATA
-BEGIN
-    DECLARE avg_salary DECIMAL(10,2);
-    
-    SELECT AVG(salary) INTO avg_salary
-    FROM employees
-    WHERE dept_id = dept_id_param;
-    
-    RETURN COALESCE(avg_salary, 0);
-END //
-
-DELIMITER ;
-
--- Using functions in queries
-SELECT GetFullName(first_name, last_name) as full_name FROM employees;
-
-SELECT name, salary, GetSalaryGrade(salary) as grade FROM employees;
-
-SELECT CalculateAge('1990-05-15') as age;
-
-SELECT GetEmployeeSummary(1) as employee_json;
-
-SELECT GetDepartmentAvgSalary(1) as dept_avg_salary;
-
--- Drop function
-DROP FUNCTION IF EXISTS GetFullName;`,
-        lineByLine: [
-          "Line 4-10: Simple function - Concatenates first and last name",
-          "Line 6: RETURNS VARCHAR(101) - Return type declaration",
-          "Line 7: DETERMINISTIC - Same input = same output (important for replication)",
-          "Line 8: RETURN - Returns the calculated value",
-          "Line 13-28: Function with IF/ELSEIF logic",
-          "Line 15: DECLARE grade - Local variable",
-          "Line 17-26: Conditional logic to determine grade",
-          "Line 28: RETURN grade - Returns the computed grade",
-          "Line 31-45: Age calculation with date logic",
-          "Line 38-40: Adjusts age if birthday hasn't occurred this year",
-          "Line 48-64: JSON function - Returns structured data",
-          "Line 50: READS SQL DATA - Indicates function reads but doesn't modify data",
-          "Line 53: JSON_OBJECT - Creates JSON from key-value pairs",
-          "Line 54: Uses GetSalaryGrade function inside JSON",
-          "Line 67-80: Aggregate function - Returns average salary",
-          "Line 75: SELECT AVG(salary) INTO avg_salary",
-          "Line 78: COALESCE - Returns 0 if avg_salary is NULL",
-          "Line 84: Using function in SELECT",
-          "Line 86: Using function in SELECT with other columns",
-          "Line 88: Standalone function call",
-          "Line 90: Function returning JSON data",
-          "Line 92: Aggregate function call"
-        ],
-        simpleMeaning: "Functions are like calculators - give them inputs, get a single output. GetSalaryGrade(75000) returns 'Grade B (Senior)'. You can use them anywhere: SELECT GetFullName(first_name, last_name) FROM users. Unlike procedures, functions don't change data - they just compute and return. This makes them perfect for formatting names, calculating ages, or grading salaries on the fly.",
-        output: `-- GetFullName
-+-------------------+
-| full_name         |
-+-------------------+
-| John Doe          |
-| Jane Smith        |
-+-------------------+
-
--- GetSalaryGrade
-+-------+--------+------------------+
-| name  | salary | grade            |
-+-------+--------+------------------+
-| Alice | 85000  | Grade A (Executive)|
-| Bob   | 75000  | Grade B (Senior)  |
-| Carol | 65000  | Grade B (Senior)  |
-+-------+--------+------------------+
-
--- CalculateAge
-+------+
-| age  |
-+------+
-| 34   |
-+------+
-
--- GetEmployeeSummary (returns JSON)
-+------------------------------------------------------------------+
-| employee_json                                                    |
-+------------------------------------------------------------------+
-| {"id": 1, "name": "Alice", "salary": 85000, "grade": "Grade A"}  |
-+------------------------------------------------------------------+
-
--- GetDepartmentAvgSalary
-+------------------+
-| dept_avg_salary  |
-+------------------+
-| 80000.00         |
-+------------------+`,
-        note: "DETERMINISTIC required for replication safety (function must return same value for same inputs). READ SQL DATA indicates function reads data (SELECT) but doesn't modify. Functions cannot perform INSERT, UPDATE, or DELETE. Built-in functions are faster than user-defined. Use COALESCE to handle NULL returns."
+        name: "8. UPDATE Statement",
+        description: "`UPDATE` modifies existing rows in a table. You must use a `WHERE` clause to specify which rows to update; otherwise, all rows are updated. You can update multiple columns at once by separating `column = value` pairs with commas. Always test your `UPDATE` with a `SELECT` first to ensure you are targeting the correct rows.",
+        code: "UPDATE users SET email = 'new@example.com' WHERE user_id = 1;",
+        lineByLine: ["SET new value for column", "WHERE targets specific rows"],
+        simpleMeaning: "Change existing data.",
+        output: "Rows matched: 1; Changed: 1",
+        note: "Always use WHERE; otherwise updates entire table.",
+        use_case: "User updates their email address on a profile page."
       },
-      
       {
-        name: "9. MYSQL TRIGGERS - AUTOMATIC ACTIONS ON DATA CHANGES",
-        description: "Triggers automatically execute SQL code when specified events occur: BEFORE/AFTER INSERT, UPDATE, DELETE. Use OLD.column to access previous value, NEW.column for new value. Triggers are useful for audit logging, data validation, automatic updates (updated_at timestamps), cascading changes, and enforcing complex business rules. Multiple triggers can exist per event type with specified order.",
-        code: `-- Create audit log table
-CREATE TABLE employee_audit (
-    audit_id INT PRIMARY KEY AUTO_INCREMENT,
-    emp_id INT,
-    action_type VARCHAR(20),
-    old_data JSON,
-    new_data JSON,
-    changed_by VARCHAR(50),
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- BEFORE INSERT trigger (auto-set values)
-DELIMITER //
-CREATE TRIGGER before_employee_insert
-BEFORE INSERT ON employees
-FOR EACH ROW
-BEGIN
-    SET NEW.created_at = NOW();
-    SET NEW.email = LOWER(NEW.email);
-    SET NEW.updated_at = NOW();
-END //
-
--- AFTER INSERT trigger (audit logging)
-CREATE TRIGGER after_employee_insert
-AFTER INSERT ON employees
-FOR EACH ROW
-BEGIN
-    INSERT INTO employee_audit(emp_id, action_type, new_data, changed_by)
-    VALUES (NEW.emp_id, 'INSERT', JSON_OBJECT('name', NEW.name, 'salary', NEW.salary), 
-            USER());
-END //
-
--- BEFORE UPDATE trigger (validate and log changes)
-CREATE TRIGGER before_employee_update
-BEFORE UPDATE ON employees
-FOR EACH ROW
-BEGIN
-    IF NEW.salary < OLD.salary * 0.9 THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Salary cannot decrease by more than 10%';
-    END IF;
-    
-    SET NEW.updated_at = NOW();
-END //
-
--- AFTER UPDATE trigger (audit changes)
-CREATE TRIGGER after_employee_update
-AFTER UPDATE ON employees
-FOR EACH ROW
-BEGIN
-    INSERT INTO employee_audit(emp_id, action_type, old_data, new_data, changed_by)
-    VALUES (NEW.emp_id, 'UPDATE', 
-            JSON_OBJECT('name', OLD.name, 'salary', OLD.salary),
-            JSON_OBJECT('name', NEW.name, 'salary', NEW.salary),
-            USER());
-END //
-
--- BEFORE DELETE trigger (prevent deletion under conditions)
-CREATE TRIGGER before_employee_delete
-BEFORE DELETE ON employees
-FOR EACH ROW
-BEGIN
-    IF OLD.status = 'active' THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Cannot delete active employees. Deactivate first.';
-    END IF;
-    
-    -- Archive before deletion
-    INSERT INTO deleted_employees SELECT OLD.*;
-END //
-
--- AFTER DELETE trigger (cleanup)
-CREATE TRIGGER after_employee_delete
-AFTER DELETE ON employees
-FOR EACH ROW
-BEGIN
-    DELETE FROM employee_sessions WHERE emp_id = OLD.emp_id;
-    UPDATE department_stats SET employee_count = employee_count - 1 
-    WHERE dept_id = OLD.dept_id;
-END //
-
-DELIMITER ;
-
--- View all triggers
-SHOW TRIGGERS;
-
--- Drop trigger
-DROP TRIGGER IF EXISTS before_employee_insert;`,
-        lineByLine: [
-          "Line 1-10: Audit table stores all changes for tracking",
-          "Line 5-6: OLD and NEW data stored as JSON",
-          "Line 13-19: BEFORE INSERT - Automatically sets values",
-          "Line 16: SET NEW.created_at = NOW() - Sets creation timestamp",
-          "Line 17: SET NEW.email = LOWER(NEW.email) - Normalizes email",
-          "Line 22-28: AFTER INSERT - Logs new record creation",
-          "Line 24: NEW.column - Accesses newly inserted values",
-          "Line 26: USER() - Gets current database user",
-          "Line 31-40: BEFORE UPDATE - Validates changes before saving",
-          "Line 33-35: SIGNAL - Throws error if salary drops too much",
-          "Line 38: SET NEW.updated_at = NOW() - Updates timestamp",
-          "Line 43-50: AFTER UPDATE - Logs both old and new values",
-          "Line 46-49: OLD.column - Previous values before update",
-          "Line 47: NEW.column - New values after update",
-          "Line 53-63: BEFORE DELETE - Prevents deletion of active employees",
-          "Line 56: SIGNAL - Throws error with custom message",
-          "Line 60: Archives employee data before deletion",
-          "Line 66-72: AFTER DELETE - Performs cleanup operations",
-          "Line 68: Clean up related records",
-          "Line 69: Update aggregated statistics"
-        ],
-        simpleMeaning: "Triggers are automatic actions that run when you INSERT, UPDATE, or DELETE data. Like setting 'last_updated' automatically when someone edits a record, or logging who changed what. BEFORE triggers can modify or reject changes (like preventing salary cuts over 10%). AFTER triggers run after the change (like sending email notifications). Think of triggers as 'if this happens, automatically do that' rules.",
-        output: `-- BEFORE INSERT trigger adds timestamps
-INSERT INTO employees (emp_id, name, email, salary) 
-VALUES (4, 'David', 'DAVID@COMPANY.COM', 70000);
-
--- Result: email becomes 'david@company.com', created_at and updated_at set automatically
-
--- BEFORE UPDATE trigger prevents large salary decrease
-UPDATE employees SET salary = 60000 WHERE emp_id = 1;
--- Error: Salary cannot decrease by more than 10% (75000 -> 60000 is 20% decrease)
-
--- Valid update works
-UPDATE employees SET salary = 70000, name = 'David Smith' WHERE emp_id = 4;
-
--- AFTER UPDATE trigger logs changes in audit table
-SELECT * FROM employee_audit WHERE emp_id = 4;
-+----------+--------+-------------+------------------------------------------+------------------------------------------+
-| audit_id | emp_id | action_type | old_data                                 | new_data                                 |
-+----------+--------+-------------+------------------------------------------+------------------------------------------+
-| 1        | 4      | INSERT      | NULL                                     | {"name": "David", "salary": 70000}       |
-| 2        | 4      | UPDATE      | {"name": "David", "salary": 70000}       | {"name": "David Smith", "salary": 70000} |
-+----------+--------+-------------+------------------------------------------+------------------------------------------+
-
--- BEFORE DELETE prevents deletion
-DELETE FROM employees WHERE emp_id = 4;
--- Error: Cannot delete active employees. Deactivate first.
-
--- Show all triggers on database
-SHOW TRIGGERS;
-+------------------------+--------+-----------+------------------------------------------------+
-| Trigger                | Event  | Table     | Statement                                      |
-+------------------------+--------+-----------+------------------------------------------------+
-| before_employee_insert | INSERT | employees | BEGIN SET NEW.created_at = NOW(); ... END     |
-| after_employee_insert  | INSERT | employees | BEGIN INSERT INTO employee_audit ... END      |
-+------------------------+--------+-----------+------------------------------------------------+`,
-        note: "Triggers run automatically - no explicit call needed. BEFORE triggers can modify NEW values, AFTER triggers cannot. OLD not available in INSERT triggers, NEW not available in DELETE triggers. Multiple triggers per event possible with FOLLOWS/PRECEDES clause. Triggers can call stored procedures but not other triggers (to avoid loops)."
+        name: "9. DELETE Statement",
+        description: "`DELETE` removes rows from a table. Like `UPDATE`, you must use a `WHERE` clause to avoid deleting all rows. Deleting many rows can be slow; consider using `TRUNCATE` to remove all rows quickly. `DELETE` does not reset the AUTO_INCREMENT counter. Use `LIMIT` to restrict the number of deleted rows for safety.",
+        code: "DELETE FROM users WHERE user_id = 1;",
+        lineByLine: ["DELETE with condition"],
+        simpleMeaning: "Remove rows from a table.",
+        output: "1 row deleted.",
+        note: "Use TRUNCATE to remove all rows faster.",
+        use_case: "Delete a canceled order from the order table."
       },
-      
       {
-        name: "10. MYSQL VIEWS - VIRTUAL TABLES FOR SIMPLIFIED QUERIES",
-        description: "Views are virtual tables based on SELECT query results. They simplify complex queries, restrict data access (hide sensitive columns), and provide data abstraction. Regular views are dynamic (reflect underlying table changes). Updatable views can modify base tables (under certain conditions). WITH CHECK OPTION prevents updates that would exclude row from view. Views can be indexed for performance (materialized views in MySQL 8.0).",
-        code: `-- Create base tables
-CREATE TABLE employees (
-    emp_id INT PRIMARY KEY,
-    name VARCHAR(100),
-    salary DECIMAL(10,2),
-    dept_id INT,
-    ssn VARCHAR(11),
-    hire_date DATE
-);
-
--- Simple view (hide sensitive data)
-CREATE VIEW public_employees AS
-SELECT emp_id, name, dept_id, hire_date
-FROM employees;
-
--- Complex view with JOIN and computed columns
-CREATE VIEW employee_details AS
-SELECT e.emp_id, e.name, e.salary, d.dept_name, d.location,
-       YEAR(CURDATE()) - YEAR(e.hire_date) as years_employed,
-       CASE 
-           WHEN e.salary >= 80000 THEN 'Executive'
-           WHEN e.salary >= 60000 THEN 'Senior'
-           ELSE 'Junior'
-       END as salary_grade
-FROM employees e
-INNER JOIN departments d ON e.dept_id = d.dept_id;
-
--- View with aggregation (read-only)
-CREATE VIEW department_summary AS
-SELECT d.dept_id, d.dept_name,
-       COUNT(e.emp_id) as employee_count,
-       AVG(e.salary) as avg_salary,
-       MAX(e.salary) as max_salary,
-       MIN(e.salary) as min_salary
-FROM departments d
-LEFT JOIN employees e ON d.dept_id = e.dept_id
-GROUP BY d.dept_id, d.dept_name;
-
--- Updatable view (must map directly to single table)
-CREATE VIEW active_employees AS
-SELECT emp_id, name, salary, dept_id
-FROM employees
-WHERE status = 'active'
-WITH CHECK OPTION;  -- Prevents updates that would remove from view
-
--- View with JOIN (read-only - cannot update)
-CREATE VIEW employee_with_dept AS
-SELECT e.name, e.salary, d.dept_name
-FROM employees e
-JOIN departments d ON e.dept_id = d.dept_id;
-
--- Using views in queries
-SELECT * FROM employee_details WHERE salary_grade = 'Senior';
-SELECT * FROM department_summary WHERE employee_count > 5;
-
--- Update through view (updatable view)
-UPDATE active_employees SET salary = 75000 WHERE emp_id = 1;
--- This works because it's still active
-
-UPDATE active_employees SET status = 'inactive' WHERE emp_id = 1;
--- This would fail with CHECK OPTION (row would disappear from view)
-
--- View metadata
-SHOW CREATE VIEW employee_details;
-SELECT * FROM information_schema.views WHERE table_name = 'employee_details';
-
--- Drop view
-DROP VIEW IF EXISTS employee_details;
-
--- Replace view (create or replace)
-CREATE OR REPLACE VIEW employee_details AS
-SELECT e.emp_id, e.name, e.salary, d.dept_name
-FROM employees e
-LEFT JOIN departments d ON e.dept_id = d.dept_id;`,
-        lineByLine: [
-          "Line 1-10: Create base tables",
-          "Line 13-17: Simple view - Hides salary and SSN columns",
-          "Line 15: Only selects non-sensitive columns",
-          "Line 20-31: Complex view with computed columns",
-          "Line 24: Computes years employed",
-          "Line 25-29: CASE statement adds salary grade",
-          "Line 34-43: Aggregate view - Grouped data (read-only)",
-          "Line 37-41: Aggregation functions",
-          "Line 38: COUNT - Number of employees",
-          "Line 39: AVG - Average salary",
-          "Line 46-51: Updatable view with CHECK OPTION",
-          "Line 48: WHERE clause filters rows",
-          "Line 50: WITH CHECK OPTION - Prevents updates that exclude row",
-          "Line 54-58: JOIN view - Read-only (cannot update)",
-          "Line 61: Query view like regular table",
-          "Line 62: Another view query",
-          "Line 65: Update through updatable view",
-          "Line 68-70: Update that would violate CHECK OPTION",
-          "Line 73: SHOW CREATE VIEW - Shows view definition",
-          "Line 74: Query view metadata",
-          "Line 77: DROP VIEW - Removes view",
-          "Line 80: CREATE OR REPLACE - Updates view definition"
-        ],
-        simpleMeaning: "Views are like saved queries that act as virtual tables. Instead of writing complex JOIN queries every time, create a view and just SELECT * FROM it. Views hide complexity (JOINs, calculations) and sensitive data (like SSN). Some views can even update the original tables. Think of views as custom lenses - different people see different data from the same table, perfect for security and simplicity.",
-        output: `-- Simple view (public_employees)
-+--------+-------+---------+------------+
-| emp_id | name  | dept_id | hire_date  |
-+--------+-------+---------+------------+
-| 1      | Alice | 1       | 2020-01-15 |
-| 2      | Bob   | 1       | 2021-03-20 |
-+--------+-------+---------+------------+
-
--- Complex view (employee_details)
-+--------+-------+--------+-------------+----------+-----------------+---------------+
-| emp_id | name  | salary | dept_name   | location | years_employed  | salary_grade  |
-+--------+-------+--------+-------------+----------+-----------------+---------------+
-| 1      | Alice | 85000  | Engineering | NYC      | 4               | Executive     |
-| 2      | Bob   | 75000  | Engineering | NYC      | 3               | Senior        |
-+--------+-------+--------+-------------+----------+-----------------+---------------+
-
--- Aggregate view (department_summary)
-+---------+-------------+----------------+-----------+-----------+-----------+
-| dept_id | dept_name   | employee_count | avg_salary| max_salary| min_salary|
-+---------+-------------+----------------+-----------+-----------+-----------+
-| 1       | Engineering | 2              | 80000.00  | 85000.00  | 75000.00  |
-| 2       | Sales       | 0              | NULL      | NULL      | NULL      |
-+---------+-------------+----------------+-----------+-----------+-----------+
-
--- Query views like tables
-SELECT * FROM employee_details WHERE salary_grade = 'Senior';
-+--------+------+--------+-------------+----------+-----------------+---------------+
-| emp_id | name | salary | dept_name   | location | years_employed  | salary_grade  |
-+--------+------+--------+-------------+----------+-----------------+---------------+
-| 2      | Bob  | 75000  | Engineering | NYC      | 3               | Senior        |
-+--------+------+--------+-------------+----------+-----------------+---------------+`,
-        note: "Views simplify complex queries but can impact performance (run underlying query each time). Updatable views require: no DISTINCT, GROUP BY, HAVING, UNION, subqueries in FROM. WITH CHECK OPTION ensures data consistency. Indexed views (materialized) available in MySQL 8.0+ can boost performance. Views provide security by hiding columns/rows."
+        name: "10. ALTER TABLE (ADD, DROP, MODIFY)",
+        description: "`ALTER TABLE` changes the structure of an existing table. You can add new columns (`ADD`), remove columns (`DROP COLUMN`), modify column data types or constraints (`MODIFY`), rename columns (`RENAME COLUMN`), and add or drop indexes. These operations can lock the table for a long time on large tables; plan them during maintenance windows.",
+        code: "ALTER TABLE users ADD phone VARCHAR(15);\nALTER TABLE users DROP COLUMN age;\nALTER TABLE users MODIFY username VARCHAR(100);",
+        lineByLine: ["Add column", "Remove column", "Change column type"],
+        simpleMeaning: "Modify table schema after creation.",
+        output: "Table altered.",
+        note: "ALTER can be slow on large tables.",
+        use_case: "Add a `discount` column to products, remove obsolete `age` column, increase `username` length."
+      },
+      {
+        name: "11. DROP TABLE vs TRUNCATE",
+        description: "`TRUNCATE` removes all rows from a table but keeps the table structure (columns, indexes, constraints) and resets auto‑increment counters. It is faster than `DELETE` because it does not log individual row deletions. `DROP TABLE` deletes the table completely (structure + data). `TRUNCATE` cannot be rolled back in MySQL (unless inside a transaction with InnoDB).",
+        code: "TRUNCATE logs;\nDROP TABLE old_data;",
+        lineByLine: ["Empty table but keep structure", "Delete table completely"],
+        simpleMeaning: "Remove all data or whole table.",
+        output: "Table truncated / dropped.",
+        note: "TRUNCATE cannot be rolled back in MyISAM.",
+        use_case: "Clear session logs (TRUNCATE), remove temporary test tables (DROP)."
+      },
+      {
+        name: "12. PRIMARY KEY Constraint",
+        description: "A `PRIMARY KEY` uniquely identifies each row in a table. It implies `NOT NULL` and `UNIQUE`. Each table can have only one primary key, which can be a single column or a combination of columns (composite key). Primary keys are automatically indexed, making lookups very fast. Always define a primary key for every table.",
+        code: "CREATE TABLE orders (order_id INT PRIMARY KEY, amount DECIMAL(10,2));",
+        lineByLine: ["PRIMARY KEY constraint"],
+        simpleMeaning: "Unique ID per row.",
+        output: "Table created.",
+        note: "Every table should have a PRIMARY KEY.",
+        use_case: "Order number, product ID, customer ID – used for fast lookups and joining tables."
+      },
+      {
+        name: "13. FOREIGN KEY Constraint",
+        description: "A `FOREIGN KEY` links a column (or columns) in one table to the primary key of another table, enforcing referential integrity. It ensures that the value exists in the referenced table. You can specify actions on `DELETE` and `UPDATE` (e.g., `CASCADE`, `SET NULL`, `RESTRICT`). Foreign keys require the InnoDB storage engine.",
+        code: "CREATE TABLE orders (\n    id INT PRIMARY KEY,\n    customer_id INT,\n    FOREIGN KEY (customer_id) REFERENCES customers(id)\n);",
+        lineByLine: ["FOREIGN KEY references another table's primary key"],
+        simpleMeaning: "Enforce parent‑child relationship between tables.",
+        output: "Table created.",
+        note: "Requires InnoDB engine.",
+        use_case: "Orders must belong to an existing customer; prevents orphan records."
+      },
+      {
+        name: "14. UNIQUE Constraint",
+        description: "A `UNIQUE` constraint ensures that all values in a column (or a group of columns) are distinct. You can have multiple `UNIQUE` constraints per table, and they can be on columns that allow `NULL` values (multiple `NULL`s are allowed because `NULL` is not equal to itself). `UNIQUE` constraints are automatically indexed.",
+        code: "CREATE TABLE users (email VARCHAR(100) UNIQUE);",
+        lineByLine: ["UNIQUE constraint"],
+        simpleMeaning: "No two rows can have the same value in that column.",
+        output: "Table created.",
+        note: "NULL values are allowed (multiple NULLs).",
+        use_case: "Email addresses, usernames, product SKUs – ensure no duplicates."
+      },
+      {
+        name: "15. NOT NULL Constraint",
+        description: "`NOT NULL` forces a column to have a value; it cannot be left empty (`NULL`). This is important for required fields like names, prices, or foreign keys. When you insert a row, you must provide a value for every `NOT NULL` column. You cannot add a `NOT NULL` column to a table that already contains rows unless you provide a default value.",
+        code: "CREATE TABLE products (name VARCHAR(100) NOT NULL);",
+        lineByLine: ["NOT NULL constraint"],
+        simpleMeaning: "Column must contain data.",
+        output: "Table created.",
+        note: "Use for required fields.",
+        use_case: "Product name cannot be empty; order amount must be specified."
+      },
+      {
+        name: "16. DEFAULT Constraint",
+        description: "A `DEFAULT` constraint provides a default value for a column when no value is supplied in an `INSERT` statement. It is often used for timestamps (`CURRENT_TIMESTAMP`), statuses (`'pending'`), or audit fields (`created_by`). You can change the default later with `ALTER TABLE`.",
+        code: "CREATE TABLE logs (created TIMESTAMP DEFAULT CURRENT_TIMESTAMP);",
+        lineByLine: ["DEFAULT clause"],
+        simpleMeaning: "Auto‑fill if omitted.",
+        output: "Table created.",
+        note: "Common for timestamps.",
+        use_case: "Automatically set `created_at` to current time; set `status` default to 'pending'."
+      },
+      {
+        name: "17. CHECK Constraint",
+        description: "`CHECK` validates data before insertion or update. It enforces a condition on the column(s). MySQL 8.0.15+ fully supports `CHECK` constraints; earlier versions parsed but ignored them. You can use `CHECK` to ensure age > 0, price >= 0, or status in a list. If the condition fails, the statement is rejected.",
+        code: "CREATE TABLE employees (age INT CHECK (age >= 18));",
+        lineByLine: ["CHECK constraint"],
+        simpleMeaning: "Prevent invalid data from being saved.",
+        output: "Table created.",
+        note: "Fully supported in MySQL 8.0.15+.",
+        use_case: "HR system: age must be ≥18; product price > 0; status in ('active','inactive')."
+      },
+      {
+        name: "18. INDEX (CREATE, DROP)",
+        description: "Indexes dramatically speed up data retrieval but slow down `INSERT`, `UPDATE`, and `DELETE`. Use `CREATE INDEX` on columns used in `WHERE`, `JOIN`, and `ORDER BY`. Unique indexes also enforce uniqueness. Composite indexes (multiple columns) are efficient when the query uses the leftmost columns in the order of the index.",
+        code: "CREATE INDEX idx_email ON users(email);\nDROP INDEX idx_email ON users;",
+        lineByLine: ["Create index on email", "Drop index"],
+        simpleMeaning: "Speed up searches.",
+        output: "Index created / dropped.",
+        note: "Too many indexes slow writes.",
+        use_case: "Index on `customer_id` in orders for faster JOINs; index on `email` for login speed."
+      },
+      {
+        name: "19. AUTO_INCREMENT",
+        description: "`AUTO_INCREMENT` generates a unique integer automatically when a new row is inserted. It is typically used with `PRIMARY KEY`. The starting value is 1 by default, and you can change it with `ALTER TABLE ... AUTO_INCREMENT = value`. The value increments even if a row is deleted (no reuse).",
+        code: "CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(50));",
+        lineByLine: ["AUTO_INCREMENT attribute"],
+        simpleMeaning: "Auto‑number IDs.",
+        output: "Table created.",
+        note: "Often used with PRIMARY KEY.",
+        use_case: "Automatically assign order number, product ID, user ID without manual input."
+      },
+      {
+        name: "20. LIMIT Clause",
+        description: "`LIMIT` restricts the number of rows returned by a query. It is commonly used for pagination, top‑N reports, and sampling. You can specify offset as `LIMIT offset, count` or `LIMIT count OFFSET offset`. For efficient pagination, always use `ORDER BY` with an index on the column being ordered.",
+        code: "SELECT * FROM products LIMIT 10;",
+        lineByLine: ["LIMIT 10 returns first 10 rows"],
+        simpleMeaning: "Paginate results.",
+        output: "10 rows",
+        note: "Use with ORDER BY for predictable pagination.",
+        use_case: "Show first 10 products on a page, display top N bestsellers."
+      },
+      {
+        name: "21. ORDER BY (ASC, DESC)",
+        description: "`ORDER BY` sorts the result set by one or more columns. `ASC` (ascending, default) orders from smallest to largest, `DESC` (descending) from largest to smallest. You can sort by multiple columns; each column can have its own direction. Sorting can be expensive on large datasets, so index the columns used in `ORDER BY` when possible.",
+        code: "SELECT name, price FROM products ORDER BY price DESC;",
+        lineByLine: ["ORDER BY column direction"],
+        simpleMeaning: "Sort rows.",
+        output: "Sorted rows",
+        note: "Default is ASC.",
+        use_case: "Sort products by price (low to high), orders by date (newest first)."
+      },
+      {
+        name: "22. GROUP BY",
+        description: "`GROUP BY` groups rows that have the same values in specified columns, allowing aggregate functions (`COUNT`, `SUM`, `AVG`, etc.) to be applied to each group. It is often used with `HAVING` to filter groups. Columns in the `SELECT` list that are not aggregate functions must appear in the `GROUP BY` clause.",
+        code: "SELECT department, COUNT(*) FROM employees GROUP BY department;",
+        lineByLine: ["GROUP BY aggregates per group"],
+        simpleMeaning: "Summarise data by category.",
+        output: "Department counts",
+        note: "Used with aggregate functions.",
+        use_case: "Count orders per customer, average salary per department, total sales per month."
+      },
+      {
+        name: "23. HAVING Clause",
+        description: "`HAVING` filters groups created by `GROUP BY` – it is like `WHERE` but for aggregate values. While `WHERE` filters rows before grouping, `HAVING` filters after grouping. It can use aggregate functions (`SUM(amount) > 1000`) or non‑aggregate columns that appear in `GROUP BY`. Always try to place conditions in `WHERE` when possible for better performance.",
+        code: "SELECT department, AVG(salary) FROM employees GROUP BY department HAVING AVG(salary) > 50000;",
+        lineByLine: ["HAVING filters after grouping"],
+        simpleMeaning: "Filter aggregated results.",
+        output: "Departments with avg salary > 50k",
+        note: "WHERE filters rows before grouping.",
+        use_case: "Show only departments with more than 10 employees, high average salary."
+      },
+      {
+        name: "24. Aggregate Functions (COUNT, SUM, AVG, MAX, MIN)",
+        description: "Aggregate functions perform calculations on a set of rows and return a single value. `COUNT(*)` counts all rows, `COUNT(column)` counts non‑NULL values. `SUM`, `AVG` work on numeric columns. `MAX` and `MIN` return the highest/lowest value. They ignore `NULL` values except `COUNT(*)`. Use them with `GROUP BY` for grouped summaries.",
+        code: "SELECT COUNT(*), SUM(amount), AVG(amount), MAX(amount), MIN(amount) FROM orders;",
+        lineByLine: ["COUNT rows", "SUM of column", "Average", "Maximum", "Minimum"],
+        simpleMeaning: "Compute statistics on data.",
+        output: "One row with aggregates.",
+        note: "NULL values ignored except COUNT(*).",
+        use_case: "Total sales, average order value, most expensive product, number of users."
+      },
+      {
+        name: "25. DISTINCT Keyword",
+        description: "`DISTINCT` eliminates duplicate rows from the result set. It can be applied to a single column (unique values) or multiple columns (unique combinations). `DISTINCT` works on all selected columns. It is often used to get a list of unique categories, cities, or statuses. Use it only when needed because it can add overhead.",
+        code: "SELECT DISTINCT city FROM customers;",
+        lineByLine: ["DISTINCT gives unique values"],
+        simpleMeaning: "Show unique values only.",
+        output: "List of unique cities.",
+        note: "Use when you need unique combinations.",
+        use_case: "Get list of all product categories, unique customer cities for marketing."
+      },
+      {
+        name: "26. LIKE Operator (Pattern Matching)",
+        description: "`LIKE` performs pattern matching on strings. `%` matches any number of characters (including zero), and `_` matches exactly one character. For case‑insensitive search, use `LIKE` on a column with case‑insensitive collation or use `LOWER()` function. Leading `%` prevents index usage, so avoid it when possible.",
+        code: "SELECT * FROM products WHERE name LIKE 'Apple%';",
+        lineByLine: ["% matches any characters", "_ matches exactly one"],
+        simpleMeaning: "Search for patterns.",
+        output: "Matching rows.",
+        note: "Leading % prevents index use.",
+        use_case: "Find products whose name starts with 'Apple'; search emails ending with '@gmail.com'."
+      },
+      {
+        name: "27. IN and NOT IN",
+        description: "`IN` checks if a value matches any value in a list (or subquery). It is a shorthand for multiple `OR` conditions. `NOT IN` excludes values in the list. Be careful with subqueries that return `NULL` – `NOT IN (SELECT ...)` will return no rows if the subquery contains `NULL`. Use `EXISTS` instead in such cases.",
+        code: "SELECT * FROM products WHERE category IN ('Electronics', 'Books');",
+        lineByLine: ["IN checks against list"],
+        simpleMeaning: "Equal to any value in list.",
+        output: "Rows with selected categories.",
+        note: "Alternative to multiple OR conditions.",
+        use_case: "Filter orders for specific statuses ('paid','shipped'), exclude discontinued products."
+      },
+      {
+        name: "28. BETWEEN Operator",
+        description: "`BETWEEN` selects values within a given range (inclusive of the boundaries). It works with numbers, dates, and strings. `BETWEEN` is equivalent to `column >= lower AND column <= upper`. It can use indexes on the column. For date ranges, prefer `BETWEEN` for readability.",
+        code: "SELECT * FROM orders WHERE order_date BETWEEN '2024-01-01' AND '2024-12-31';",
+        lineByLine: ["BETWEEN inclusive range"],
+        simpleMeaning: "Value between two endpoints.",
+        output: "Orders in 2024.",
+        note: "Works with numbers, dates, strings.",
+        use_case: "Show sales for a date range, products priced between $10 and $50."
+      },
+      {
+        name: "29. IS NULL / IS NOT NULL",
+        description: "`IS NULL` and `IS NOT NULL` test for `NULL` values. `NULL` is not a value; it represents missing or unknown data. Comparisons with `NULL` using `=`, `!=`, `<`, etc. always return `NULL` (neither true nor false). Therefore, always use `IS NULL` or `IS NOT NULL` to check for `NULL`.",
+        code: "SELECT * FROM users WHERE email IS NULL;",
+        lineByLine: ["IS NULL condition"],
+        simpleMeaning: "Find missing data.",
+        output: "Rows with NULL email.",
+        note: "Use IS NULL, not = NULL.",
+        use_case: "Find customers without phone number, orders without shipping address."
+      },
+      {
+        name: "30. AND, OR, NOT Operators",
+        description: "Logical operators combine conditions. `AND` returns true only if all conditions are true. `OR` returns true if any condition is true. `NOT` reverses a condition. Use parentheses to group conditions because `AND` has higher precedence than `OR`. Proper use of these operators is essential for complex filters.",
+        code: "SELECT * FROM employees WHERE salary > 50000 AND department = 'Sales';",
+        lineByLine: ["AND requires all conditions true"],
+        simpleMeaning: "Complex filtering.",
+        output: "Filtered rows.",
+        note: "Use parentheses to group.",
+        use_case: "Find high‑paid sales employees, products that are in stock AND on sale."
+      },
+      {
+        name: "31. JOINs (INNER JOIN)",
+        description: "`INNER JOIN` returns only rows where there is a match in both tables. It is the most common join type. The join condition is specified in the `ON` clause. If you omit the condition, you get a cross join (Cartesian product). Always use table aliases to make queries readable.",
+        code: "SELECT orders.id, customers.name FROM orders INNER JOIN customers ON orders.customer_id = customers.id;",
+        lineByLine: ["INNER JOIN only matching rows"],
+        simpleMeaning: "Combine related data from two tables.",
+        output: "Order details with customer names.",
+        note: "Default JOIN is INNER JOIN.",
+        use_case: "List all orders with customer name, products with category name."
+      },
+      {
+        name: "32. LEFT JOIN",
+        description: "`LEFT JOIN` returns all rows from the left table, and matching rows from the right table. If no match exists, right table columns are `NULL`. It is useful when you want to keep all records from the left table regardless of matches. For example, customers who have not placed any orders will still appear with `NULL` order columns.",
+        code: "SELECT customers.name, orders.id FROM customers LEFT JOIN orders ON customers.id = orders.customer_id;",
+        lineByLine: ["LEFT JOIN preserves left table rows"],
+        simpleMeaning: "Keep all rows from left table.",
+        output: "Customers with order IDs (NULL if no orders).",
+        note: "Useful for finding missing relations.",
+        use_case: "Show all customers even those without orders (e.g., for marketing campaigns)."
+      },
+      {
+        name: "33. RIGHT JOIN",
+        description: "`RIGHT JOIN` is the opposite of `LEFT JOIN`: it keeps all rows from the right table and matches from the left. It is rarely used because you can simply swap the table order and use `LEFT JOIN`. Some databases do not optimise `RIGHT JOIN` as well, so avoid it.",
+        code: "SELECT customers.name, orders.id FROM orders RIGHT JOIN customers ON orders.customer_id = customers.id;",
+        lineByLine: ["RIGHT JOIN preserves right table rows"],
+        simpleMeaning: "All rows from right table.",
+        output: "Same as LEFT JOIN with tables swapped.",
+        note: "Rarely used; LEFT JOIN is more common.",
+        use_case: "Rarely used; same as LEFT JOIN after swapping tables."
+      },
+      {
+        name: "34. FULL OUTER JOIN Simulation",
+        description: "MySQL does not have `FULL OUTER JOIN`. Simulate it by combining `LEFT JOIN` and `RIGHT JOIN` with `UNION`. Use `LEFT JOIN` to get all rows from the left table, then `RIGHT JOIN` with a `WHERE` clause to exclude rows already included (to avoid duplicates). `UNION` removes duplicates automatically.",
+        code: "SELECT * FROM customers c LEFT JOIN orders o ON c.id = o.customer_id UNION SELECT * FROM customers c RIGHT JOIN orders o ON c.id = o.customer_id WHERE c.id IS NULL;",
+        lineByLine: ["LEFT JOIN + RIGHT JOIN + UNION"],
+        simpleMeaning: "All rows from both tables, matching where possible.",
+        output: "Full outer result set.",
+        note: "UNION removes duplicates.",
+        use_case: "Full reconciliation: list all customers and all orders, combining where they match."
+      },
+      {
+        name: "35. CROSS JOIN",
+        description: "`CROSS JOIN` returns the Cartesian product of two tables: every row from the first table is combined with every row from the second table. This is rarely useful in production but can be used to generate test data or to create all combinations (e.g., sizes × colors). Be extremely careful – it can produce huge result sets.",
+        code: "SELECT * FROM colors CROSS JOIN sizes;",
+        lineByLine: ["CROSS JOIN creates all combinations"],
+        simpleMeaning: "Combine each row with each row.",
+        output: "Number of rows = rows1 * rows2",
+        note: "Use carefully; can produce huge results.",
+        use_case: "Generate possible product variants (size × color), test data generation."
+      },
+      {
+        name: "36. SELF JOIN",
+        description: "A `SELF JOIN` joins a table with itself. It requires table aliases to distinguish the two copies. It is useful for hierarchical data (e.g., employee – manager), finding duplicate rows, or comparing rows within the same table. Use `INNER JOIN` or `LEFT JOIN` as needed.",
+        code: "SELECT e1.name AS employee, e2.name AS manager FROM employees e1 INNER JOIN employees e2 ON e1.manager_id = e2.id;",
+        lineByLine: ["Self join with aliases"],
+        simpleMeaning: "Compare rows within same table.",
+        output: "Employee–manager pairs.",
+        note: "Useful for hierarchical data.",
+        use_case: "Organisation chart, find duplicate rows, compare employees in same department."
+      },
+      {
+        name: "37. UNION and UNION ALL",
+        description: "`UNION` combines the results of two or more queries and removes duplicate rows. `UNION ALL` keeps all rows, including duplicates, and is faster because it does not perform duplicate elimination. The number and data types of columns in each query must match. Use `UNION ALL` when you are sure there are no duplicates or duplicates are acceptable.",
+        code: "SELECT name FROM customers UNION SELECT name FROM suppliers;",
+        lineByLine: ["UNION removes duplicates", "UNION ALL keeps duplicates"],
+        simpleMeaning: "Stack results vertically.",
+        output: "Combined list.",
+        note: "Number and types of columns must match.",
+        use_case: "Combine lists of contacts from multiple tables, unify sales data from different regions."
+      },
+      {
+        name: "38. Subquery (nested SELECT)",
+        description: "A subquery is a `SELECT` query nested inside another SQL statement. It can be used in `WHERE`, `FROM`, `SELECT`, or `HAVING`. Subqueries can return a single value (scalar), a list, or a table. Use them to compute values dynamically. However, they can be less efficient than joins in some cases; always test performance.",
+        code: "SELECT name FROM products WHERE price > (SELECT AVG(price) FROM products);",
+        lineByLine: ["Subquery returns average price"],
+        simpleMeaning: "Use result of one query in another.",
+        output: "Products above average price.",
+        note: "Can be in WHERE, SELECT, FROM.",
+        use_case: "Find employees earning above department average, products sold more than average."
+      },
+      {
+        name: "39. EXISTS / NOT EXISTS",
+        description: "`EXISTS` tests whether a subquery returns any rows. It is often more efficient than `IN` when the subquery result is large because it stops processing as soon as a match is found. `NOT EXISTS` returns true if the subquery returns no rows. Use it to check existence without retrieving the actual data.",
+        code: "SELECT * FROM customers c WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);",
+        lineByLine: ["EXISTS checks for any rows"],
+        simpleMeaning: "Filter based on existence.",
+        output: "Customers who have placed orders.",
+        note: "Often faster than IN for large datasets.",
+        use_case: "Find customers who have at least one order, products never ordered (NOT EXISTS)."
+      },
+      {
+        name: "40. Views (CREATE, DROP VIEW)",
+        description: "A view is a virtual table defined by a `SELECT` query. It does not store data itself but shows data from the underlying tables. Views simplify complex queries, provide security by hiding columns, and offer a level of abstraction. Simple views (single table, no aggregation) may be updatable. Use `CREATE OR REPLACE VIEW` to modify an existing view.",
+        code: "CREATE VIEW active_users AS SELECT id, name FROM users WHERE status = 'active';\nDROP VIEW active_users;",
+        lineByLine: ["CREATE VIEW stores the query", "DROP VIEW removes it"],
+        simpleMeaning: "Save a query as a virtual table.",
+        output: "View created.",
+        note: "Use to simplify complex queries.",
+        use_case: "Create a view of recent orders, hide sensitive columns (like salary), pre‑join tables for reporting."
+      },
+      {
+        name: "41. Stored Procedures",
+        description: "A stored procedure is a set of SQL statements stored on the server. It can accept input parameters (`IN`), return output parameters (`OUT`), and contain control flow (IF, LOOP). Procedures reduce network traffic, enforce business logic, and improve security because users can execute procedures without direct table access. Use `DELIMITER` to change the statement delimiter when creating procedures.",
+        code: "DELIMITER // CREATE PROCEDURE GetUser(IN uid INT) BEGIN SELECT * FROM users WHERE id = uid; END // DELIMITER ;\nCALL GetUser(1);",
+        lineByLine: ["Procedure with IN parameter", "CALL executes procedure"],
+        simpleMeaning: "Store logic on the server.",
+        output: "User data.",
+        note: "Reduces network round trips.",
+        use_case: "Transfer money between accounts (business logic), generate reports, batch updates."
+      },
+      {
+        name: "42. User-Defined Functions",
+        description: "A user‑defined function (`UDF`) returns a single value and can be used inside SQL expressions (like `SELECT`, `WHERE`, `ORDER BY`). Functions are deterministic (`DETERMINISTIC`) or not. They cannot modify data (no `INSERT`, `UPDATE`, `DELETE`). Use functions to encapsulate calculations that are reused often.",
+        code: "CREATE FUNCTION fullName(fn VARCHAR(50), ln VARCHAR(50)) RETURNS VARCHAR(101) DETERMINISTIC RETURN CONCAT(fn, ' ', ln);",
+        lineByLine: ["RETURNS type", "DETERMINISTIC", "RETURN expression"],
+        simpleMeaning: "Custom function like built‑in.",
+        output: "Function created.",
+        note: "Cannot modify data.",
+        use_case: "Calculate age from birthdate, format phone numbers, compute tax."
+      },
+      {
+        name: "43. Triggers",
+        description: "A trigger automatically executes a block of SQL before or after an `INSERT`, `UPDATE`, or `DELETE` on a table. `BEFORE` triggers can modify the `NEW` row; `AFTER` triggers cannot. Triggers are useful for auditing, maintaining derived data, enforcing complex business rules, and automatically updating timestamps.",
+        code: "CREATE TRIGGER before_user_update BEFORE UPDATE ON users FOR EACH ROW SET NEW.updated_at = NOW();",
+        lineByLine: ["BEFORE UPDATE triggers", "NEW.column can be modified"],
+        simpleMeaning: "Run code automatically on data changes.",
+        output: "Trigger created.",
+        note: "Use for auditing, auto‑timestamps.",
+        use_case: "Automatically set `last_modified` on row update, log changes to audit table, prevent invalid salary decreases."
+      },
+      {
+        name: "44. Events (Scheduler)",
+        description: "Events are SQL statements that run at scheduled times, like a cron job inside the database. They are useful for periodic maintenance (e.g., cleaning old data, generating reports, sending reminders). The event scheduler must be enabled (`SET GLOBAL event_scheduler = ON;`). Events can be one‑time or recurring.",
+        code: "CREATE EVENT daily_cleanup ON SCHEDULE EVERY 1 DAY STARTS CURRENT_TIMESTAMP + INTERVAL 1 DAY DO DELETE FROM logs WHERE created < NOW() - INTERVAL 7 DAY;",
+        lineByLine: ["ON SCHEDULE defines frequency", "DO action"],
+        simpleMeaning: "Database cron job.",
+        output: "Event created.",
+        note: "Enable event_scheduler.",
+        use_case: "Nightly report generation, archive old data, send email reminders."
+      },
+      {
+        name: "45. Transactions (START, COMMIT, ROLLBACK)",
+        description: "A transaction groups multiple SQL statements into an atomic unit: either all changes are committed or none are applied. Use `START TRANSACTION`, `COMMIT` to save, and `ROLLBACK` to undo. Transactions ensure data consistency (ACID). They are essential for operations that modify multiple tables (e.g., transferring money).",
+        code: "START TRANSACTION;\nUPDATE accounts SET balance = balance - 100 WHERE id = 1;\nUPDATE accounts SET balance = balance + 100 WHERE id = 2;\nCOMMIT;",
+        lineByLine: ["START TRANSACTION begins", "COMMIT saves", "ROLLBACK undoes"],
+        simpleMeaning: "All or nothing.",
+        output: "Transaction committed.",
+        note: "Use for related updates.",
+        use_case: "Transfer money between bank accounts, place an order (deduct stock + create order)."
+      },
+      {
+        name: "46. Savepoints",
+        description: "A savepoint marks a point within a transaction. You can roll back to a savepoint without undoing the entire transaction. This is useful for complex operations where you might want to undo part of the work but keep earlier changes. Savepoints are released when you commit or roll back the transaction.",
+        code: "START TRANSACTION;\nINSERT INTO orders ...;\nSAVEPOINT before_items;\nINSERT INTO order_items ...;\n-- if error:\nROLLBACK TO SAVEPOINT before_items;\nCOMMIT;",
+        lineByLine: ["SAVEPOINT marks a point", "ROLLBACK TO... reverts to that point"],
+        simpleMeaning: "Partial rollback.",
+        output: "Partial rollback.",
+        note: "Savepoints are released on COMMIT/ROLLBACK.",
+        use_case: "Complex operations where you might want to undo part but not all of the transaction (e.g., order header kept but items rolled back)."
+      },
+      {
+        name: "47. Locking (Row‑level, Table‑level)",
+        description: "Locks control concurrent access to data. InnoDB supports row‑level locks (more concurrency), while MyISAM uses table locks. Use `SELECT ... FOR UPDATE` to lock rows for update, preventing other transactions from modifying them until commit. `LOCK TABLES` acquires table‑level locks. Unlock with `UNLOCK TABLES`. Proper locking prevents race conditions.",
+        code: "SELECT * FROM accounts WHERE id = 1 FOR UPDATE;\nLOCK TABLES accounts WRITE;\nUNLOCK TABLES;",
+        lineByLine: ["FOR UPDATE exclusive row lock", "LOCK TABLES table lock", "UNLOCK TABLES"],
+        simpleMeaning: "Prevent conflicts.",
+        output: "Lock acquired.",
+        note: "InnoDB uses row locks; MyISAM uses table locks.",
+        use_case: "Prevent double booking of a seat, ensure stock consistency during high load."
+      },
+      {
+        name: "48. User Management (CREATE USER, GRANT, REVOKE)",
+        description: "User management controls who can access the database and what they can do. `CREATE USER` creates a new account, `GRANT` assigns privileges (e.g., `SELECT`, `INSERT`, `UPDATE`) on specific databases or tables. `REVOKE` removes privileges. Always follow the principle of least privilege: give only the minimum rights needed. `FLUSH PRIVILEGES` reloads the grant tables.",
+        code: "CREATE USER 'app'@'localhost' IDENTIFIED BY 'pass';\nGRANT SELECT, INSERT ON mydb.* TO 'app'@'localhost';\nREVOKE INSERT ON mydb.* FROM 'app'@'localhost';\nDROP USER 'app'@'localhost';\nFLUSH PRIVILEGES;",
+        lineByLine: ["CREATE USER", "GRANT privileges", "REVOKE", "DROP USER", "FLUSH"],
+        simpleMeaning: "Control access to the database.",
+        output: "User created / privileges granted.",
+        note: "Always use strong passwords.",
+        use_case: "Application‑specific database user with limited permissions, read‑only user for reporting."
+      },
+      {
+        name: "49. Backup and Restore (mysqldump)",
+        description: "`mysqldump` creates logical backups (SQL statements) of databases. It is portable and can be used to migrate data between MySQL servers. For InnoDB, use `--single-transaction` to get a consistent backup without locking tables. Restore with `mysql < backup.sql`. Always test your backups regularly to ensure they can be restored.",
+        code: "mysqldump -u root -p --single-transaction mydb > backup.sql;\nmysql -u root -p mydb < backup.sql",
+        lineByLine: ["Backup command", "Restore command"],
+        simpleMeaning: "Save and restore database data.",
+        output: "Backup created / restored.",
+        note: "Use --single-transaction for InnoDB consistency.",
+        use_case: "Daily database backup, migrate database to another server, copy production data to staging."
+      },
+      {
+        name: "50. Performance Tuning (EXPLAIN, Slow Query Log)",
+        description: "Performance tuning identifies and fixes slow queries. `EXPLAIN` shows the execution plan of a query, indicating whether it uses indexes, performs full table scans (`ALL`), or uses filesort. Enable the slow query log to capture queries that exceed a threshold (e.g., 2 seconds). Then analyse the log and optimise by adding indexes, rewriting queries, or adjusting server variables.",
+        code: "EXPLAIN SELECT * FROM users WHERE email = 'john@example.com';\nSET GLOBAL slow_query_log = ON;\nSET GLOBAL long_query_time = 2;",
+        lineByLine: ["EXPLAIN shows plan", "Enable slow log", "Set threshold"],
+        simpleMeaning: "Find slow queries and fix them.",
+        output: "Query execution plan.",
+        note: "Use indexes to optimize.",
+        use_case: "Investigate slow product search, optimise report generation, find missing indexes."
       }
     ]
   },
-  
-  advanced: {
-    title: "🚀 MYSQL ADVANCED: MASTERING COMPLEX DATABASE OPERATIONS",
-    description: "Advanced MySQL documentation covering sophisticated database techniques including transactions, window functions, CTEs, indexes, optimization, security, and performance tuning. Master these concepts to handle millions of transactions, terabytes of data, and achieve 99.999% availability. MySQL 8.0 features include window functions (ranking, running totals), CTEs (recursive queries), JSON functions, and invisible indexes.",
-    
-    topics: [
-      {
-        name: "11. MYSQL TRANSACTIONS & ACID PROPERTIES",
-        description: "Transactions group multiple SQL operations into atomic units - all succeed or all fail (rollback). ACID properties: Atomicity (all or nothing), Consistency (data remains valid), Isolation (concurrent transactions don't interfere), Durability (committed data persists after crash). Use START TRANSACTION, COMMIT, and ROLLBACK. SAVEPOINTS allow partial rollbacks. Transaction isolation levels control concurrency: READ UNCOMMITTED (dirty reads), READ COMMITTED (non-repeatable reads), REPEATABLE READ (default, phantom reads possible), SERIALIZABLE (highest isolation).",
-        code: `-- Bank transfer example (classic transaction)
-START TRANSACTION;
-
--- Deduct from sender
-UPDATE accounts SET balance = balance - 500 WHERE account_id = 1;
-
--- Add to receiver
-UPDATE accounts SET balance = balance + 500 WHERE account_id = 2;
-
--- Check if both updates succeeded
-SELECT * FROM accounts WHERE account_id IN (1, 2);
-
--- If everything is correct
-COMMIT;
-
--- If something went wrong
-ROLLBACK;  -- Undoes both updates
-
--- Transaction with savepoints
-START TRANSACTION;
-
-INSERT INTO orders (customer_id, total) VALUES (1, 100);
-SAVEPOINT order_created;
-
-INSERT INTO order_items (order_id, product, quantity) VALUES (LAST_INSERT_ID(), 'Laptop', 1);
-
--- Oops, product out of stock
-ROLLBACK TO SAVEPOINT order_created;  -- Keeps order, removes items
-
--- Complete order
-COMMIT;
-
--- Different isolation levels
--- READ UNCOMMITTED (dirty reads possible)
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-
--- READ COMMITTED (no dirty reads, but non-repeatable reads)
-SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
-
--- REPEATABLE READ (default, prevents non-repeatable reads)
-SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-
--- SERIALIZABLE (highest isolation, slowest)
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-
--- Check current isolation level
-SELECT @@transaction_isolation;
-
--- Deadlock example and handling
-START TRANSACTION;
-UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
-UPDATE accounts SET balance = balance + 100 WHERE account_id = 2;
-COMMIT;
--- MySQL automatically detects deadlocks and rolls back one transaction
-
--- Autocommit setting (default is 1)
-SET autocommit = 0;  -- Manual commits required
-UPDATE users SET last_login = NOW() WHERE user_id = 1;
-COMMIT;
-SET autocommit = 1;  -- Back to auto-commit`,
-        lineByLine: [
-          "Line 1-12: Basic transaction - Transfer money between accounts",
-          "Line 2: START TRANSACTION - Begins transaction block",
-          "Line 4-7: Multiple UPDATE statements",
-          "Line 9: Check intermediate results",
-          "Line 12: COMMIT - Permanently saves changes",
-          "Line 15: ROLLBACK - Undoes all changes in transaction",
-          "Line 18-28: SAVEPOINT - Partial rollback",
-          "Line 20: SAVEPOINT order_created - Marks point to rollback to",
-          "Line 26: ROLLBACK TO SAVEPOINT - Undoes statements after savepoint",
-          "Line 31-38: Isolation levels at different scopes",
-          "Line 32: READ UNCOMMITTED - Lowest isolation (dirty reads possible)",
-          "Line 35: READ COMMITTED - No dirty reads, but phantom reads possible",
-          "Line 38: REPEATABLE READ - MySQL default",
-          "Line 41: SERIALIZABLE - Highest isolation, table-level locking",
-          "Line 44: Check current isolation level",
-          "Line 47-53: Deadlock example (MySQL auto-resolves)",
-          "Line 56-60: Autocommit control"
-        ],
-        simpleMeaning: "Transactions make multiple database changes happen together or not at all. Like transferring money: deduct from one account AND add to another. If the computer crashes after deducting but before adding, ROLLBACK undoes the deduction. SAVEPOINT lets you rollback partway, like a game save point. ACID ensures your data stays correct even with crashes or multiple users.",
-        output: `-- Before transaction
-+------------+---------+
-| account_id | balance |
-+------------+---------+
-| 1          | 1000    |
-| 2          | 500     |
-+------------+---------+
-
--- After COMMIT
-+------------+---------+
-| account_id | balance |
-+------------+---------+
-| 1          | 500     |
-| 2          | 1000    |
-+------------+---------+
-
--- Isolation level check
-+--------------------+
-| @@transaction_isolation |
-+--------------------+
-| REPEATABLE-READ    |
-+--------------------+
-
--- Deadlock error
-ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
-
--- Savepoint partial rollback example
--- After ROLLBACK TO SAVEPOINT order_created
-+----------+------------+-------+
-| order_id | customer_id| total |
-+----------+------------+-------+
-| 101      | 1          | 100   |
-+----------+------------+-------+
--- (order_items table has no records for order 101)`,
-        note: "Always use transactions for operations that modify multiple related tables. MySQL default isolation: REPEATABLE READ (prevents dirty reads, non-repeatable reads). Longer transactions increase lock contention. Autocommit (default) means each statement is its own transaction. Use SAVEPOINT for complex multi-step operations requiring partial rollbacks."
-      },
-      
-      {
-        name: "12. MYSQL WINDOW FUNCTIONS - ADVANCED ANALYTICS",
-        description: "Window functions perform calculations across rows without collapsing them (unlike GROUP BY). They operate on a 'window' of rows defined by OVER() clause. Functions include ROW_NUMBER (sequential numbering), RANK (ranking with gaps), DENSE_RANK (ranking without gaps), LEAD/LAG (access next/previous rows), SUM/AVG over window (running totals), NTILE (divide into buckets). PARTITION BY divides rows into groups, ORDER BY defines sequence. Window functions are powerful for analytics and reporting.",
-        code: `-- Sample sales data
-CREATE TABLE sales (
-    sale_id INT PRIMARY KEY,
-    employee_id INT,
-    sale_date DATE,
-    amount DECIMAL(10,2),
-    region VARCHAR(20)
-);
-
-INSERT INTO sales VALUES
-(1, 1, '2024-01-15', 5000, 'North'),
-(2, 1, '2024-01-20', 3000, 'North'),
-(3, 2, '2024-01-10', 8000, 'South'),
-(4, 2, '2024-01-25', 4000, 'South'),
-(5, 1, '2024-02-05', 6000, 'North'),
-(6, 2, '2024-02-15', 7000, 'South');
-
--- ROW_NUMBER (sequential numbering per partition)
-SELECT employee_id, amount,
-    ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY amount DESC) as sale_rank
-FROM sales;
-
--- RANK vs DENSE_RANK (handling ties differently)
-SELECT amount,
-    RANK() OVER (ORDER BY amount DESC) as rank_with_gaps,
-    DENSE_RANK() OVER (ORDER BY amount DESC) as rank_no_gaps
-FROM sales;
-
--- Running total (cumulative sum)
-SELECT sale_date, employee_id, amount,
-    SUM(amount) OVER (PARTITION BY employee_id ORDER BY sale_date) as running_total,
-    AVG(amount) OVER (PARTITION BY employee_id ORDER BY sale_date) as moving_avg
-FROM sales;
-
--- LEAD and LAG (access previous/next rows)
-SELECT employee_id, sale_date, amount,
-    LAG(amount) OVER (PARTITION BY employee_id ORDER BY sale_date) as previous_amount,
-    LEAD(amount) OVER (PARTITION BY employee_id ORDER BY sale_date) as next_amount,
-    amount - LAG(amount) OVER (PARTITION BY employee_id ORDER BY sale_date) as difference
-FROM sales;
-
--- NTILE (divide into buckets)
-SELECT employee_id, amount,
-    NTILE(4) OVER (ORDER BY amount) as quartile,
-    NTILE(100) OVER (ORDER BY amount) as percentile
-FROM sales;
-
--- FIRST_VALUE and LAST_VALUE
-SELECT employee_id, sale_date, amount,
-    FIRST_VALUE(amount) OVER (PARTITION BY employee_id ORDER BY sale_date) as first_sale,
-    LAST_VALUE(amount) OVER (PARTITION BY employee_id ORDER BY sale_date 
-        ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as last_sale
-FROM sales;
-
--- Percentage of total (percent of overall)
-SELECT employee_id, amount,
-    amount * 100.0 / SUM(amount) OVER () as pct_of_total
-FROM sales;
-
--- Moving average (last 3 rows)
-SELECT sale_date, amount,
-    AVG(amount) OVER (ORDER BY sale_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as moving_avg_3
-FROM sales;`,
-        lineByLine: [
-          "Line 1-9: Create sales table with transaction data",
-          "Line 12-19: Insert sample data across employees and dates",
-          "Line 22-25: ROW_NUMBER - Numbers rows per employee by amount",
-          "Line 23: PARTITION BY employee_id - Reset numbering per employee",
-          "Line 23: ORDER BY amount DESC - Numbers highest amount first",
-          "Line 28-32: RANK vs DENSE_RANK - Different handling of ties",
-          "Line 29: RANK - Leaves gaps (1,2,2,4)",
-          "Line 30: DENSE_RANK - No gaps (1,2,2,3)",
-          "Line 35-39: Running total with window frame",
-          "Line 36: SUM(...) OVER (ORDER BY sale_date) - Cumulative sum",
-          "Line 37: AVG(...) OVER - Moving average",
-          "Line 42-48: LEAD/LAG - Compare to adjacent rows",
-          "Line 43: LAG - Previous row value",
-          "Line 44: LEAD - Next row value",
-          "Line 45: Calculates difference from previous sale",
-          "Line 51-54: NTILE - Divides into buckets",
-          "Line 52: NTILE(4) - Quartiles",
-          "Line 53: NTILE(100) - Percentiles",
-          "Line 57-62: FIRST_VALUE/LAST_VALUE - First and last in partition",
-          "Line 60: ROWS BETWEEN - Defines window frame for LAST_VALUE",
-          "Line 65-68: Percentage of total",
-          "Line 66: Calculates percent of overall sales",
-          "Line 71-73: Moving average over specific number of rows"
-        ],
-        simpleMeaning: "Window functions let you see each row PLUS overall calculations. Like showing each employee's sale AND their rank, running total, or how it compares to previous sale. ROW_NUMBER gives 1,2,3,4. RANK gives 1,2,2,4 (skips if ties). LEAD looks forward at next row, LAG looks backward. Running total: each row shows sum of all previous rows. Perfect for leaderboards, trend analysis, and performance tracking.",
-        output: `-- ROW_NUMBER (ranking per employee)
-+-------------+--------+-----------+
-| employee_id | amount | sale_rank |
-+-------------+--------+-----------+
-| 1           | 6000   | 1         |
-| 1           | 5000   | 2         |
-| 1           | 3000   | 3         |
-| 2           | 8000   | 1         |
-| 2           | 7000   | 2         |
-| 2           | 4000   | 3         |
-+-------------+--------+-----------+
-
--- RANK vs DENSE_RANK (with ties if amounts equal)
-+--------+----------------+---------------+
-| amount | rank_with_gaps | rank_no_gaps  |
-+--------+----------------+---------------+
-| 8000   | 1              | 1             |
-| 7000   | 2              | 2             |
-| 6000   | 3              | 3             |
-| 5000   | 4              | 4             |
-| 4000   | 5              | 5             |
-| 3000   | 6              | 6             |
-+--------+----------------+---------------+
-
--- Running total per employee
-+------------+-------------+--------+---------------+------------+
-| sale_date  | employee_id | amount | running_total | moving_avg |
-+------------+-------------+--------+---------------+------------+
-| 2024-01-15 | 1           | 5000   | 5000          | 5000.0000  |
-| 2024-01-20 | 1           | 3000   | 8000          | 4000.0000  |
-| 2024-02-05 | 1           | 6000   | 14000         | 4666.6667  |
-| 2024-01-10 | 2           | 8000   | 8000          | 8000.0000  |
-| 2024-01-25 | 2           | 4000   | 12000         | 6000.0000  |
-| 2024-02-15 | 2           | 7000   | 19000         | 6333.3333  |
-+------------+-------------+--------+---------------+------------+
-
--- LEAD/LAG (compare to previous and next)
-+-------------+------------+--------+-----------------+-------------+------------+
-| employee_id | sale_date  | amount | previous_amount | next_amount | difference |
-+-------------+------------+--------+-----------------+-------------+------------+
-| 1           | 2024-01-15 | 5000   | NULL            | 3000        | NULL       |
-| 1           | 2024-01-20 | 3000   | 5000            | 6000        | -2000      |
-| 1           | 2024-02-05 | 6000   | 3000            | NULL        | 3000       |
-+-------------+------------+--------+-----------------+-------------+------------+`,
-        note: "Window functions available in MySQL 8.0+. PARTITION BY divides data into groups (like GROUP BY without collapsing). ORDER BY within OVER defines sequence. ROWS BETWEEN defines sliding window (e.g., last 3 rows). Window functions are computed after WHERE but before ORDER BY. Great for analytics, reporting, and data analysis."
-      },
-      
-      {
-        name: "13. MYSQL COMMON TABLE EXPRESSIONS (CTEs)",
-        description: "CTEs create temporary named result sets within a query, improving readability and enabling recursion. Non-recursive CTEs simplify complex queries (aliases for subqueries). Recursive CTEs reference themselves for hierarchical data (org charts, tree structures). Syntax: WITH cte_name AS (query) SELECT * FROM cte_name. Multiple CTEs can be comma-separated. CTEs are processed once and can be referenced multiple times, unlike subqueries that run each time.",
-        code: `-- Sample hierarchical data (employees with managers)
-CREATE TABLE employees (
-    emp_id INT PRIMARY KEY,
-    name VARCHAR(100),
-    manager_id INT,
-    salary DECIMAL(10,2)
-);
-
-INSERT INTO employees VALUES
-(1, 'Alice', NULL, 100000),   -- CEO
-(2, 'Bob', 1, 80000),         -- Reports to Alice
-(3, 'Carol', 1, 75000),       -- Reports to Alice
-(4, 'David', 2, 60000),       -- Reports to Bob
-(5, 'Eve', 2, 55000),         -- Reports to Bob
-(6, 'Frank', 3, 50000);       -- Reports to Carol
-
--- Simple CTE (non-recursive) - improves readability
-WITH high_earners AS (
-    SELECT name, salary
-    FROM employees
-    WHERE salary > 70000
-)
-SELECT * FROM high_earners ORDER BY salary DESC;
-
--- CTE with multiple references (subquery alternative)
-WITH dept_stats AS (
-    SELECT 
-        manager_id,
-        AVG(salary) as avg_salary,
-        COUNT(*) as emp_count
-    FROM employees
-    WHERE manager_id IS NOT NULL
-    GROUP BY manager_id
-)
-SELECT e.name, e.salary, ds.avg_salary, ds.emp_count
-FROM employees e
-LEFT JOIN dept_stats ds ON e.emp_id = ds.manager_id
-WHERE e.manager_id IS NULL;  -- Show managers with team stats
-
--- Multiple CTEs in one query
-WITH 
-high_paid AS (
-    SELECT emp_id, name, salary
-    FROM employees
-    WHERE salary > 70000
-),
-low_paid AS (
-    SELECT emp_id, name, salary
-    FROM employees
-    WHERE salary <= 70000
-)
-SELECT 'High Paid' as category, COUNT(*) as count, AVG(salary) as avg_sal FROM high_paid
-UNION ALL
-SELECT 'Low Paid', COUNT(*), AVG(salary) FROM low_paid;
-
--- RECURSIVE CTE (hierarchy traversal)
-WITH RECURSIVE employee_hierarchy AS (
-    -- Anchor member (starting point - top level)
-    SELECT emp_id, name, manager_id, 1 as level, 
-           CAST(name AS CHAR(500)) as path
-    FROM employees
-    WHERE manager_id IS NULL
-    
-    UNION ALL
-    
-    -- Recursive member (joins CTE back to table)
-    SELECT e.emp_id, e.name, e.manager_id, eh.level + 1,
-           CONCAT(eh.path, ' -> ', e.name)
-    FROM employees e
-    INNER JOIN employee_hierarchy eh ON e.manager_id = eh.emp_id
-)
-SELECT 
-    CONCAT(REPEAT('  ', level - 1), name) as org_chart,
-    level,
-    path
-FROM employee_hierarchy
-ORDER BY path;
-
--- Recursive CTE for number generation (1 to 10)
-WITH RECURSIVE numbers AS (
-    SELECT 1 as n
-    UNION ALL
-    SELECT n + 1 FROM numbers WHERE n < 10
-)
-SELECT * FROM numbers;
-
--- Recursive CTE for date range
-WITH RECURSIVE dates AS (
-    SELECT CURDATE() as date
-    UNION ALL
-    SELECT DATE_ADD(date, INTERVAL 1 DAY)
-    FROM dates
-    WHERE date < CURDATE() + INTERVAL 30 DAY
-)
-SELECT * FROM dates;
-
--- Find all subordinates under a manager (entire org tree)
-WITH RECURSIVE org_tree AS (
-    SELECT emp_id, name, manager_id, 1 as depth
-    FROM employees
-    WHERE emp_id = 1  -- Starting from Alice
-    
-    UNION ALL
-    
-    SELECT e.emp_id, e.name, e.manager_id, ot.depth + 1
-    FROM employees e
-    INNER JOIN org_tree ot ON e.manager_id = ot.emp_id
-)
-SELECT depth, name FROM org_tree ORDER BY depth, name;`,
-        lineByLine: [
-          "Line 1-7: Create employees table with self-referential hierarchy",
-          "Line 10-16: Insert hierarchical data (CEO down to individual contributors)",
-          "Line 19-23: Simple CTE - Replaces subquery",
-          "Line 20: WITH high_earners AS - Names the CTE",
-          "Line 21-22: Query definition",
-          "Line 23: Main query references CTE",
-          "Line 26-35: CTE with JOIN to main query",
-          "Line 27: dept_stats CTE - Calculates department statistics",
-          "Line 37-39: Main query uses CTE with LEFT JOIN",
-          "Line 42-52: Multiple CTEs - Separated by commas",
-          "Line 43: high_paid CTE - First CTE",
-          "Line 47: low_paid CTE - Second CTE",
-          "Line 51-52: Main query UNIONs results from both CTEs",
-          "Line 55-72: RECURSIVE CTE - References itself",
-          "Line 56: WITH RECURSIVE - Required for recursive CTEs",
-          "Line 58-63: Anchor member - Initial result set (top-level)",
-          "Line 61: level counter starts at 1",
-          "Line 62: path - Tracks hierarchy as string",
-          "Line 65-71: Recursive member - Joins CTE back to table",
-          "Line 68: eh.level + 1 - Increments depth",
-          "Line 69: CONCAT - Builds path string",
-          "Line 75-80: Formatting org chart with indentation",
-          "Line 76: REPEAT('  ', level - 1) - Creates indentation",
-          "Line 83-92: Simple recursive CTE - Generates numbers 1-10",
-          "Line 95-102: Date generator - Creates date range",
-          "Line 105-116: Find all subordinates under specific manager"
-        ],
-        simpleMeaning: "CTEs are like creating temporary named tables mid-query for better readability. Instead of messy nested subqueries, you write WITH high_earners AS (...) then SELECT FROM high_earners. Recursive CTEs are mind-blowing - they can follow hierarchies like 'show me Alice, then everyone who reports to Alice, then everyone who reports to them' to build complete org charts. Perfect for tree structures, bill of materials, or generating sequences.",
-        output: `-- Simple CTE (high earners)
-+-------+--------+
-| name  | salary |
-+-------+--------+
-| Alice | 100000 |
-| Bob   | 80000  |
-| Carol | 75000  |
-+-------+--------+
-
--- Managers with team stats
-+-------+--------+------------+-----------+
-| name  | salary | avg_salary | emp_count |
-+-------+--------+------------+-----------+
-| Alice | 100000 | 68333.3333 | 5         |
-+-------+--------+------------+-----------+
-
--- Multiple CTEs (salary categories)
-+------------+-------+------------+
-| category   | count | avg_sal    |
-+------------+-------+------------+
-| High Paid  | 3     | 85000.0000 |
-| Low Paid   | 3     | 55000.0000 |
-+------------+-------+------------+
-
--- Recursive CTE (org chart with indentation)
-+-------------------+-------+---------------------------------+
-| org_chart         | level | path                            |
-+-------------------+-------+---------------------------------+
-| Alice             | 1     | Alice                           |
-|   Bob             | 2     | Alice -> Bob                    |
-|     David         | 3     | Alice -> Bob -> David           |
-|     Eve           | 3     | Alice -> Bob -> Eve             |
-|   Carol           | 2     | Alice -> Carol                  |
-|     Frank         | 3     | Alice -> Carol -> Frank         |
-+-------------------+-------+---------------------------------+
-
--- Number generator
-+------+
-| n    |
-+------+
-| 1    |
-| 2    |
-| 3    |
-| 4    |
-| 5    |
-| 6    |
-| 7    |
-| 8    |
-| 9    |
-| 10   |
-+------+`,
-        note: "CTEs available in MySQL 8.0+. Recursive CTEs require UNION ALL and termination condition (WHERE clause). Maximum recursion depth defaults to 1000 (can be changed). CTEs are read-only (cannot UPDATE/DELETE). Multiple CTEs separated by commas. Recursive CTEs great for org charts, category trees, and graph traversal."
-      },
-      
-      {
-  name: "15. MYSQL INDEXING STRATEGIES & PERFORMANCE",
-  description: "Indexes dramatically speed up data retrieval but slow down writes. B-Tree indexes are default for most queries. Hash indexes optimize equality comparisons. Prefix indexes index only first N characters of strings. Composite indexes cover multiple columns (order matters - most selective first). Covering indexes include all needed columns (extraordinary speed). Use EXPLAIN to analyze query execution and index usage. Invisible indexes allow testing removal without actually deleting. Functional indexes index expression results (MySQL 8.0+).",
-  code: `-- Create table for indexing examples
-CREATE TABLE users (
-    user_id INT PRIMARY KEY,
-    first_name VARCHAR(50),
-    last_name VARCHAR(50),
-    email VARCHAR(100),
-    age INT,
-    city VARCHAR(50),
-    created_at DATETIME,
-    last_login DATETIME
-);
-
--- Single column index (most common)
-CREATE INDEX idx_email ON users(email);
-
--- Unique index (prevents duplicates + fast lookups)
-CREATE UNIQUE INDEX idx_email_unique ON users(email);
-
--- Composite index (covers multiple columns in WHERE)
-CREATE INDEX idx_name ON users(last_name, first_name);
-
--- Prefix index (index first 10 chars only - saves space)
-CREATE INDEX idx_city_prefix ON users(city(10));
-
--- Covering index (includes all columns needed for query)
-CREATE INDEX idx_covering ON users(last_name, first_name, age, city);
-
--- Descending index (for ORDER BY DESC queries)
-CREATE INDEX idx_created_desc ON users(created_at DESC);
-
--- Functional index (index expression result)
-CREATE INDEX idx_lower_email ON users((LOWER(email)));
-
--- Invisible index (test removal impact)
-CREATE INDEX idx_test ON users(city) INVISIBLE;
-
--- View index usage
-SHOW INDEX FROM users;
-
--- Analyze query execution plan
-EXPLAIN SELECT * FROM users WHERE email = 'john@example.com';
-
--- Force index usage (hint optimizer)
-SELECT * FROM users FORCE INDEX (idx_email) WHERE email = 'john@example.com';
-
--- Drop index when no longer needed
-DROP INDEX idx_email ON users;
-
--- Index for JOIN performance
-CREATE INDEX idx_user_id ON orders(user_id);
-
--- Index for WHERE with range condition
-CREATE INDEX idx_age_range ON users(age) WHERE age > 18;  -- Partial index
-
--- Monitoring index usage
-SELECT * FROM sys.schema_index_statistics WHERE table_name = 'users';
-
--- Find unused indexes
-SELECT * FROM sys.schema_unused_indexes WHERE object_schema = 'mydb';`,
-  lineByLine: [
-    "Line 1-12: Create users table for indexing demonstrations",
-    "Line 15: CREATE INDEX - Basic single column index",
-    "Line 18: UNIQUE INDEX - Prevents duplicate values",
-    "Line 21: Composite index - Order matters (last_name then first_name)",
-    "Line 24: Prefix index - Saves space on long strings",
-    "Line 27: Covering index - Includes all query columns",
-    "Line 30: Descending index - Optimizes reverse order",
-    "Line 33: Functional index - Indexes expression result",
-    "Line 36: INVISIBLE index - Optimizer ignores but maintains",
-    "Line 39: SHOW INDEX - Lists all indexes with details",
-    "Line 42: EXPLAIN - Shows if query uses index",
-    "Line 45: FORCE INDEX - Overrides optimizer choice",
-    "Line 48: DROP INDEX - Removes index permanently",
-    "Line 51: Index for foreign key - Speeds up JOINs",
-    "Line 57: Monitor index usage statistics",
-    "Line 60: Find indexes never used"
-  ],
-  simpleMeaning: "Indexes are like a book's index - they help MySQL find data fast without reading every page. Index on email means finding 'john@email.com' is instant. Composite indexes are like phone book (last name then first name) - order matters. Too many indexes slow down saving data (like updating every index in a book). Use EXPLAIN to see if your queries use indexes properly.",
-  output: `-- EXPLAIN output showing index usage
-+----+-------------+-------+------+---------------+----------+---------+-------+------+-------------+
-| id | select_type | table | type | possible_keys | key      | key_len | ref   | rows | Extra       |
-+----+-------------+-------+------+---------------+----------+---------+-------+------+-------------+
-| 1  | SIMPLE      | users | ref  | idx_email     | idx_email| 403     | const | 1    | Using where |
-+----+-------------+-------+------+---------------+----------+---------+-------+------+-------------+
-
--- SHOW INDEX output
-+-------+------------+---------------+--------------+-------------+-----------+-------------+
-| Table | Non_unique | Key_name      | Seq_in_index | Column_name | Collation | Cardinality |
-+-------+------------+---------------+--------------+-------------+-----------+-------------+
-| users | 0          | PRIMARY       | 1            | user_id     | A         | 10000       |
-| users | 0          | idx_email_uniq| 1            | email       | A         | 10000       |
-| users | 1          | idx_name      | 1            | last_name   | A         | 5000        |
-| users | 1          | idx_name      | 2            | first_name  | A         | 10000       |
-+-------+------------+---------------+--------------+-------------+-----------+-------------+`,
-  note: "Indexes speed SELECT but slow INSERT/UPDATE/DELETE. Composite index order matters (most selective column first). Use EXPLAIN before optimizing queries. Covering indexes can be 10x faster. Don't index low-cardinality columns (e.g., gender). Invisible indexes perfect for testing removal impact."
-},
-
-{
-  name: "16. MYSQL STORED PROCEDURES WITH PARAMETERS",
-  description: "Stored procedures accept IN (input only), OUT (return value), and INOUT (both) parameters. Variables declared with DECLARE at procedure start. Conditional logic with IF/ELSE, CASE. Loops: LOOP, WHILE, REPEAT. Cursors iterate through result sets. Error handling with DECLARE HANDLER. Procedures reduce network traffic and encapsulate business logic.",
-  code: `DELIMITER //
-
--- IN parameter (input only)
-CREATE PROCEDURE GetUserById(IN user_id_param INT)
-BEGIN
-    SELECT * FROM users WHERE user_id = user_id_param;
-END //
-
--- OUT parameter (returns value)
-CREATE PROCEDURE GetUserCount(OUT total_count INT)
-BEGIN
-    SELECT COUNT(*) INTO total_count FROM users;
-END //
-
--- INOUT parameter (input and output)
-CREATE PROCEDURE DoubleNumber(INOUT num INT)
-BEGIN
-    SET num = num * 2;
-END //
-
--- Multiple parameters with IF logic
-CREATE PROCEDURE GetUsersByCity(
-    IN city_name VARCHAR(50),
-    IN min_age INT,
-    OUT user_count INT
-)
-BEGIN
-    SELECT * FROM users WHERE city = city_name AND age >= min_age;
-    SELECT COUNT(*) INTO user_count FROM users WHERE city = city_name AND age >= min_age;
-END //
-
--- Procedure with local variables
-CREATE PROCEDURE GetEmployeeBonus(IN emp_id INT, OUT bonus DECIMAL(10,2))
-BEGIN
-    DECLARE emp_salary DECIMAL(10,2);
-    DECLARE emp_years INT;
-    
-    SELECT salary, YEAR(CURDATE()) - YEAR(hire_date) 
-    INTO emp_salary, emp_years
-    FROM employees WHERE emp_id = emp_id;
-    
-    IF emp_years >= 5 THEN
-        SET bonus = emp_salary * 0.20;
-    ELSEIF emp_years >= 3 THEN
-        SET bonus = emp_salary * 0.10;
-    ELSE
-        SET bonus = emp_salary * 0.05;
-    END IF;
-END //
-
--- Procedure with loop
-CREATE PROCEDURE GenerateNumbers(IN max_num INT)
-BEGIN
-    DECLARE counter INT DEFAULT 1;
-    DECLARE result VARCHAR(1000) DEFAULT '';
-    
-    WHILE counter <= max_num DO
-        SET result = CONCAT(result, counter, ',');
-        SET counter = counter + 1;
-    END WHILE;
-    
-    SELECT result as numbers;
-END //
-
--- Procedure with cursor (looping through rows)
-CREATE PROCEDURE ProcessUsers()
-BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE user_name VARCHAR(100);
-    DECLARE user_email VARCHAR(100);
-    DECLARE user_cursor CURSOR FOR SELECT name, email FROM users;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    
-    OPEN user_cursor;
-    
-    read_loop: LOOP
-        FETCH user_cursor INTO user_name, user_email;
-        IF done THEN
-            LEAVE read_loop;
-        END IF;
-        
-        -- Process each user
-        INSERT INTO user_log (name, email, processed_at) 
-        VALUES (user_name, user_email, NOW());
-    END LOOP;
-    
-    CLOSE user_cursor;
-END //
-
--- Procedure with transaction and error handling
-CREATE PROCEDURE TransferMoney(
-    IN from_account INT,
-    IN to_account INT,
-    IN amount DECIMAL(10,2),
-    OUT status_message VARCHAR(100)
-)
-BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        SET status_message = 'Transaction failed - rolled back';
-    END;
-    
-    START TRANSACTION;
-    
-    UPDATE accounts SET balance = balance - amount WHERE account_id = from_account;
-    UPDATE accounts SET balance = balance + amount WHERE account_id = to_account;
-    
-    COMMIT;
-    SET status_message = 'Transaction successful';
-END //
-
-DELIMITER ;
-
--- Call procedures
-CALL GetUserById(1);
-CALL GetUserCount(@total);
-SELECT @total;
-
-CALL DoubleNumber(@num);
-SET @num = 10;
-CALL DoubleNumber(@num);
-SELECT @num;  -- Returns 20
-
-CALL GetUsersByCity('New York', 25, @count);
-SELECT @count;
-
-CALL GetEmployeeBonus(101, @bonus);
-SELECT @bonus;`,
-  lineByLine: [
-    "Line 1: DELIMITER // - Changes separator for procedure body",
-    "Line 4-7: IN parameter - Receives input value only",
-    "Line 5: IN user_id_param INT - Input parameter",
-    "Line 10-13: OUT parameter - Returns output value",
-    "Line 11: SELECT COUNT(*) INTO total_count - Stores result in OUT param",
-    "Line 16-19: INOUT parameter - Both input and output",
-    "Line 17: SET num = num * 2 - Modifies parameter",
-    "Line 22-31: Multiple parameters with conditional logic",
-    "Line 29-30: Two operations - SELECT and COUNT",
-    "Line 34-49: Local variables and IF/ELSEIF logic",
-    "Line 35-36: DECLARE - Local variables",
-    "Line 38-40: SELECT INTO - Assigns values to variables",
-    "Line 42-48: IF/ELSEIF/ELSE - Conditional logic",
-    "Line 52-63: WHILE loop example",
-    "Line 55: WHILE counter <= max_num DO - Loop condition",
-    "Line 66-85: Cursor example - Row-by-row processing",
-    "Line 68-71: Cursor declaration and handler",
-    "Line 73: OPEN cursor - Begin iteration",
-    "Line 77: FETCH - Gets next row",
-    "Line 78: LEAVE read_loop - Exit when done",
-    "Line 88-106: Transaction with error handling",
-    "Line 89: EXIT HANDLER FOR SQLEXCEPTION - Catches errors",
-    "Line 90-93: ROLLBACK on error",
-    "Line 97: START TRANSACTION - Begin transaction",
-    "Line 99-100: UPDATE statements",
-    "Line 102: COMMIT - Save if no error"
-  ],
-  simpleMeaning: "Stored procedures are like saved scripts in your database. IN parameters are inputs (like giving ingredients to a recipe). OUT parameters are outputs (like getting the cooked dish back). INOUT does both. You can use IF/ELSE for decisions, WHILE loops for repetition, and CURSORS to process one row at a time. They reduce network traffic since you send one CALL instead of many SQL statements.",
-  output: `-- CALL GetUserById(1)
-+---------+------+-----------------+
-| user_id | name | email           |
-+---------+------+-----------------+
-| 1       | John | john@example.com|
-+---------+------+-----------------+
-
--- CALL DoubleNumber(@num)
-+------+
-| @num |
-+------+
-| 20   |
-+------+
-
--- CALL GetEmployeeBonus
-+-------+
-| bonus |
-+-------+
-| 15000 |
-+-------+
-
--- CALL TransferMoney
-+---------------------------+
-| status_message            |
-+---------------------------+
-| Transaction successful    |
-+---------------------------+`,
-  note: "IN parameters are input only (cannot be modified). OUT parameters return values (must specify variable). INOUT parameters do both. DECLARE statements must be at start of BEGIN block. Cursors are slow - use SET-based operations when possible. Always add error handling for transactions."
-},
-
-{
-  name: "17. MYSQL TRIGGERS - BEFORE, AFTER, INSTEAD OF",
-  description: "Triggers automatically execute on INSERT, UPDATE, DELETE. BEFORE triggers can modify NEW values and validate data. AFTER triggers log changes and perform cascading actions. INSTEAD OF triggers (for views) intercept operations. OLD contains previous values, NEW contains new values. Multiple triggers per event can specify order. Triggers cannot CALL another trigger (avoid loops). Useful for auditing, validation, auto-timestamping, and maintaining derived data.",
-  code: `-- Create audit table for logging
-CREATE TABLE audit_log (
-    log_id INT PRIMARY KEY AUTO_INCREMENT,
-    table_name VARCHAR(50),
-    action_type VARCHAR(20),
-    record_id INT,
-    old_data JSON,
-    new_data JSON,
-    changed_by VARCHAR(100),
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- BEFORE INSERT (auto-set fields, validate)
-DELIMITER //
-CREATE TRIGGER before_user_insert
-BEFORE INSERT ON users
-FOR EACH ROW
-BEGIN
-    SET NEW.created_at = NOW();
-    SET NEW.updated_at = NOW();
-    SET NEW.email = LOWER(TRIM(NEW.email));
-    
-    IF NEW.age < 18 THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'User must be 18 or older';
-    END IF;
-END //
-
--- AFTER INSERT (audit logging)
-CREATE TRIGGER after_user_insert
-AFTER INSERT ON users
-FOR EACH ROW
-BEGIN
-    INSERT INTO audit_log(table_name, action_type, record_id, new_data, changed_by)
-    VALUES ('users', 'INSERT', NEW.user_id, 
-            JSON_OBJECT('name', NEW.name, 'email', NEW.email, 'age', NEW.age),
-            USER());
-END //
-
--- BEFORE UPDATE (validate and track changes)
-CREATE TRIGGER before_user_update
-BEFORE UPDATE ON users
-FOR EACH ROW
-BEGIN
-    SET NEW.updated_at = NOW();
-    
-    -- Prevent salary decrease more than 10%
-    IF NEW.salary < OLD.salary * 0.9 THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Salary cannot decrease by more than 10%';
-    END IF;
-    
-    -- Log specific field changes
-    IF NEW.email != OLD.email THEN
-        SET NEW.email_verified = FALSE;
-    END IF;
-END //
-
--- AFTER UPDATE (detailed audit)
-CREATE TRIGGER after_user_update
-AFTER UPDATE ON users
-FOR EACH ROW
-BEGIN
-    INSERT INTO audit_log(table_name, action_type, record_id, old_data, new_data, changed_by)
-    VALUES ('users', 'UPDATE', NEW.user_id,
-            JSON_OBJECT('name', OLD.name, 'email', OLD.email, 'salary', OLD.salary),
-            JSON_OBJECT('name', NEW.name, 'email', NEW.email, 'salary', NEW.salary),
-            USER());
-END //
-
--- BEFORE DELETE (prevent deletion under conditions)
-CREATE TRIGGER before_user_delete
-BEFORE DELETE ON users
-FOR EACH ROW
-BEGIN
-    IF OLD.status = 'active' AND OLD.is_admin = TRUE THEN
-        SIGNAL SQLSTATE '45000' 
-        SET MESSAGE_TEXT = 'Cannot delete active admin users';
-    END IF;
-    
-    -- Archive before deletion
-    INSERT INTO deleted_users SELECT OLD.*;
-END //
-
--- AFTER DELETE (cleanup related data)
-CREATE TRIGGER after_user_delete
-AFTER DELETE ON users
-FOR EACH ROW
-BEGIN
-    DELETE FROM user_sessions WHERE user_id = OLD.user_id;
-    DELETE FROM user_permissions WHERE user_id = OLD.user_id;
-    UPDATE statistics SET total_users = total_users - 1;
-END //
-
--- Maintain derived data (e.g., total in orders table)
-CREATE TRIGGER update_order_total
-AFTER INSERT ON order_items
-FOR EACH ROW
-BEGIN
-    UPDATE orders 
-    SET total_amount = total_amount + (NEW.quantity * NEW.price)
-    WHERE order_id = NEW.order_id;
-END //
-
--- View all triggers
-SHOW TRIGGERS;
-
--- Drop trigger
-DROP TRIGGER IF EXISTS before_user_insert;
-
--- Enable/disable trigger (MySQL 8.0+)
-ALTER TABLE users DISABLE TRIGGER before_user_insert;
-ALTER TABLE users ENABLE TRIGGER before_user_insert;
-
-DELIMITER ;`,
-  lineByLine: [
-    "Line 1-11: Audit log table - Stores all changes",
-    "Line 15-25: BEFORE INSERT - Runs before new row inserted",
-    "Line 17-19: SET NEW - Modifies values before saving",
-    "Line 21-24: SIGNAL - Throws error if validation fails",
-    "Line 28-34: AFTER INSERT - Logs after successful insert",
-    "Line 30: NEW.column - Accesses newly inserted values",
-    "Line 37-50: BEFORE UPDATE - Validates changes",
-    "Line 39: SET NEW.updated_at - Updates timestamp automatically",
-    "Line 42-44: SIGNAL - Prevents large salary decrease",
-    "Line 47-50: Conditionally set other fields",
-    "Line 53-61: AFTER UPDATE - Logs both old and new values",
-    "Line 55: OLD.column - Previous values",
-    "Line 56: NEW.column - New values",
-    "Line 64-73: BEFORE DELETE - Prevents deletion",
-    "Line 66-68: SIGNAL - Blocks admin user deletion",
-    "Line 71: Archives data before deletion",
-    "Line 76-80: AFTER DELETE - Cleanup operations",
-    "Line 83-88: Maintain derived data automatically"
-  ],
-  simpleMeaning: "Triggers are automatic actions when data changes. BEFORE triggers can modify or reject data (like setting timestamps or validating age). AFTER triggers log what happened (who changed what). Useful for: 'automatically update last_modified date', 'prevent deleting active users', 'log all changes to audit table', 'update totals when adding items'. Think of triggers as 'if this happens, automatically do that' rules.",
-  output: `-- BEFORE INSERT prevents underage user
-INSERT INTO users (name, email, age) VALUES ('Young', 'young@test.com', 16);
-ERROR 45000: User must be 18 or older
-
--- Valid insert works
-INSERT INTO users (name, email, age) VALUES ('John', 'JOHN@TEST.COM', 25);
--- Email becomes 'john@test.com', created_at and updated_at set automatically
-
--- Audit log after insert
-SELECT * FROM audit_log WHERE action_type = 'INSERT';
-+--------+------------+-------------+-----------+-------------------------------------+
-| log_id | table_name | action_type | record_id | new_data                            |
-+--------+------------+-------------+-----------+-------------------------------------+
-| 1      | users      | INSERT      | 101       | {"name": "John", "email": "john..."}|
-+--------+------------+-------------+-----------+-------------------------------------+
-
--- BEFORE UPDATE prevents large salary cut
-UPDATE employees SET salary = 50000 WHERE emp_id = 1 AND salary = 100000;
-ERROR 45000: Salary cannot decrease by more than 10%
-
--- Show all triggers
-SHOW TRIGGERS;
-+------------------------+--------+-----------+------------------------------------------------+
-| Trigger                | Event  | Table     | Statement                                      |
-+------------------------+--------+-----------+------------------------------------------------+
-| before_user_insert     | INSERT | users     | BEGIN SET NEW.created_at = NOW(); ... END     |
-| after_user_insert      | INSERT | users     | BEGIN INSERT INTO audit_log ... END           |
-| before_user_update     | UPDATE | users     | BEGIN SET NEW.updated_at = NOW(); ... END     |
-| after_user_update      | UPDATE | users     | BEGIN INSERT INTO audit_log ... END           |
-+------------------------+--------+-----------+------------------------------------------------+`,
-  note: "BEFORE triggers can modify NEW values, AFTER triggers cannot. OLD not available in INSERT, NEW not available in DELETE. SIGNAL statement throws errors (MySQL 5.5+). Triggers can cause cascading effects - be careful with performance. Multiple triggers per event possible with FOLLOWS/PRECEDES. Audit triggers should be minimal to avoid slowing operations."
-},
-
-{
-  name: "18. MYSQL VIEWS - UPDATABLE, MATERIALIZED, WITH CHECK OPTION",
-  description: "Views are virtual tables based on SELECT queries. Simple views (single table, no aggregation) are updatable. WITH CHECK OPTION prevents updates that would exclude row from view. Views provide security (hide sensitive columns), simplify complex queries, and offer data abstraction. MERGE algorithm combines view query with outer query. TEMPTABLE algorithm materializes view first. MySQL 8.0+ supports materialized views via derived tables.",
-  code: `-- Base tables
-CREATE TABLE employees (
-    emp_id INT PRIMARY KEY,
-    name VARCHAR(100),
-    salary DECIMAL(10,2),
-    ssn VARCHAR(11),
-    dept_id INT,
-    status VARCHAR(20),
-    hire_date DATE
-);
-
-CREATE TABLE departments (
-    dept_id INT PRIMARY KEY,
-    dept_name VARCHAR(100),
-    budget DECIMAL(15,2)
-);
-
--- Simple view (hide sensitive data)
-CREATE VIEW public_employees AS
-SELECT emp_id, name, dept_id, hire_date
-FROM employees
-WHERE status = 'active';
-
--- View with computed columns
-CREATE VIEW employee_details AS
-SELECT 
-    e.emp_id,
-    e.name,
-    e.salary,
-    d.dept_name,
-    YEAR(CURDATE()) - YEAR(e.hire_date) as years_employed,
-    CASE 
-        WHEN e.salary >= 80000 THEN 'Executive'
-        WHEN e.salary >= 60000 THEN 'Senior'
-        ELSE 'Junior'
-    END as salary_grade
-FROM employees e
-JOIN departments d ON e.dept_id = d.dept_id;
-
--- Updatable view with CHECK OPTION
-CREATE VIEW active_employees AS
-SELECT emp_id, name, salary, dept_id, status
-FROM employees
-WHERE status = 'active'
-WITH CHECK OPTION;  -- Prevents updates that would remove row from view
-
--- View with aggregation (read-only)
-CREATE VIEW department_stats AS
-SELECT 
-    d.dept_id,
-    d.dept_name,
-    COUNT(e.emp_id) as employee_count,
-    AVG(e.salary) as avg_salary,
-    SUM(e.salary) as total_salary,
-    MAX(e.salary) as highest_salary
-FROM departments d
-LEFT JOIN employees e ON d.dept_id = e.dept_id
-GROUP BY d.dept_id, d.dept_name;
-
--- View with algorithm specification
-CREATE ALGORITHM = MERGE VIEW simple_users AS
-SELECT user_id, name, email FROM users;
-
-CREATE ALGORITHM = TEMPTABLE VIEW complex_stats AS
-SELECT dept_id, AVG(salary) as avg_salary, COUNT(*) as cnt
-FROM employees
-GROUP BY dept_id
-HAVING cnt > 5;
-
--- Check view creation details
-SHOW CREATE VIEW employee_details;
-
--- View metadata
-SELECT * FROM information_schema.views WHERE table_name = 'employee_details';
-
--- Update through updatable view (works)
-UPDATE active_employees SET salary = 75000 WHERE emp_id = 1;
-
--- Update that would violate CHECK OPTION (fails)
-UPDATE active_employees SET status = 'inactive' WHERE emp_id = 1;
--- Error: CHECK OPTION failed 'mydb.active_employees'
-
--- Insert through view (must satisfy WHERE clause)
-INSERT INTO active_employees (emp_id, name, salary, dept_id, status)
-VALUES (100, 'New User', 50000, 1, 'active');  -- Works
-
-INSERT INTO active_employees (emp_id, name, salary, dept_id, status)
-VALUES (101, 'Inactive User', 50000, 1, 'inactive');  -- Fails (CHECK OPTION)
-
--- Replace view (update definition)
-CREATE OR REPLACE VIEW employee_details AS
-SELECT emp_id, name, salary, dept_id
-FROM employees
-WHERE salary > 0;
-
--- Drop view
-DROP VIEW IF EXISTS public_employees;
-
--- Materialized view simulation using table + triggers
-CREATE TABLE mv_department_stats (
-    dept_id INT PRIMARY KEY,
-    employee_count INT,
-    avg_salary DECIMAL(10,2),
-    last_refresh TIMESTAMP
-);
-
--- Create trigger to maintain materialized view
-CREATE TRIGGER update_mv_stats
-AFTER INSERT ON employees
-FOR EACH ROW
-BEGIN
-    UPDATE mv_department_stats 
-    SET employee_count = employee_count + 1,
-        avg_salary = (SELECT AVG(salary) FROM employees WHERE dept_id = NEW.dept_id),
-        last_refresh = NOW()
-    WHERE dept_id = NEW.dept_id;
-END;`,
-  lineByLine: [
-    "Line 1-16: Base tables for view examples",
-    "Line 19-23: Simple view - Hides salary and SSN columns",
-    "Line 26-39: View with computed columns (years_employed, salary_grade)",
-    "Line 28-30: SELECT with JOIN",
-    "Line 31: Calculated column",
-    "Line 32-38: CASE statement",
-    "Line 42-47: Updatable view with CHECK OPTION",
-    "Line 45: WHERE status = 'active' - Filter",
-    "Line 46: WITH CHECK OPTION - Prevents violating filter",
-    "Line 50-61: Aggregate view - Read-only (cannot update)",
-    "Line 54-59: Aggregation functions",
-    "Line 64-66: MERGE algorithm - Combines view with outer query",
-    "Line 68-73: TEMPTABLE algorithm - Materializes view first",
-    "Line 84-86: Updating through updatable view",
-    "Line 89-92: Update that violates CHECK OPTION",
-    "Line 95-98: Insert that satisfies view condition",
-    "Line 100-101: Insert that fails CHECK OPTION",
-    "Line 104-106: CREATE OR REPLACE - Update view definition",
-    "Line 112-126: Materialized view simulation"
-  ],
-  simpleMeaning: "Views are like saved queries that act as virtual tables. Instead of writing complex JOINs every time, create a view and SELECT FROM it. Some views can be updated (simple ones). WITH CHECK OPTION ensures you don't update a row out of the view (like making active employee inactive). Aggregate views (with GROUP BY) are read-only. Perfect for security (hide salary column) and simplicity (encapsulate complex logic).",
-  output: `-- Simple view (public_employees)
-+--------+----------+---------+------------+
-| emp_id | name     | dept_id | hire_date  |
-+--------+----------+---------+------------+
-| 1      | Alice    | 1       | 2020-01-15 |
-| 2      | Bob      | 1       | 2021-03-20 |
-+--------+----------+---------+------------+
-
--- View with computed columns
-+--------+-------+--------+-------------+-----------------+---------------+
-| emp_id | name  | salary | dept_name   | years_employed  | salary_grade  |
-+--------+-------+--------+-------------+-----------------+---------------+
-| 1      | Alice | 85000  | Engineering | 4               | Executive     |
-| 2      | Bob   | 75000  | Engineering | 3               | Senior        |
-+--------+-------+--------+-------------+-----------------+---------------+
-
--- Aggregate view (department_stats)
-+---------+-------------+----------------+------------+--------------+
-| dept_id | dept_name   | employee_count | avg_salary | highest_salary|
-+---------+-------------+----------------+------------+--------------+
-| 1       | Engineering | 2              | 80000.00   | 85000.00     |
-| 2       | Sales       | 0              | NULL       | NULL         |
-+---------+-------------+----------------+------------+--------------+
-
--- SHOW CREATE VIEW
-+-------------------+------------------------------------------------------------------+
-| View              | Create View                                                      |
-+-------------------+------------------------------------------------------------------+
-| employee_details  | CREATE ALGORITHM=UNDEFINED DEFINER=\`root\`@\`localhost\` ...    |
-+-------------------+------------------------------------------------------------------+`,
-  note: "Simple views (single table, no aggregation) are updatable. WITH CHECK OPTION prevents rows from being updated out of the view. Aggregate views (GROUP BY, DISTINCT, UNION) are read-only. MERGE algorithm is faster but has restrictions. TEMPTABLE algorithm works for all views but may be slower. Views provide security by hiding columns. MATERIALIZED views require manual implementation in MySQL."
-},
-
-{
-  name: "19. MYSQL TRANSACTION ISOLATION LEVELS & LOCKING",
-  description: "Isolation levels control transaction concurrency effects. READ UNCOMMITTED allows dirty reads (see uncommitted changes). READ COMMITTED prevents dirty reads but allows non-repeatable reads. REPEATABLE READ (MySQL default) prevents dirty and non-repeatable reads but allows phantom reads. SERIALIZABLE highest isolation (table locking). Lock types: Shared (read) locks, Exclusive (write) locks, Gap locks (prevent phantom reads), Next-key locks (combination). InnoDB uses row-level locking.",
-  code: `-- Check current isolation level
-SELECT @@transaction_isolation;
-SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
-SET GLOBAL TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-
--- READ UNCOMMITTED (lowest - dirty reads possible)
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-START TRANSACTION;
-SELECT * FROM accounts WHERE account_id = 1;  -- Can see uncommitted changes
-COMMIT;
-
--- READ COMMITTED (no dirty reads)
-SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
-START TRANSACTION;
-SELECT balance FROM accounts WHERE account_id = 1;  -- Returns 1000
--- Another transaction updates balance to 900 and commits
-SELECT balance FROM accounts WHERE account_id = 1;  -- Returns 900 (non-repeatable)
-COMMIT;
-
--- REPEATABLE READ (default - prevents non-repeatable reads)
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-START TRANSACTION;
-SELECT balance FROM accounts WHERE account_id = 1;  -- Returns 1000
--- Another transaction updates balance to 900 and commits
-SELECT balance FROM accounts WHERE account_id = 1;  -- Still returns 1000 (repeatable)
-COMMIT;
-
--- Phantom reads demonstration
-START TRANSACTION;
-SELECT COUNT(*) FROM accounts WHERE balance > 500;  -- Returns 5 rows
--- Another transaction inserts new account with balance 600
-SELECT COUNT(*) FROM accounts WHERE balance > 500;  -- Returns 6 (phantom)
-COMMIT;
-
--- SERIALIZABLE (highest - prevents phantoms with locks)
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-START TRANSACTION;
-SELECT * FROM accounts WHERE balance > 500;  -- Acquires shared lock
--- Another transaction trying to insert will wait or timeout
-COMMIT;
-
--- Explicit locking
-START TRANSACTION;
-
--- Shared lock (read lock - allows other reads)
-SELECT * FROM accounts WHERE account_id = 1 LOCK IN SHARE MODE;
-
--- Exclusive lock (write lock - prevents others from reading/writing)
-SELECT * FROM accounts WHERE account_id = 1 FOR UPDATE;
-
--- Update with lock
-UPDATE accounts SET balance = balance - 100 WHERE account_id = 1;
-COMMIT;
-
--- Gap lock prevention (prevents phantom reads)
-START TRANSACTION;
-SELECT * FROM accounts WHERE id BETWEEN 10 AND 20 FOR UPDATE;
--- Locks gap between 10-20, prevents inserts in that range
-COMMIT;
-
--- Deadlock example (MySQL auto-detects and resolves)
--- Transaction 1
-START TRANSACTION;
-UPDATE accounts SET balance = 100 WHERE account_id = 1;
-UPDATE accounts SET balance = 200 WHERE account_id = 2;
-COMMIT;
-
--- Transaction 2 (simultaneous)
-START TRANSACTION;
-UPDATE accounts SET balance = 300 WHERE account_id = 2;
-UPDATE accounts SET balance = 400 WHERE account_id = 1;
-COMMIT;
--- One transaction will be chosen as deadlock victim and rolled back
-
--- View current locks
-SELECT * FROM information_schema.INNODB_LOCKS;
-SELECT * FROM performance_schema.data_locks;
-
--- View current transactions
-SELECT * FROM information_schema.INNODB_TRX;
-
--- Kill a transaction
-KILL QUERY 123;  -- Kills specific query
-KILL 123;  -- Kills connection
-
--- Set lock wait timeout
-SET GLOBAL innodb_lock_wait_timeout = 50;  -- 50 seconds
-
--- Enable deadlock logging
-SET GLOBAL innodb_print_all_deadlocks = ON;`,
-  lineByLine: [
-    "Line 1-4: Check and set isolation levels at different scopes",
-    "Line 7-11: READ UNCOMMITTED - Can see uncommitted changes (dirty reads)",
-    "Line 14-21: READ COMMITTED - Prevents dirty reads, allows non-repeatable",
-    "Line 24-31: REPEATABLE READ - Default, prevents non-repeatable reads",
-    "Line 27: First read returns 1000",
-    "Line 30: Second read still returns 1000 (repeatable)",
-    "Line 34-40: Phantom reads - New rows appear in result set",
-    "Line 43-49: SERIALIZABLE - Table-level locking, prevents phantoms",
-    "Line 52-62: Explicit locking with FOR UPDATE and LOCK IN SHARE MODE",
-    "Line 53: LOCK IN SHARE MODE - Shared lock (other reads allowed)",
-    "Line 56: FOR UPDATE - Exclusive lock (prevents others)",
-    "Line 65-69: Gap lock - Prevents phantom reads",
-    "Line 72-86: Deadlock example - MySQL automatically detects",
-    "Line 89-94: Monitor locks and transactions"
-  ],
-  simpleMeaning: "Isolation levels determine how transactions see each other's changes. READ UNCOMMITTED is like looking at someone's draft before they save (dangerous). READ COMMITTED only sees saved changes. REPEATABLE READ ensures you see the same data throughout your transaction. SERIALIZABLE makes transactions run one after another (slowest). Locks prevent conflicts: shared locks for reading, exclusive locks for writing. Deadlocks happen when two transactions wait for each other - MySQL picks one to cancel.",
-  output: `-- Isolation level check
-+-----------------------+------------------+
-| @@transaction_isolation | isolation_level |
-+-----------------------+------------------+
-| REPEATABLE-READ       | Default          |
-+-----------------------+------------------+
-
--- Setting isolation level
-Query OK, 0 rows affected (0.00 sec)
-
--- Explicit lock example
-+------------+---------+
-| account_id | balance |
-+------------+---------+
-| 1          | 900     |
-+------------+---------+
-
--- Deadlock error
-ERROR 1213 (40001): Deadlock found when trying to get lock; try restarting transaction
-
--- View current transactions
-+--------+-----------+------------------+------------------+
-| trx_id | trx_state | trx_started      | trx_mysql_thread_id |
-+--------+-----------+------------------+------------------+
-| 12345  | RUNNING   | 2024-01-15 10:30 | 123               |
-+--------+-----------+------------------+------------------+
-
--- View locks
-+--------+-----------+----------+-----------+
-| lock_id| lock_mode | lock_type | lock_table |
-+--------+-----------+----------+-----------+
-| 123    | X         | RECORD    | accounts  |
-+--------+-----------+----------+-----------+`,
-  note: "REPEATABLE READ is MySQL default (prevents dirty and non-repeatable reads). READ COMMITTED is common in other databases (PostgreSQL, Oracle). SERIALIZABLE uses table locks (avoid in high-concurrency). FOR UPDATE locks rows for update. LOCK IN SHARE MODE allows other reads but prevents writes. Deadlocks are normal - always retry transactions. Gap locks prevent phantom reads in REPEATABLE READ."
-},
-
-{
-        name: "20. MYSQL PERFORMANCE TUNING & QUERY OPTIMIZATION",
-        description: "Query optimization dramatically improves database performance. Use EXPLAIN to analyze query execution plans. Index strategies: cover indexes (include all columns), composite index order (most selective first), avoid functions in WHERE clauses. Query rewriting: replace OR with UNION, avoid SELECT *, use EXISTS instead of IN for large datasets. Server tuning: adjust buffer pool size (70-80% of RAM), query cache (MySQL 5.7), log file size, connection limits. Monitor slow queries with slow query log.",
-        code: `-- Enable slow query log
-SET GLOBAL slow_query_log = 'ON';
-SET GLOBAL long_query_time = 2;
-SET GLOBAL slow_query_log_file = '/var/log/mysql/slow.log';
-
--- Analyze query execution plan
-EXPLAIN SELECT * FROM users WHERE email = 'john@example.com';
-
--- Optimize query: avoid SELECT *
--- Bad
-SELECT * FROM users WHERE age > 25;
-
--- Good - only needed columns
-SELECT user_id, name, email FROM users WHERE age > 25;
-
--- Optimize: avoid functions in WHERE
--- Bad (index on hire_date not used)
-SELECT * FROM employees WHERE YEAR(hire_date) = 2024;
-
--- Good (uses index)
-SELECT * FROM employees WHERE hire_date BETWEEN '2024-01-01' AND '2024-12-31';
-
--- Optimize: use EXISTS instead of IN for large datasets
--- Bad
-SELECT * FROM users WHERE user_id IN (SELECT user_id FROM orders WHERE amount > 1000);
-
--- Good
-SELECT * FROM users u 
-WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.user_id AND o.amount > 1000);
-
--- Batch operations instead of row-by-row
--- Bad
-UPDATE users SET status = 'active' WHERE user_id = 1;
-UPDATE users SET status = 'active' WHERE user_id = 2;
-
--- Good (single batch)
-UPDATE users SET status = 'active' WHERE user_id IN (1, 2, 3);
-
--- Bulk insert optimization
--- Bad
-INSERT INTO logs (message) VALUES ('msg1');
-INSERT INTO logs (message) VALUES ('msg2');
-
--- Good
-INSERT INTO logs (message) VALUES ('msg1'), ('msg2'), ('msg3');
-
--- Analyze table for optimizer statistics
-ANALYZE TABLE users;
-OPTIMIZE TABLE users;
-
--- View server status variables
-SHOW STATUS LIKE 'Slow_queries';
-SHOW VARIABLES LIKE 'innodb_buffer_pool_size';`,
-        lineByLine: [
-          "Line 1-4: Enable slow query log for monitoring",
-          "Line 7: EXPLAIN - Shows query execution plan",
-          "Line 10-13: Avoid SELECT * - Only fetch needed columns",
-          "Line 16-22: Avoid functions in WHERE - Prevents index use",
-          "Line 25-31: Use EXISTS instead of IN for large datasets",
-          "Line 34-40: Batch updates instead of row-by-row",
-          "Line 43-48: Bulk insert optimization",
-          "Line 51-52: ANALYZE and OPTIMIZE tables",
-          "Line 55-56: Monitor server status"
-        ],
-        simpleMeaning: "Query optimization makes MySQL faster. EXPLAIN shows how MySQL runs your query. Avoid SELECT * (fetch only needed columns). Don't use functions in WHERE - it breaks indexes. Use EXISTS instead of IN for large lists. Batch operations are much faster than individual updates. Increase buffer pool size to 70-80% of RAM.",
-        output: `EXPLAIN result shows index usage (type: ref, key: idx_email)
-Slow query log enabled
-Buffer pool size configured to 1GB
-ANALYZE TABLE completed successfully`,
-        note: "EXPLAIN is your best friend for optimization. innodb_buffer_pool_size should be 70-80% of RAM. Slow query log is essential for finding problem queries. Batch operations are much faster than row-by-row."
-      },
-
-      {
-        name: "21. MYSQL BACKUP AND RECOVERY STRATEGIES",
-        description: "Regular backups are critical for disaster recovery. mysqldump creates logical backups (SQL statements) - portable but slower for large databases. Physical backups (copying data files) are faster but server-specific. Percona XtraBackup hot backups without downtime. Binary logs enable point-in-time recovery. Backup strategies: full backup weekly, incremental daily. Test recovery regularly.",
-        code: `-- Logical backup with mysqldump
-# Full database backup
-mysqldump -u root -p --single-transaction mydb > mydb_backup.sql
-
-# Backup with compression
-mysqldump -u root -p mydb | gzip > mydb_backup.sql.gz
-
-# Backup specific tables
-mysqldump -u root -p mydb users orders > users_orders_backup.sql
-
-# Restore from backup
-mysql -u root -p mydb < mydb_backup.sql
-
-# Restore compressed backup
-gunzip < mydb_backup.sql.gz | mysql -u root -p mydb
-
--- Enable binary logging
-# In my.cnf
-[mysqld]
-log_bin = /var/log/mysql/mysql-bin.log
-expire_logs_days = 7
-
--- View binary log status
-SHOW MASTER STATUS;
-SHOW BINARY LOGS;
-
--- Point-in-time recovery
-# Restore full backup first
-mysql -u root -p mydb < full_backup.sql
-
-# Apply binary logs from specific time
-mysqlbinlog --start-datetime="2024-01-15 10:00:00" \\
-  mysql-bin.000001 | mysql -u root -p mydb
-
--- Export to CSV
-SELECT * FROM users 
-INTO OUTFILE '/tmp/users.csv'
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\\n';
-
--- Import from CSV
-LOAD DATA INFILE '/tmp/users.csv'
-INTO TABLE users
-FIELDS TERMINATED BY ','
-ENCLOSED BY '"'
-LINES TERMINATED BY '\\n'
-IGNORE 1 ROWS;
-
--- Check backup integrity
-mysqlcheck -u root -p --check --all-databases
-
--- Automate backup with cron
-# Daily backup at 2 AM
-0 2 * * * /usr/bin/mysqldump -u root -p mydb | gzip > /backups/mydb_$(date +\\%Y\\%m\\%d).sql.gz`,
-        lineByLine: [
-          "Line 1-4: Basic mysqldump full database backup",
-          "Line 6-7: Compressed backup with gzip",
-          "Line 9-10: Backup specific tables only",
-          "Line 12-13: Restore backup to database",
-          "Line 15-16: Restore compressed backup",
-          "Line 19-23: Enable binary logging in config",
-          "Line 26-27: SHOW MASTER STATUS - Current binary log position",
-          "Line 30-33: Point-in-time recovery steps",
-          "Line 36-42: CSV export for data exchange",
-          "Line 45-51: CSV import",
-          "Line 54: Check backup integrity",
-          "Line 57-58: Schedule automatic backups"
-        ],
-        simpleMeaning: "Backups save your data from disasters. mysqldump creates SQL files you can restore anytime. Binary logs record every change - with full backup + binary logs, you can restore to any point in time. Test your backups regularly - a backup you can't restore is useless. Schedule automatic backups with cron.",
-        output: `Backup completed successfully
-SHOW MASTER STATUS: mysql-bin.000001 at position 123456
-CSV export: 1000 rows exported
-LOAD DATA INFILE: 999 rows imported
-Backup integrity check passed`,
-        note: "Always test restore process. Use --single-transaction for InnoDB consistent backups. Binary logs essential for point-in-time recovery. Store backups off-site. Monitor backup success/failure with alerts."
-      }
-    ]
+ advanced: {
+  title: "🚀 MYSQL ADVANCED: 60 EXPERT TOPICS",
+  description: "Master MySQL with 60 advanced techniques: window functions, CTEs, transactions, isolation levels, stored procedures, triggers, indexing strategies, query optimization, partitioning, replication, security, and more – each with real‑world use cases.",
+  topics: [
+    {
+      name: "1. Window Functions: ROW_NUMBER()",
+      description: "ROW_NUMBER() assigns a unique sequential integer to each row within a partition. It restarts numbering for each partition. Unlike RANK, it never gives tied rows the same number. Commonly used to keep only the first row in each group (deduplication) or to create row numbers for pagination. Available from MySQL 8.0.",
+      code: "SELECT name, dept, ROW_NUMBER() OVER (PARTITION BY dept ORDER BY salary DESC) as rn FROM emp;",
+      lineByLine: ["PARTITION BY dept groups rows by department", "ORDER BY salary DESC defines order within group"],
+      simpleMeaning: "Assign consecutive numbers to rows per department.",
+      output: "1,2,3... within each department",
+      note: "MySQL 8.0+ required.",
+      use_case: "Leaderboards (top 3 sales per region), removing duplicates (keep row with rn = 1)."
+    },
+    {
+      name: "2. RANK() vs DENSE_RANK()",
+      description: "RANK() leaves gaps when there are ties (e.g., 1,2,2,4), while DENSE_RANK() does not (1,2,2,3). Both are window functions used for ranking. Choose RANK for competition where gaps are acceptable; choose DENSE_RANK for consecutive prize distribution.",
+      code: "SELECT salary, RANK() OVER w as rank_w_gaps, DENSE_RANK() OVER w as rank_no_gaps FROM sales WINDOW w AS (ORDER BY salary DESC);",
+      lineByLine: ["RANK: 1,2,2,4", "DENSE_RANK: 1,2,2,3"],
+      simpleMeaning: "Rank with or without gaps.",
+      output: "Ranks with/without gaps",
+      note: "Use RANK for competition, DENSE_RANK for prizes.",
+      use_case: "Scholarship ranking (RANK), prize distribution (DENSE_RANK)."
+    },
+    {
+      name: "3. LEAD() and LAG()",
+      description: "LEAD() accesses data from a subsequent row within the same result set; LAG() accesses data from a previous row. They are useful for comparing current row with next/previous values, e.g., calculating differences, finding trends, or detecting changes.",
+      code: "SELECT date, amount, LAG(amount) OVER w as prev, LEAD(amount) OVER w as next FROM sales WINDOW w AS (ORDER BY date);",
+      lineByLine: ["LAG gets previous row's value", "LEAD gets next row's value"],
+      simpleMeaning: "Compare with neighboring rows.",
+      output: "Previous and next amounts.",
+      note: "Useful for trend analysis.",
+      use_case: "Stock price change analysis, website session duration comparison."
+    },
+    {
+      name: "4. Running Totals with SUM() OVER",
+      description: "SUM(...) OVER (ORDER BY ...) creates a cumulative (running) total. The default frame is `RANGE UNBOUNDED PRECEDING AND CURRENT ROW`, meaning all rows from the start of the partition up to the current row. This is perfect for year‑to‑date reports, inventory accumulation, or any progressive aggregation.",
+      code: "SELECT date, amount, SUM(amount) OVER (ORDER BY date) as running_total FROM sales;",
+      lineByLine: ["ORDER BY defines accumulation order", "SUM accumulates from start to current row"],
+      simpleMeaning: "Cumulative sum over time.",
+      output: "Increasing sum per row.",
+      note: "Default frame ROWS UNBOUNDED PRECEDING.",
+      use_case: "Financial year‑to‑date revenue, inventory accumulation."
+    },
+    {
+      name: "5. Moving Averages (ROWS BETWEEN)",
+      description: "Moving averages smooth out short‑term fluctuations. Use `ROWS BETWEEN N PRECEDING AND CURRENT ROW` to average the last N rows. This is common in financial charts, sensor data smoothing, and performance monitoring. Adjust the frame size to change the smoothing effect.",
+      code: "SELECT date, amount, AVG(amount) OVER (ORDER BY date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) as ma3 FROM sales;",
+      lineByLine: ["ROWS BETWEEN defines window frame", "AVG calculates average over that frame"],
+      simpleMeaning: "3‑period moving average.",
+      output: "Smoothed values.",
+      note: "Use ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW for running total.",
+      use_case: "Stock 20‑day simple moving average, website traffic smoothing."
+    },
+    {
+      name: "6. NTILE() – Bucketing",
+      description: "NTILE(N) divides rows into N approximately equal buckets (quartiles, deciles). It assigns a bucket number from 1 to N. If rows cannot be divided evenly, the first buckets get one extra row. This is ideal for percentile analysis, customer segmentation (top 25% spenders), or any ranking that requires equal‑sized groups.",
+      code: "SELECT score, NTILE(4) OVER (ORDER BY score) as quartile FROM students;",
+      lineByLine: ["NTILE(4) creates quartiles", "ORDER BY defines value order"],
+      simpleMeaning: "Divide rows into quartiles.",
+      output: "1,2,3,4 quartiles.",
+      note: "Rows per bucket differ by at most 1.",
+      use_case: "Customer segmentation (top 25% spenders), employee performance deciles."
+    },
+    {
+      name: "7. FIRST_VALUE() and LAST_VALUE()",
+      description: "FIRST_VALUE() returns the first value in the ordered window, LAST_VALUE() returns the last value (respecting the frame). By default, the frame is `RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`, so LAST_VALUE() returns the current row’s value. To get the true last value of the partition, use `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`.",
+      code: "SELECT dept, salary, FIRST_VALUE(salary) OVER (PARTITION BY dept ORDER BY salary) as lowest, LAST_VALUE(salary) OVER (PARTITION BY dept ORDER BY salary ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) as highest FROM emp;",
+      lineByLine: ["FIRST_VALUE = min", "LAST_VALUE = max with correct frame"],
+      simpleMeaning: "Find first and last values per group.",
+      output: "Lowest and highest salary in department.",
+      note: "Default frame affects LAST_VALUE.",
+      use_case: "First login date per user, last purchase per customer."
+    },
+    {
+      name: "8. Recursive CTE – Hierarchy Traversal",
+      description: "A recursive Common Table Expression (CTE) calls itself to traverse hierarchical data such as org charts, bill of materials, or category trees. It consists of an anchor member (starting point) and a recursive member (joins the CTE back to the table). Recursion depth is limited by `cte_max_recursion_depth` (default 1000).",
+      code: "WITH RECURSIVE emp_tree AS (SELECT id, name, 1 level FROM emp WHERE mgr IS NULL UNION ALL SELECT e.id, e.name, level+1 FROM emp e JOIN emp_tree ON e.mgr = emp_tree.id) SELECT * FROM emp_tree;",
+      lineByLine: ["Anchor: top‑level employees", "Recursive: join to find direct reports", "level increments each step"],
+      simpleMeaning: "Walk the organisation tree.",
+      output: "All employees with depth level.",
+      note: "Watch for cycles – use cycle detection if needed.",
+      use_case: "Organisation chart, product bill of materials, category tree with descendants."
+    },
+    {
+      name: "9. Recursive CTE – Generate Date Range",
+      description: "A recursive CTE can generate a series of dates between two points. This is useful for filling gaps in reports (e.g., days with no sales) or creating date dimensions. The anchor starts at the start date, and the recursive member adds one day until the end date is reached.",
+      code: "WITH RECURSIVE dates AS (SELECT CURDATE() as dt UNION ALL SELECT dt + INTERVAL 1 DAY FROM dates WHERE dt < CURDATE() + INTERVAL 30 DAY) SELECT * FROM dates;",
+      lineByLine: ["Start today", "Add one day repeatedly", "Stop after 30 days"],
+      simpleMeaning: "Generate a calendar table on the fly.",
+      output: "30 consecutive dates.",
+      note: "Useful for missing data filling.",
+      use_case: "Fill gaps in sales report (show zero for days without sales)."
+    },
+    {
+      name: "10. Multiple CTEs (Chained)",
+      description: "You can define multiple CTEs in a single `WITH` clause separated by commas. Each CTE can reference previous ones. This makes complex queries much more readable – each step is named and can be reused. The final `SELECT` uses the CTEs like ordinary tables.",
+      code: "WITH sales_total AS (SELECT region, SUM(amount) as total FROM sales GROUP BY region), sales_avg AS (SELECT AVG(total) as avg_total FROM sales_total) SELECT * FROM sales_total CROSS JOIN sales_avg;",
+      lineByLine: ["First CTE computes regional totals", "Second CTE uses first CTE", "Main query joins both"],
+      simpleMeaning: "Break down complex logic into steps.",
+      output: "Regional totals and overall average.",
+      note: "CTEs are materialized once per query.",
+      use_case: "Financial ratio calculations, multi‑stage reporting."
+    },
+    {
+      name: "11. Transaction Isolation – READ UNCOMMITTED",
+      description: "Lowest isolation level; allows dirty reads (reading uncommitted changes from other transactions). It gives the highest concurrency but no consistency. Use only for reporting where approximate data is acceptable, never for transactions that require accuracy.",
+      code: "SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED; START TRANSACTION; SELECT * FROM accounts; COMMIT;",
+      lineByLine: ["Set low isolation", "Read may see uncommitted data"],
+      simpleMeaning: "Fast but inconsistent.",
+      output: "May see uncommitted changes.",
+      note: "Only for reporting where dirty reads are acceptable.",
+      use_case: "Approximate dashboards, large analytics queries that don't need strict accuracy."
+    },
+    {
+      name: "12. Isolation – REPEATABLE READ",
+      description: "Default isolation level for InnoDB. It prevents dirty reads and non‑repeatable reads but allows phantom rows (new rows inserted by other transactions that match the query condition). It uses snapshot read, meaning a transaction sees a consistent snapshot of the data at the start.",
+      code: "START TRANSACTION; SELECT balance FROM accounts WHERE id=1; -- another transaction updates balance to 900; SELECT balance FROM accounts WHERE id=1; -- still 1000 (snapshot)",
+      lineByLine: ["First read", "Second read sees snapshot, not new value"],
+      simpleMeaning: "Consistent snapshot per transaction.",
+      output: "Same value both times.",
+      note: "May cause phantom rows.",
+      use_case: "Banking transfers, order processing where you read the same data multiple times."
+    },
+    {
+      name: "13. SERIALIZABLE Isolation",
+      description: "Highest isolation level. It locks the range of rows, preventing phantom reads. This ensures full consistency but reduces concurrency. It is the safest but slowest level. Only use when absolute consistency is required, e.g., year‑end accounting.",
+      code: "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE; START TRANSACTION; SELECT COUNT(*) FROM accounts; -- another transaction's INSERT will wait until commit",
+      lineByLine: ["SERIALIZABLE", "Locks the gap to prevent new rows"],
+      simpleMeaning: "Full consistency, but slow.",
+      output: "No phantom rows.",
+      note: "Use only when absolutely needed.",
+      use_case: "Year‑end accounting closing, regulatory reports that require no phantom rows."
+    },
+    {
+      name: "14. Deadlock Detection & Resolution",
+      description: "A deadlock occurs when two or more transactions each hold locks that the others need, creating a cycle. MySQL automatically detects deadlocks and rolls back one transaction (the victim). Applications should retry the rolled‑back transaction. Use `SHOW ENGINE INNODB STATUS` to see deadlock information.",
+      code: "-- Transaction A: UPDATE a; UPDATE b; -- Transaction B: UPDATE b; UPDATE a; -- One will get 'Deadlock found'",
+      lineByLine: ["Cross update order leads to deadlock", "MySQL rolls back one"],
+      simpleMeaning: "Cycle in lock acquisition.",
+      output: "ERROR 1213: Deadlock found.",
+      note: "Retry transaction after deadlock.",
+      use_case: "High‑concurrency systems (airline booking, stock trading) – handle deadlock by retrying."
+    },
+    {
+      name: "15. Explicit Row Lock – FOR UPDATE",
+      description: "SELECT ... FOR UPDATE locks the selected rows exclusively, preventing other transactions from updating or deleting them until the transaction ends. It also blocks `SELECT ... FOR UPDATE` from other transactions. Use it to implement pessimistic locking, e.g., when you need to read a row and then update it based on the read value.",
+      code: "START TRANSACTION; SELECT * FROM inventory WHERE product_id=1 FOR UPDATE; UPDATE inventory SET stock=stock-1 WHERE product_id=1; COMMIT;",
+      lineByLine: ["FOR UPDATE acquires exclusive row lock", "Update releases lock on commit"],
+      simpleMeaning: "Lock rows for update, prevent others.",
+      output: "Row locked until commit.",
+      note: "Use to avoid race conditions in critical updates.",
+      use_case: "Prevent overselling inventory, booking the last seat, processing payment where balance must not change."
+    },
+    {
+      name: "16. Gap Locks & Next‑Key Locks",
+      description: "In REPEATABLE READ, InnoDB uses gap locks to prevent phantom rows. A gap lock locks the space between index values. A next‑key lock is a combination of a row lock and a gap lock. They ensure that a query executed multiple times within a transaction sees the same set of rows.",
+      code: "SELECT * FROM products WHERE price BETWEEN 10 AND 20 FOR UPDATE; -- Locks the gap, no insert can occur in that range",
+      lineByLine: ["Range lock on price between 10 and 20", "Gap lock prevents inserts into the gap"],
+      simpleMeaning: "Lock range of values.",
+      output: "Gap locked.",
+      note: "Occurs in REPEATABLE READ.",
+      use_case: "Prevent insertion of new products into a price range while running a report, ensuring consistency."
+    },
+    {
+      name: "17. Stored Procedure with Cursor",
+      description: "A cursor allows row‑by‑row processing of a result set inside a stored procedure. It is slow and should be avoided when set‑based operations are possible. However, cursors are useful for complex business rules that must be applied individually, such as sending emails or generating serial numbers.",
+      code: "DECLARE cur CURSOR FOR SELECT id FROM users; DECLARE CONTINUE HANDLER FOR NOT FOUND SET done=1; OPEN cur; FETCH cur INTO uid; CLOSE cur;",
+      lineByLine: ["Declare cursor", "Handler for end of data", "Open, fetch, close"],
+      simpleMeaning: "Process rows one by one.",
+      output: "Processed each row.",
+      note: "Cursors are slow; favor set‑based operations.",
+      use_case: "Sending personalised emails, generating invoices one by one."
+    },
+    {
+      name: "18. Dynamic SQL in Stored Procedures",
+      description: "Dynamic SQL allows building and executing SQL queries as strings. Use `PREPARE`, `EXECUTE`, and `DEALLOCATE PREPARE`. It is powerful for flexible queries (e.g., table name as parameter) but risky for SQL injection. Always validate input and avoid concatenating user‑supplied values directly.",
+      code: "SET @sql = CONCAT('SELECT * FROM ', table_name); PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;",
+      lineByLine: ["Build SQL string", "Prepare statement", "Execute", "Release"],
+      simpleMeaning: "Execute constructed query.",
+      output: "Dynamic result.",
+      note: "Risk of SQL injection; use with caution.",
+      use_case: "Admin panel where user can choose table name, dynamic pivot table generation."
+    },
+    {
+      name: "19. Event Scheduler – Scheduled Jobs",
+      description: "MySQL events run SQL statements at scheduled times, like a cron job. Enable the scheduler with `SET GLOBAL event_scheduler = ON;`. Events can be one‑time or recurring. They are ideal for maintenance tasks (e.g., deleting old logs), report generation, or data archiving.",
+      code: "CREATE EVENT daily_cleanup ON SCHEDULE EVERY 1 DAY DO DELETE FROM logs WHERE created < NOW() - INTERVAL 7 DAY;",
+      lineByLine: ["ON SCHEDULE defines frequency", "DO action"],
+      simpleMeaning: "Database cron job.",
+      output: "Event created.",
+      note: "Enable event_scheduler first.",
+      use_case: "Nightly report generation, archive old data, session cleanup."
+    },
+    {
+      name: "20. Triggers with Multiple Events",
+      description: "A single trigger can only be defined for one event type (INSERT, UPDATE, or DELETE). To handle multiple events, create separate triggers. You can specify the order in which multiple triggers on the same event run using `FOLLOWS` or `PRECEDES`.",
+      code: "CREATE TRIGGER audit_ins AFTER INSERT ON users ...; CREATE TRIGGER audit_upd AFTER UPDATE ON users ...;",
+      lineByLine: ["Separate triggers for INSERT and UPDATE"],
+      simpleMeaning: "One trigger per event type.",
+      output: "Multiple triggers.",
+      note: "Use FOLLOWS/PRECEDES to control order.",
+      use_case: "Audit log that captures old and new values across all DML operations."
+    },
+    {
+      name: "21. Partial Index (WHERE clause)",
+      description: "A partial index indexes only a subset of rows, defined by a `WHERE` condition. It saves space and improves performance for queries that target only that subset. Useful for indexing only active users, high‑value orders, or rows that are frequently queried.",
+      code: "CREATE INDEX idx_active ON users(email) WHERE status = 'active';",
+      lineByLine: ["WHERE clause limits indexed rows"],
+      simpleMeaning: "Index only active users.",
+      output: "Index created.",
+      note: "Conditional indexing saves space.",
+      use_case: "Index only active users (they log in often), index high‑value orders for faster reporting."
+    },
+    {
+      name: "22. Functional Index (Expression)",
+      description: "A functional index indexes the result of an expression or function. It is useful for case‑insensitive searches (`LOWER(column)`), extracting parts of a date (`YEAR(date)`), or any other transformation. Available from MySQL 8.0.13.",
+      code: "CREATE INDEX idx_lower_email ON users((LOWER(email)));",
+      lineByLine: ["Expression inside parentheses", "Index stores LOWER(email)"],
+      simpleMeaning: "Speed up case‑insensitive searches.",
+      output: "Index created.",
+      note: "MySQL 8.0.13+.",
+      use_case: "Case‑insensitive login (users type email in any case), indexed date parts."
+    },
+    {
+      name: "23. Invisible Index",
+      description: "An invisible index is maintained by MySQL but ignored by the query optimizer. It allows you to test the effect of removing an index without actually dropping it. If performance does not degrade, you can safely drop it. Useful for rolling out changes in production.",
+      code: "CREATE INDEX idx_test ON users(age) INVISIBLE; ALTER TABLE users ALTER INDEX idx_test VISIBLE;",
+      lineByLine: ["INVISIBLE makes optimizer ignore it", "VISIBLE re‑enables"],
+      simpleMeaning: "Test index removal without dropping.",
+      output: "Index created but ignored.",
+      note: "Great for evaluating impact.",
+      use_case: "Test whether dropping an index affects query performance without actually removing it."
+    },
+    {
+      name: "24. Descending Index",
+      description: "A descending index stores keys in descending order. It optimises queries with `ORDER BY column DESC` and can also speed up `ORDER BY column ASC` by scanning backwards. Without a descending index, MySQL may need to use filesort.",
+      code: "CREATE INDEX idx_date_desc ON orders(order_date DESC);",
+      lineByLine: ["DESC index"],
+      simpleMeaning: "Optimize descending order queries.",
+      output: "Index created.",
+      note: "Useful for recent orders.",
+      use_case: "Show newest orders first (order by date descending), latest user registrations."
+    },
+    {
+      name: "25. Covering Index (Include Extra Columns)",
+      description: "A covering index contains all columns needed for a query, so MySQL can answer the query entirely from the index without reading the table rows. This is extremely fast. Include both the filter columns and the selected columns in the index. The `EXPLAIN` output will show `Using index`.",
+      code: "CREATE INDEX idx_covering ON products(category, price, name); SELECT name, price FROM products WHERE category = 'books';",
+      lineByLine: ["Index includes category, price, name", "Query uses only those columns"],
+      simpleMeaning: "Query answered directly from index.",
+      output: "Using index (covering).",
+      note: "Can be 10x faster.",
+      use_case: "Large product catalogue queries that only need category, price, name – no table access."
+    },
+    {
+      name: "26. Index Merge (Multiple Indexes)",
+      description: "Index merge allows MySQL to use multiple indexes for a single query and combine the results (union, intersection). This can happen with `OR` conditions or certain `AND` conditions. Use `EXPLAIN` to see if index merge is used. It is an optimisation alternative to composite indexes.",
+      code: "SELECT * FROM users WHERE last_name = 'Smith' OR city = 'Boston';",
+      lineByLine: ["Index on last_name and city", "OR condition may trigger index merge union"],
+      simpleMeaning: "Combine two indexes.",
+      output: "Index merge union.",
+      note: "Check EXPLAIN to verify.",
+      use_case: "Search with optional filters where each filter has its own index."
+    },
+    {
+      name: "27. Partitioning – RANGE",
+      description: "Range partitioning splits a table into partitions based on a column value falling within a given range. It is ideal for time‑series data (e.g., by date). Queries that filter by the partition key can skip scanning irrelevant partitions (partition pruning). Dropping a partition is much faster than deleting rows.",
+      code: "CREATE TABLE sales (id INT, sale_date DATE) PARTITION BY RANGE (YEAR(sale_date)) (PARTITION p2023 VALUES LESS THAN (2024), PARTITION p2024 VALUES LESS THAN (2025));",
+      lineByLine: ["RANGE on year", "Boundaries define partitions"],
+      simpleMeaning: "Split table by year.",
+      output: "Table partitioned.",
+      note: "DROP PARTITION is much faster than DELETE.",
+      use_case: "Large log tables where old data is dropped by partition; sensor data."
+    },
+    {
+      name: "28. Partitioning – LIST",
+      description: "List partitioning assigns rows to partitions based on a column value matching one of a set of values. It is useful for categorical data, such as region or product category. Each partition contains rows where the column value is in a specified list.",
+      code: "CREATE TABLE customers (id INT, region VARCHAR(10)) PARTITION BY LIST COLUMNS(region) (PARTITION pNA VALUES IN ('US','CA'), PARTITION pEU VALUES IN ('UK','FR'));",
+      lineByLine: ["LIST COLUMNS with explicit values"],
+      simpleMeaning: "Group by region.",
+      output: "Partitions created.",
+      note: "Use for region‑based sharding.",
+      use_case: "Customer data partitioned by country for geo‑specific processing."
+    },
+    {
+      name: "29. Partitioning – HASH",
+      description: "Hash partitioning distributes rows evenly across a specified number of partitions based on a hash of the partition key. It is useful when you want to spread data evenly without any logical grouping. `HASH` partitioning works well for keys with many distinct values.",
+      code: "CREATE TABLE users (id INT) PARTITION BY HASH(id) PARTITIONS 4;",
+      lineByLine: ["HASH(id)", "4 partitions"],
+      simpleMeaning: "Evenly distribute rows.",
+      output: "Table partitioned.",
+      note: "No partition pruning on non‑partition key.",
+      use_case: "Evenly distribute large user table across disks, load balancing for high ingestion."
+    },
+    {
+      name: "30. Partition Management – ADD/DROP/REORGANIZE",
+      description: "You can manage partitions online: add new partitions (`ADD PARTITION`), drop old partitions (`DROP PARTITION`), reorganise partitions (`REORGANIZE PARTITION`). Dropping a partition is extremely fast because it removes the data files. Use `REORGANIZE` to split or merge partitions.",
+      code: "ALTER TABLE sales ADD PARTITION (PARTITION p2025 VALUES LESS THAN (2026)); ALTER TABLE sales DROP PARTITION p2023;",
+      lineByLine: ["Add partition for new year", "Drop old partition"],
+      simpleMeaning: "Online partition management.",
+      output: "Partition altered.",
+      note: "REORGANIZE for splitting/merging.",
+      use_case: "Rolling window of data (keep last 12 months, drop older partitions), add future partition."
+    },
+    {
+      name: "31. EXPLAIN Format = JSON",
+      description: "`EXPLAIN FORMAT=JSON` returns the execution plan as structured JSON data, which is easier to parse programmatically. It includes detailed cost estimates and access information. Useful for automated performance analysis and comparing plans across different versions.",
+      code: "EXPLAIN FORMAT=JSON SELECT * FROM users WHERE email = 'john@example.com';",
+      lineByLine: ["JSON output"],
+      simpleMeaning: "Detailed plan in JSON.",
+      output: "Cost, table access, etc.",
+      note: "Use scripts to parse.",
+      use_case: "Automated performance analysis, comparing query plans across versions."
+    },
+    {
+      name: "32. Optimizer Hints",
+      description: "Optimizer hints give instructions to the query optimizer, such as which index to use (`INDEX`), join order (`JOIN_ORDER`), or whether to use a full table scan (`NO_INDEX`). Use them sparingly, as they may become outdated when data distribution changes.",
+      code: "SELECT /*+ INDEX(users idx_email) */ * FROM users WHERE email = 'john@example.com';",
+      lineByLine: ["/*+ INDEX(...) */ hint"],
+      simpleMeaning: "Force specific index.",
+      output: "Uses specified index.",
+      note: "Use sparingly; may become obsolete.",
+      use_case: "When the optimizer chooses a suboptimal plan due to skewed data distribution."
+    },
+    {
+      name: "33. Query Cache (Legacy) vs Buffer Pool",
+      description: "InnoDB buffer pool caches data and indexes in memory, speeding up reads. It is the primary mechanism for performance. The query cache (removed in MySQL 8.0) cached whole result sets – it often caused more overhead than benefit. Focus on tuning buffer pool size (70‑80% of RAM) and using covering indexes.",
+      code: "SHOW VARIABLES LIKE 'innodb_buffer_pool_size'; SET GLOBAL innodb_buffer_pool_size = 2*1024*1024*1024;",
+      lineByLine: ["Current size", "Set to 2GB"],
+      simpleMeaning: "Cache data in memory.",
+      output: "Buffer pool resized.",
+      note: "70–80% of RAM recommended.",
+      use_case: "Speed up read‑heavy workloads, e‑commerce product listing, high‑traffic dashboards."
+    },
+    {
+      name: "34. Slow Query Log Tuning",
+      description: "The slow query log captures queries that take longer than `long_query_time`. It is the first tool for identifying problematic queries. After enabling it, use `mysqldumpslow` or `pt‑query‑digest` to analyse the log. Also enable `log_queries_not_using_indexes` to catch queries that miss indexes.",
+      code: "SET GLOBAL slow_query_log = ON; SET GLOBAL long_query_time = 2; SET GLOBAL log_queries_not_using_indexes = ON;",
+      lineByLine: ["Enable slow log", "Threshold 2 seconds", "Also log no‑index queries"],
+      simpleMeaning: "Identify slow queries.",
+      output: "Slow queries recorded.",
+      note: "Use mysqldumpslow for analysis.",
+      use_case: "Production performance monitoring, finding queries that need optimisation."
+    },
+    {
+      name: "35. Performance Schema (Detailed Metrics)",
+      description: "Performance Schema provides low‑level metrics about server execution: statements, stages, waits, transactions, and table I/O. It is critical for deep performance analysis. Use `setup_consumers` and `setup_instruments` to enable specific instrumentation. The `sys` schema provides user‑friendly views on top of Performance Schema.",
+      code: "SELECT * FROM performance_schema.events_statements_summary_by_digest ORDER BY SUM_TIMER_WAIT DESC LIMIT 5;",
+      lineByLine: ["Top consumers by total wait time"],
+      simpleMeaning: "Find most expensive queries.",
+      output: "Normalized queries with total time.",
+      note: "Enabled by default in MySQL 8.",
+      use_case: "Deep performance analysis, historical trend of slow queries, identifying regressions."
+    },
+    {
+      name: "36. Multi‑Source Replication",
+      description: "Multi‑source replication allows a slave to replicate from multiple masters simultaneously. Each master has its own replication channel. It is useful for aggregating data from several shards or branches into a central reporting database. Available from MySQL 5.7.",
+      code: "CHANGE MASTER TO MASTER_HOST='master1' FOR CHANNEL 'channel1'; CHANGE MASTER TO MASTER_HOST='master2' FOR CHANNEL 'channel2'; START SLAVE;",
+      lineByLine: ["Separate channels for each master", "Start all"],
+      simpleMeaning: "Replicate from multiple masters.",
+      output: "Replication started.",
+      note: "MySQL 5.7+.",
+      use_case: "Central reporting database that combines data from multiple regional databases."
+    },
+    {
+      name: "37. Group Replication (InnoDB Cluster)",
+      description: "Group replication provides high availability and automatic failover. It is a multi‑master (or single‑primary) replication plugin that uses a consensus algorithm. InnoDB Cluster builds on it, offering a complete high‑availability solution with MySQL Router. Use for critical systems requiring 99.99% uptime.",
+      code: "INSTALL PLUGIN group_replication SONAME 'group_replication.so'; SET GLOBAL group_replication_bootstrap_group=ON; START GROUP_REPLICATION;",
+      lineByLine: ["Install plugin", "Bootstrap first node", "Start replication"],
+      simpleMeaning: "High availability with automatic failover.",
+      output: "Group formed.",
+      note: "Supports conflict detection.",
+      use_case: "Mission‑critical applications (banking, e‑commerce) requiring continuous availability."
+    },
+    {
+      name: "38. Clone Plugin (Fast Provisioning)",
+      description: "The clone plugin creates a physical snapshot (clone) of a remote MySQL instance. It is faster than mysqldump and restores data in a consistent state without stopping the source. Useful for quickly provisioning replicas or test environments. Available from MySQL 8.0.17.",
+      code: "INSTALL PLUGIN clone SONAME 'mysql_clone.so'; CLONE INSTANCE FROM 'user'@'host':port IDENTIFIED BY 'password';",
+      lineByLine: ["Install plugin", "Clone remote instance"],
+      simpleMeaning: "Rapid provisioning.",
+      output: "Clone completed.",
+      note: "MySQL 8.0.17+.",
+      use_case: "Quickly create replica or test environment from production without copying files."
+    },
+    {
+      name: "39. Backup – mysqldump with --where",
+      description: "The `--where` option in `mysqldump` allows you to dump only rows that satisfy a condition. This is useful for archiving old data or exporting subsets (e.g., last year's orders) without writing custom scripts.",
+      code: "mysqldump --where=\"created > '2024-01-01'\" mydb users > recent_users.sql",
+      lineByLine: ["--where filters rows", "Output SQL file"],
+      simpleMeaning: "Partial backup by condition.",
+      output: "SQL file with filtered rows.",
+      note: "Useful for archival.",
+      use_case: "Archive only last year's orders, export users from a specific region."
+    },
+    {
+      name: "40. Point‑in‑Time Recovery (PITR)",
+      description: "Point‑in‑Time Recovery uses full backup plus binary logs to restore data to any moment in time. First restore the full backup, then apply binary logs up to the desired time using `mysqlbinlog --start‑datetime` / `--stop‑datetime`. This is the primary method to recover from accidental data deletion or corruption.",
+      code: "mysqlbinlog --start-datetime=\"2024-12-31 23:55:00\" --stop-datetime=\"2025-01-01 00:05:00\" binlog.000001 | mysql",
+      lineByLine: ["--start‑datetime and --stop‑datetime", "Apply to restored backup"],
+      simpleMeaning: "Undo mistakes up to exact time.",
+      output: "Data replayed to specified time.",
+      note: "Require full backup + binary logs.",
+      use_case: "Undo accidental data deletion, recover from user error up to exact minute."
+    },
+    {
+      name: "41. Role‑Based Access Control",
+      description: "Roles are named collections of privileges. You can create a role, grant privileges to it, and then grant the role to multiple users. This simplifies privilege management, especially when many users share the same permissions. Available from MySQL 8.0.",
+      code: "CREATE ROLE 'app_read'; GRANT SELECT ON mydb.* TO 'app_read'; GRANT 'app_read' TO 'user1'@'localhost'; SET DEFAULT ROLE 'app_read' FOR 'user1'@'localhost';",
+      lineByLine: ["Create role", "Grant privileges to role", "Assign role to user", "Set as default"],
+      simpleMeaning: "Manage privileges via roles.",
+      output: "Role assigned.",
+      note: "MySQL 8.0+.",
+      use_case: "Simplify privilege management for many users (e.g., read‑only role for analysts)."
+    },
+    {
+      name: "42. Password Expiration & Lock",
+      description: "MySQL can enforce password expiration and account locking. Use `PASSWORD EXPIRE INTERVAL` to set a maximum lifetime for a password. Use `ACCOUNT LOCK` / `UNLOCK` to temporarily disable an account. These features improve security compliance.",
+      code: "CREATE USER 'temp'@'localhost' IDENTIFIED BY 'pass' PASSWORD EXPIRE INTERVAL 90 DAY; ALTER USER 'temp'@'localhost' ACCOUNT LOCK;",
+      lineByLine: ["Password expires after 90 days", "Lock account"],
+      simpleMeaning: "Enforce security policies.",
+      output: "User created/updated.",
+      note: "UNLOCK after verification.",
+      use_case: "Compliance with security policies (PCI‑DSS), temporary accounts."
+    },
+    {
+      name: "43. Audit Log Plugin",
+      description: "The audit log plugin (MySQL Enterprise) logs all database activity. For community edition, you can enable the `general_log` (but it logs everything and hurts performance). Use general_log only temporarily for debugging. For production, consider third‑party solutions or Enterprise edition.",
+      code: "SET GLOBAL general_log = ON; SET GLOBAL log_output = 'TABLE'; SELECT * FROM mysql.general_log;",
+      lineByLine: ["Enable general log", "Log to table", "View logs"],
+      simpleMeaning: "Capture all SQL activity.",
+      output: "Queries logged.",
+      note: "Performance heavy; use temporarily.",
+      use_case: "Investigate suspicious activity, debug application queries temporarily."
+    },
+    {
+      name: "44. Connection Pooling (Using ProxySQL)",
+      description: "ProxySQL is a high‑performance proxy that pools database connections, distributes read/write traffic, and provides query caching. It can dramatically reduce connection overhead in applications with many short‑lived connections. It also helps with load balancing and failover.",
+      code: "-- Install ProxySQL, configure MySQL servers, point application to ProxySQL",
+      lineByLine: ["ProxySQL manages connection pool", "Routes queries to backend"],
+      simpleMeaning: "Scale to thousands of connections.",
+      output: "Pooled connections.",
+      note: "ProxySQL recommended.",
+      use_case: "SaaS applications with many customers, reduce connection overhead, load balancing."
+    },
+    {
+      name: "45. MySQL Router (InnoDB Cluster)",
+      description: "MySQL Router is a lightweight middleware that routes client connections to the appropriate server in an InnoDB Cluster. It hides the cluster topology and automatically redirects traffic when the primary fails. It supports read/write splitting to offload reads to secondaries.",
+      code: "mysqlrouter --bootstrap root@localhost:3306 --user=mysqlrouter",
+      lineByLine: ["Bootstrap router from cluster", "Creates configuration"],
+      simpleMeaning: "Application‑side routing for high availability.",
+      output: "Router configured.",
+      note: "Integrates with group replication.",
+      use_case: "Seamless failover for applications that do not support connection retry logic."
+    },
+    {
+      name: "46. InnoDB Data Compression",
+      description: "InnoDB table compression reduces storage footprint by compressing data pages. It can lower I/O but increases CPU usage. Use `ROW_FORMAT=COMPRESSED` and specify `KEY_BLOCK_SIZE` (e.g., 8 for 8KB pages). Compression works well for text‑heavy tables with large fields.",
+      code: "CREATE TABLE comp (id INT, text LONGTEXT) ROW_FORMAT=COMPRESSED KEY_BLOCK_SIZE=8;",
+      lineByLine: ["ROW_FORMAT=COMPRESSED", "KEY_BLOCK_SIZE sets page size"],
+      simpleMeaning: "Reduce storage footprint.",
+      output: "Table compressed.",
+      note: "CPU overhead for compression.",
+      use_case: "Large historical tables with old data, reducing storage costs in cloud environments."
+    },
+    {
+      name: "47. Partitioning – Subpartitioning",
+      description: "Subpartitioning (composite partitioning) partitions a partition further. For example, you can partition by `RANGE` on year and then subpartition by `HASH` on month. This allows very fine‑grained data management but increases complexity. Test performance before using.",
+      code: "CREATE TABLE logs (ts DATETIME) PARTITION BY RANGE (YEAR(ts)) SUBPARTITION BY HASH(MONTH(ts)) SUBPARTITIONS 12;",
+      lineByLine: ["RANGE main partition by year", "Each subpartition by month hash"],
+      simpleMeaning: "Two‑level partitioning.",
+      output: "Table with subpartitions.",
+      note: "Complex; test performance.",
+      use_case: "Very large tables where you need to prune by both year and month efficiently."
+    },
+    {
+      name: "48. InnoDB Full‑Text Search",
+      description: "InnoDB supports full‑text indexes, enabling natural language search on text columns. Use `MATCH(column) AGAINST('words')` to get relevance‑based results. It is much more powerful than `LIKE` with wildcards. Create a `FULLTEXT` index on the column(s).",
+      code: "CREATE TABLE articles (body TEXT, FULLTEXT(body)); SELECT * FROM articles WHERE MATCH(body) AGAINST('database' IN NATURAL LANGUAGE MODE);",
+      lineByLine: ["Full‑text index", "MATCH...AGAINST for search"],
+      simpleMeaning: "Relevance‑based search.",
+      output: "Sorted by relevance.",
+      note: "Better than LIKE %word%.",
+      use_case: "Blog search, product description search, document management system."
+    },
+    {
+      name: "49. Performance Schema Wait Events",
+      description: "Wait events represent the time a thread spends waiting for a resource (disk I/O, lock, network, etc.). The `events_waits_summary_global_by_event_name` table shows aggregated data. Use it to identify I/O bottlenecks, lock contention, or network latency.",
+      code: "SELECT EVENT_NAME, COUNT_STAR, SUM_TIMER_WAIT FROM performance_schema.events_waits_summary_global_by_event_name ORDER BY SUM_TIMER_WAIT DESC LIMIT 5;",
+      lineByLine: ["Event name", "Number of waits", "Total wait time"],
+      simpleMeaning: "Find top wait events.",
+      output: "Top wait events (io/file, lock).",
+      note: "Enable wait instrumentation.",
+      use_case: "Identify disk I/O bottlenecks, lock contention, network latency issues."
+    },
+    {
+      name: "50. Using sys Schema for Monitoring",
+      description: "The `sys` schema provides user‑friendly views on Performance Schema data. For example, `sys.statement_analysis` shows the most expensive queries, `sys.schema_table_statistics` shows table I/O, and `sys.session` shows current connections. It is included by default in MySQL 5.7+.",
+      code: "SELECT * FROM sys.statement_analysis ORDER BY total_latency DESC LIMIT 5; SELECT * FROM sys.schema_table_statistics ORDER BY rows_fetched DESC LIMIT 5;",
+      lineByLine: ["statement_analysis: top queries", "schema_table_statistics: active tables"],
+      simpleMeaning: "Simplified performance views.",
+      output: "Normalized statements with latency.",
+      note: "sys schema provided by default.",
+      use_case: "Daily performance monitoring, finding slow queries quickly, identifying hot tables."
+    },
+    {
+      name: "51. Change Data Capture with Binlog",
+      description: "Binary logs can be used for change data capture (CDC). Tools like Debezium or Maxwell read the binlog and send row changes to Kafka, RabbitMQ, etc. This enables real‑time data pipelines without impacting the source database heavily.",
+      code: "SHOW MASTER STATUS; SHOW BINLOG EVENTS IN 'mysql-bin.000001' LIMIT 10;",
+      lineByLine: ["Show current binlog position", "View events"],
+      simpleMeaning: "Capture data changes in real time.",
+      output: "Binlog events.",
+      note: "Require binlog_format = ROW.",
+      use_case: "Real‑time replication to data lake, cache invalidation, search index updates."
+    },
+    {
+      name: "52. Statement Digest & Query Normalization",
+      description: "Performance Schema normalizes similar queries (e.g., same structure with different literals) into a digest. The `events_statements_summary_by_digest` table groups them together, making it easy to identify hotspots regardless of parameter values. This is essential for query tuning.",
+      code: "SELECT DIGEST_TEXT, COUNT_STAR, SUM_TIMER_WAIT FROM performance_schema.events_statements_summary_by_digest ORDER BY SUM_TIMER_WAIT DESC LIMIT 5;",
+      lineByLine: ["Normalized query text", "Execution count", "Total time"],
+      simpleMeaning: "Find most time‑consuming query patterns.",
+      output: "Digest statistics.",
+      note: "Enabled by default.",
+      use_case: "Identify which query pattern is causing load, ignoring parameter differences."
+    },
+    {
+      name: "53. Data Masking / De‑identification",
+      description: "MySQL Enterprise provides data masking functions. For community edition, you can create custom functions to anonymise data (e.g., partial email, last‑4 digits). Use views or stored procedures to present masked data to non‑privileged users while keeping original data intact.",
+      code: "CREATE FUNCTION mask_email(email VARCHAR(100)) RETURNS VARCHAR(100) DETERMINISTIC RETURN CONCAT(LEFT(email, 2), '****', RIGHT(email, 4));",
+      lineByLine: ["Custom masking function", "Returns partially hidden email"],
+      simpleMeaning: "Hide sensitive information.",
+      output: "Masked data.",
+      note: "Not for encryption, only for presentation.",
+      use_case: "GDPR compliance: show only partial email to support staff."
+    },
+    {
+      name: "54. Encryption at Rest (TDE)",
+      description: "Transparent Data Encryption (TDE) encrypts database files on disk. MySQL Enterprise supports tablespace encryption. Data is encrypted before writing and decrypted when read, without application changes. Use the `keyring` plugin to manage encryption keys.",
+      code: "INSTALL PLUGIN keyring_file SONAME 'keyring_file.so'; ALTER TABLE users ENCRYPTION='Y';",
+      lineByLine: ["Install keyring plugin", "Encrypt table"],
+      simpleMeaning: "Encrypt data at rest.",
+      output: "Table encrypted.",
+      note: "Enterprise edition.",
+      use_case: "Compliance with data protection regulations (e.g., GDPR, HIPAA)."
+    },
+    {
+      name: "55. Optimizer Statistics (Histograms)",
+      description: "MySQL 8.0 introduced histograms, which store data distribution information for columns. They help the optimizer choose better plans, especially for columns with skewed data. Use `ANALYZE TABLE ... UPDATE HISTOGRAM` to create histograms.",
+      code: "ANALYZE TABLE users UPDATE HISTOGRAM ON age WITH 100 BUCKETS;",
+      lineByLine: ["Create histogram on age column", "100 buckets"],
+      simpleMeaning: "Improved cardinality estimates.",
+      output: "Histogram created.",
+      note: "Use for columns with non‑uniform distribution.",
+      use_case: "Queries that filter on columns with skewed data (e.g., status, country)."
+    },
+    {
+      name: "56. Resource Groups",
+      description: "Resource groups allow you to assign threads (connections) to specific groups with different CPU priorities. This is useful for isolating heavy reporting queries from OLTP traffic. You can set the thread priority and which CPUs the group can use.",
+      code: "CREATE RESOURCE GROUP reporting TYPE = USER VCPU = 2-3 THREAD_PRIORITY = 10; SET RESOURCE GROUP reporting FOR 'connection_id';",
+      lineByLine: ["Create resource group", "Assign connection to group"],
+      simpleMeaning: "Isolate workloads.",
+      output: "Resource group assigned.",
+      note: "Linux only, requires affinity support.",
+      use_case: "Dedicate few CPU cores for reporting, prevent them from starving OLTP queries."
+    },
+    {
+      name: "57. Invisible Columns",
+      description: "Invisible columns are hidden from `SELECT *` and `INSERT` without explicit column list. They are useful for adding metadata columns without breaking existing applications. You can make a column visible again via `ALTER TABLE ... MODIFY ... VISIBLE`.",
+      code: "ALTER TABLE users ADD COLUMN updated_at TIMESTAMP INVISIBLE;",
+      lineByLine: ["INVISIBLE column"],
+      simpleMeaning: "Hidden from `*` queries.",
+      output: "Table altered.",
+      note: "Useful for versioning.",
+      use_case: "Add `last_modified` column without changing application SELECT * statements."
+    },
+    {
+      name: "58. Secondary Engine (HeatWave)",
+      description: "MySQL HeatWave is an in‑memory query accelerator for MySQL Database Service on OCI. It transparently offloads analytic queries to a secondary engine, dramatically speeding up complex scans and joins. It does not require code changes.",
+      code: "ALTER TABLE orders SECONDARY_ENGINE = RAPID; SELECT /*+ SET_VAR(use_secondary_engine=FORCED) */ COUNT(*) FROM orders WHERE region = 'EU';",
+      lineByLine: ["Set secondary engine", "Hint to use secondary engine"],
+      simpleMeaning: "Accelerate analytics.",
+      output: "Query processed by HeatWave.",
+      note: "OCI only.",
+      use_case: "Real‑time analytics on transactional data without separate ETL."
+    },
+    {
+      name: "59. Multi‑Factor Authentication (MFA)",
+      description: "MySQL Enterprise supports multi‑factor authentication, allowing users to authenticate using two or more methods (e.g., password + FIDO device). This enhances security for privileged accounts.",
+      code: "CREATE USER 'secure'@'localhost' IDENTIFIED WITH authentication_fido; ALTER USER 'secure'@'localhost' ADD '2factor' IDENTIFIED WITH mysql_native_password BY 'pass';",
+      lineByLine: ["Create user with FIDO first factor", "Add password second factor"],
+      simpleMeaning: "Two‑factor authentication.",
+      output: "User created.",
+      note: "Enterprise edition.",
+      use_case: "Protect admin accounts with hardware security keys."
+    },
+    {
+      name: "60. JavaScript Stored Programs (MySQL 8.0.34+)",
+      description: "MySQL 8.0.34 introduced support for JavaScript stored programs (experimental). You can write stored procedures and functions in JavaScript, which run inside the MySQL server using the GraalVM engine. This allows using JavaScript libraries and logic directly in the database.",
+      code: "CREATE FUNCTION js_hello() RETURNS VARCHAR(10) LANGUAGE JAVASCRIPT AS $$ return 'Hello'; $$;",
+      lineByLine: ["JS function", "Return string"],
+      simpleMeaning: "Write stored functions in JavaScript.",
+      output: "Function created.",
+      note: "Experimental, require GraalVM.",
+      use_case: "Reuse existing JavaScript business logic inside the database."
+    }
+  ]
   }
 };
 

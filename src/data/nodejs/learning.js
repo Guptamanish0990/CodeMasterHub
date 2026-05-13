@@ -1449,6 +1449,1323 @@ console.log('Error handling configured');`,
         simpleMeaning: "Error handling catches problems and sends helpful responses without crashing the server",
         output: "GET /api/users/invalid → { error: 'Invalid user ID', status: 'fail' }\\nGET /api/users/999 → { error: 'Something went wrong', status: 'error' }",
         note: "Always handle promise rejections to prevent server crashes"
+      },
+      {
+        name: "4. Streams - Readable and Writable",
+        description: "Streams are efficient for handling large amounts of data piece by piece. Types: Readable (read data), Writable (write data), Duplex (both), Transform (modify data). Use for file processing, network requests, and big data transformation.",
+        code: `const fs = require('fs');
+const { Readable, Writable, Transform, pipeline } = require('stream');
+
+// ========== READABLE STREAM ==========
+// Create readable stream from file
+const readableStream = fs.createReadStream('largefile.txt', {
+    encoding: 'utf8',
+    highWaterMark: 64 * 1024 // 64KB chunks
+});
+
+// Event handlers
+readableStream.on('data', (chunk) => {
+    console.log(\`Received chunk of size: \${chunk.length} bytes\`);
+});
+
+readableStream.on('end', () => {
+    console.log('No more data');
+});
+
+readableStream.on('error', (err) => {
+    console.error('Stream error:', err);
+});
+
+// ========== WRITABLE STREAM ==========
+const writableStream = fs.createWriteStream('output.txt');
+
+writableStream.write('First line\\n');
+writableStream.write('Second line\\n');
+writableStream.end('Last line');
+
+writableStream.on('finish', () => {
+    console.log('Write completed');
+});
+
+// ========== PIPE (Connect streams) ==========
+// Copy file using pipes
+const readStream = fs.createReadStream('source.txt');
+const writeStream = fs.createWriteStream('destination.txt');
+
+readStream.pipe(writeStream);
+
+readStream.on('end', () => {
+    console.log('File copied via pipe');
+});
+
+// ========== TRANSFORM STREAM (Modify data) ==========
+const upperCaseTransform = new Transform({
+    transform(chunk, encoding, callback) {
+        const upperChunk = chunk.toString().toUpperCase();
+        callback(null, upperChunk);
+    }
+});
+
+fs.createReadStream('input.txt')
+    .pipe(upperCaseTransform)
+    .pipe(fs.createWriteStream('output-upper.txt'));
+
+// ========== CUSTOM READABLE STREAM ==========
+class CounterStream extends Readable {
+    constructor(max, options) {
+        super(options);
+        this.current = 1;
+        this.max = max;
+    }
+    
+    _read() {
+        if (this.current <= this.max) {
+            this.push(\`Number: \${this.current}\\n\`);
+            this.current++;
+        } else {
+            this.push(null); // End of stream
+        }
+    }
+}
+
+const counter = new CounterStream(5);
+counter.pipe(process.stdout);
+
+// ========== CUSTOM WRITABLE STREAM ==========
+class LoggerStream extends Writable {
+    _write(chunk, encoding, callback) {
+        console.log(\`[LOG] \${chunk.toString().trim()}\`);
+        callback();
+    }
+}
+
+const logger = new LoggerStream();
+logger.write('First message');
+logger.write('Second message');
+logger.end();
+
+// ========== PIPELINE (Better error handling) ==========
+const { pipeline } = require('stream');
+const zlib = require('zlib');
+
+pipeline(
+    fs.createReadStream('input.txt'),
+    zlib.createGzip(),
+    fs.createWriteStream('input.txt.gz'),
+    (err) => {
+        if (err) {
+            console.error('Pipeline failed:', err);
+        } else {
+            console.log('Pipeline succeeded');
+        }
+    }
+);
+
+// ========== STREAM BACKPRESSURE ==========
+// Slow consumer example
+const slowWritable = new Writable({
+    write(chunk, encoding, callback) {
+        setTimeout(() => {
+            console.log('Processed:', chunk.toString());
+            callback();
+        }, 100);
+    }
+});
+
+const fastReadable = fs.createReadStream('largefile.txt');
+fastReadable.pipe(slowWritable); // Automatically handles backpressure
+
+// ========== DUPLEX AND TRANSFORM ==========
+const { Duplex } = require('stream');
+
+class EchoDuplex extends Duplex {
+    _read(size) {
+        // No-op (push data from external source)
+    }
+    
+    _write(chunk, encoding, callback) {
+        console.log('Received:', chunk.toString());
+        callback();
+    }
+}
+
+const echo = new EchoDuplex();
+process.stdin.pipe(echo).pipe(process.stdout);
+
+console.log('Stream examples completed');`,
+        lineByLine: [
+          "Line 2: const { Readable, Writable, Transform, pipeline } = require('stream') - Import stream classes",
+          "Line 5-7: fs.createReadStream - Creates readable file stream",
+          "Line 8: highWaterMark - Controls chunk size (64KB)",
+          "Line 10-13: data event - Fired for each chunk of data",
+          "Line 15-17: end event - Stream finished reading",
+          "Line 20-23: error event - Handle stream errors",
+          "Line 26-32: Writable stream - Write data to file",
+          "Line 28: write() method - Write chunk to stream",
+          "Line 29: end() method - Signal end of stream",
+          "Line 31-33: finish event - Called after end()",
+          "Line 36-43: pipe() method - Connects readable to writable",
+          "Line 47-56: Transform stream - Modifies data passing through",
+          "Line 58-61: pipe chain - Read → transform → write",
+          "Line 64-77: Custom Readable - Implement _read() method",
+          "Line 66: this.push(null) - Signals end of stream",
+          "Line 82-89: Custom Writable - Implement _write() method",
+          "Line 93-105: pipeline() - Better error handling than pipe()",
+          "Line 96: zlib.createGzip() - Compress stream, demonstrates transform",
+          "Line 108-118: Backpressure - Slow consumer automatically pauses source",
+          "Line 121-131: Duplex stream - Both readable and writable"
+        ],
+        simpleMeaning: "Streams process data piece by piece, saving memory for large files",
+        output: "Received chunk of size: 65536 bytes\\nFile copied via pipe\\nPipeline succeeded",
+        note: "Always handle 'error' events on streams to prevent crashes"
+      },
+      {
+        name: "5. Buffers and Binary Data",
+        description: "Buffer class handles binary data directly in memory. Used for file I/O, network protocols, cryptography, and image processing. Buffers have fixed size and can be created from strings, arrays, or allocated with specified length.",
+        code: `// ========== CREATING BUFFERS ==========
+// From string
+const bufFromString = Buffer.from('Hello Node.js', 'utf8');
+console.log('From string:', bufFromString.toString());
+
+// From array of bytes
+const bufFromArray = Buffer.from([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
+console.log('From array:', bufFromArray.toString());
+
+// Allocate uninitialized (may contain old data)
+const bufUnsafe = Buffer.allocUnsafe(10);
+console.log('Unsafe buffer length:', bufUnsafe.length);
+
+// Allocate zero-filled
+const bufSafe = Buffer.alloc(10);
+console.log('Allocated buffer:', bufSafe);
+
+// ========== READING AND WRITING ==========
+const buffer = Buffer.alloc(5);
+buffer.write('Hello', 0, 'utf8');
+console.log('Written buffer:', buffer.toString());
+
+// Read specific bytes
+console.log('First byte:', buffer[0]);
+console.log('Second byte:', buffer[1]);
+
+// Write number as integer
+const numBuffer = Buffer.alloc(4);
+numBuffer.writeUInt32BE(123456789, 0); // Big-endian
+console.log('Number buffer:', numBuffer.readUInt32BE(0));
+
+// ========== BUFFER METHODS ==========
+const b1 = Buffer.from('Hello');
+const b2 = Buffer.from('World');
+
+// Concatenate
+const combined = Buffer.concat([b1, b2]);
+console.log('Concatenated:', combined.toString());
+
+// Compare
+console.log('Compare:', Buffer.compare(b1, b2));
+
+// Copy
+const target = Buffer.alloc(b1.length);
+b1.copy(target);
+console.log('Copied:', target.toString());
+
+// Slice (shallow reference, not copy)
+const slice = b1.slice(0, 2);
+slice[0] = 65; // Modifies original buffer
+console.log('Original after slice modification:', b1.toString());
+
+// ========== ENCODINGS ==========
+const utf8Str = 'Café';
+const bufUtf8 = Buffer.from(utf8Str, 'utf8');
+console.log('UTF-8 bytes:', bufUtf8); // 'Café' in UTF-8
+
+const base64Str = bufUtf8.toString('base64');
+console.log('Base64:', base64Str);
+
+const backToUtf8 = Buffer.from(base64Str, 'base64').toString('utf8');
+console.log('Decoded base64:', backToUtf8);
+
+// Hex encoding
+const hexStr = Buffer.from('Node.js', 'utf8').toString('hex');
+console.log('Hex:', hexStr);
+console.log('From hex:', Buffer.from(hexStr, 'hex').toString());
+
+// ========== JSON AND BUFFERS ==========
+const buf = Buffer.from('JSON serialization');
+const json = buf.toJSON();
+console.log('JSON representation:', json);
+
+// ========== PERFORMANCE COMPARISON ==========
+console.time('String concat');
+let str = '';
+for (let i = 0; i < 100000; i++) {
+    str += 'a';
+}
+console.timeEnd('String concat');
+
+console.time('Buffer concat');
+const buffers = [];
+for (let i = 0; i < 100000; i++) {
+    buffers.push(Buffer.from('a'));
+}
+const resultBuffer = Buffer.concat(buffers);
+console.timeEnd('Buffer concat');
+
+// ========== BINARY FILE PROCESSING ==========
+const fs = require('fs');
+// Read binary file into buffer
+const imageBuffer = fs.readFileSync('image.jpg');
+console.log('Image size:', imageBuffer.length, 'bytes');
+
+// Write buffer to file
+fs.writeFileSync('copy.jpg', imageBuffer);
+
+// ========== INSPECT BUFFER ==========
+const sample = Buffer.from('Test Buffer');
+console.log('Buffer length:', sample.length);
+console.log('Buffer hex:', sample.toString('hex'));
+console.log('Buffer JSON:', sample.toJSON());`,
+        lineByLine: [
+          "Line 2-4: Buffer.from(string, encoding) - Creates buffer from string",
+          "Line 3: toString() - Converts buffer back to string",
+          "Line 6: Buffer.from(array) - Creates buffer from byte array",
+          "Line 9: Buffer.allocUnsafe(size) - Fast but may contain old data",
+          "Line 13: Buffer.alloc(size) - Zero-filled, safer",
+          "Line 17-18: buffer.write() - Writes string to buffer",
+          "Line 21-22: buffer[index] - Access individual bytes",
+          "Line 25-27: writeUInt32BE() - Writes 32-bit integer (big-endian)",
+          "Line 28: readUInt32BE() - Reads 32-bit integer",
+          "Line 32-34: Buffer.concat() - Combines multiple buffers",
+          "Line 37: Buffer.compare() - Compares two buffers",
+          "Line 40-41: copy() - Copies data to another buffer",
+          "Line 44-46: slice() - Creates shallow reference (affects original)",
+          "Line 50-53: Buffer encoding - UTF-8 to Base64",
+          "Line 56-57: Base64 to UTF-8 - Common for data serialization",
+          "Line 60-61: Hex encoding - Human-readable representation",
+          "Line 64-66: toJSON() - Convert to JSON-friendly format",
+          "Line 69-73: Performance - Buffer concatenation faster than string +=",
+          "Line 78-79: fs.readFileSync - Returns buffer for binary files",
+          "Line 82-87: Buffer inspection methods"
+        ],
+        simpleMeaning: "Buffers handle raw binary data efficiently, like images, network packets, or file chunks",
+        output: "From string: Hello Node.js\\nFrom array: Hello\\nAllocated buffer: <Buffer 00 00 00 00 00>\\nWritten buffer: Hello\\nNumber buffer: 123456789",
+        note: "Use Buffer.alloc() instead of new Buffer() (deprecated)"
+      },
+      {
+        name: "6. Child Processes (spawn, exec, fork)",
+        description: "Child processes allow running system commands, other Node.js scripts, or any executable. spawn() for streaming output, exec() for buffered output, execFile() for executables, fork() for Node.js modules. Useful for parallel processing, system integration, and task delegation.",
+        code: `const { spawn, exec, execFile, fork } = require('child_process');
+const path = require('path');
+
+// ========== SPAWN (Streaming output) ==========
+// Run 'ls -la' command
+const ls = spawn('ls', ['-la']);
+
+ls.stdout.on('data', (data) => {
+    console.log(\`stdout: \${data}\`);
+});
+
+ls.stderr.on('data', (data) => {
+    console.error(\`stderr: \${data}\`);
+});
+
+ls.on('close', (code) => {
+    console.log(\`Child process exited with code \${code}\`);
+});
+
+// Real-time output processing
+const find = spawn('find', ['.', '-name', '*.js']);
+let fileCount = 0;
+find.stdout.on('data', (data) => {
+    fileCount += data.toString().split('\\n').length - 1;
+});
+find.on('close', () => {
+    console.log(\`Found \${fileCount} JS files\`);
+});
+
+// ========== EXEC (Buffered output) ==========
+exec('git log --oneline -5', (error, stdout, stderr) => {
+    if (error) {
+        console.error(\`exec error: \${error}\`);
+        return;
+    }
+    console.log(\`Git log: \${stdout}\`);
+});
+
+// Large output warning (exec has buffer limit)
+exec('cat largefile.txt', { maxBuffer: 1024 * 1024 * 10 }, (err, stdout) => {
+    if (err) console.error(err);
+    else console.log('File read');
+});
+
+// ========== EXECFILE (For executables) ==========
+execFile('node', ['--version'], (err, stdout) => {
+    if (err) throw err;
+    console.log('Node version:', stdout);
+});
+
+// ========== FORK (Node.js child process) ==========
+// parent.js
+const child = fork(path.join(__dirname, 'child.js'));
+
+child.on('message', (msg) => {
+    console.log('Parent received:', msg);
+});
+
+child.send({ hello: 'from parent' });
+
+// child.js
+process.on('message', (msg) => {
+    console.log('Child received:', msg);
+    process.send({ reply: 'from child' });
+});
+
+// ========== SPAWN WITH OPTIONS ==========
+const python = spawn('python', ['script.py'], {
+    cwd: '/path/to/workdir',
+    env: { ...process.env, CUSTOM_VAR: 'value' },
+    shell: true,
+    timeout: 5000
+});
+
+// ========== PIPE BETWEEN CHILDREN ==========
+const cat = spawn('cat', ['data.txt']);
+const grep = spawn('grep', ['pattern']);
+
+cat.stdout.pipe(grep.stdin);
+grep.stdout.on('data', (data) => {
+    console.log('Matched:', data.toString());
+});
+
+// ========== DETACHED PROCESS ==========
+const detached = spawn('node', ['longtask.js'], {
+    detached: true,
+    stdio: 'ignore'
+});
+detached.unref(); // Allow parent to exit independently
+
+// ========== HANDLE SIGNALS ==========
+const sleeper = spawn('sleep', ['30']);
+sleeper.on('close', (code, signal) => {
+    console.log(\`Process ended with signal \${signal}\`);
+});
+setTimeout(() => {
+    sleeper.kill('SIGTERM');
+}, 1000);
+
+// ========== PROMISIFY CHILD PROCESS (util.promisify) ==========
+const util = require('util');
+const execPromise = util.promisify(exec);
+
+async function runCommand() {
+    try {
+        const { stdout } = await execPromise('echo "Hello"');
+        console.log('Async exec:', stdout);
+    } catch (err) {
+        console.error(err);
+    }
+}
+runCommand();
+
+console.log('Child process examples configured');`,
+        lineByLine: [
+          "Line 1: const { spawn, exec, execFile, fork } = require('child_process') - Import methods",
+          "Line 5-6: spawn('ls', ['-la']) - Runs command with arguments array",
+          "Line 8-10: stdout event - Streams output as it arrives (non‑buffered)",
+          "Line 12-14: stderr event - Handles error output",
+          "Line 16-18: close event - Process exit with code (0 = success)",
+          "Line 21-26: Real-time counting - Process output line by line",
+          "Line 29-35: exec() - Buffers entire output, better for small commands",
+          "Line 38-42: maxBuffer option - Prevents truncation for large output",
+          "Line 45-48: execFile() - Executes file directly (no shell), safer",
+          "Line 51-55: fork() - Specialised for Node.js modules",
+          "Line 53-54: message event - Inter‑process communication",
+          "Line 56: child.send() - Sends data to child process",
+          "Line 59-63: child.js - Receives messages with process.on('message')",
+          "Line 66-72: spawn options - cwd, env, shell, timeout",
+          "Line 75-80: Pipe between children - cat | grep",
+          "Line 83-88: Detached process - Runs independently after parent exits",
+          "Line 85: detached: true - Process not tied to parent",
+          "Line 86: stdio: 'ignore' - Discards parent's stdio",
+          "Line 91-96: kill() - Sends signal to process",
+          "Line 99-108: promisify exec - Async/await style"
+        ],
+        simpleMeaning: "Child processes let Node.js run other programs and scripts simultaneously",
+        output: "stdout: file1.txt\\nfile2.js\\nChild process exited with code 0\\nGit log: abc123 Fix bug\\nNode version: v18.15.0",
+        note: "Use spawn() for long-running processes with large output to avoid memory issues"
+      },
+      {
+        name: "7. Cluster Module for Load Balancing",
+        description: "Cluster module enables creating child processes (workers) that share server ports. Used for utilising multi-core systems, improving performance, and increasing availability. Master process manages workers, which handle incoming connections.",
+        code: `const cluster = require('cluster');
+const http = require('http');
+const os = require('os');
+const process = require('process');
+
+// ========== BASIC CLUSTER SETUP ==========
+const numCPUs = os.cpus().length;
+
+if (cluster.isMaster) {
+    console.log(\`Master \${process.pid} is running\`);
+    
+    // Fork workers
+    for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
+    }
+    
+    // Handle worker exit and restart
+    cluster.on('exit', (worker, code, signal) => {
+        console.log(\`Worker \${worker.process.pid} died. Restarting...\`);
+        cluster.fork();
+    });
+    
+    // Log worker online
+    cluster.on('online', (worker) => {
+        console.log(\`Worker \${worker.process.pid} is online\`);
+    });
+    
+    // Message from worker
+    cluster.on('message', (worker, message) => {
+        console.log(\`Master received: \${JSON.stringify(message)}\`);
+    });
+    
+} else {
+    // Worker processes share HTTP server
+    const server = http.createServer((req, res) => {
+        res.writeHead(200);
+        res.end(\`Hello from worker \${process.pid}\\n\`);
+        
+        // Send message to master
+        process.send({ worker: process.pid, url: req.url });
+    });
+    
+    server.listen(3000, () => {
+        console.log(\`Worker \${process.pid} started\`);
+    });
+}
+
+// ========== ADVANCED CLUSTER WITH HEALTH CHECKS ==========
+if (cluster.isMaster) {
+    const workers = [];
+    
+    // Fork workers with custom settings
+    for (let i = 0; i < numCPUs; i++) {
+        const worker = cluster.fork({
+            WORKER_ID: i,
+            MAX_CONNECTIONS: 1000
+        });
+        workers.push(worker);
+    }
+    
+    // Health check every 10 seconds
+    setInterval(() => {
+        workers.forEach(worker => {
+            worker.send({ type: 'health_check' });
+        });
+    }, 10000);
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+        console.log('Master received SIGTERM, shutting down workers');
+        for (const id in cluster.workers) {
+            cluster.workers[id].kill();
+        }
+        process.exit(0);
+    });
+    
+} else {
+    // Worker with health check response
+    process.on('message', (msg) => {
+        if (msg.type === 'health_check') {
+            process.send({ workerId: process.env.WORKER_ID, status: 'ok' });
+        }
+    });
+    
+    const server = http.createServer((req, res) => {
+        res.end(\`Worker \${process.pid}\`);
+    });
+    
+    server.listen(3000);
+}
+
+// ========== ZERO-DOWNTIME RESTART ==========
+if (cluster.isMaster) {
+    // Restart workers one by one
+    const restartWorker = (worker) => {
+        console.log(\`Restarting worker \${worker.process.pid}\`);
+        worker.disconnect(); // Stop accepting new connections
+        worker.on('disconnect', () => {
+            worker.kill();
+            const newWorker = cluster.fork();
+            newWorker.on('listening', () => {
+                console.log(\`New worker \${newWorker.process.pid} started\`);
+            });
+        });
+    };
+    
+    // Example rolling restart on schedule
+    setInterval(() => {
+        const workers = Object.values(cluster.workers);
+        workers.forEach((worker, index) => {
+            setTimeout(() => restartWorker(worker), index * 5000);
+        });
+    }, 60000);
+}
+
+// ========== STICKY SESSIONS (using external balancer) ==========
+// For sticky sessions, use a reverse proxy like nginx or use sticky-session package
+
+// ========== PM2 ALTERNATIVE ==========
+// PM2 is a production process manager that uses clustering behind the scenes:
+// pm2 start app.js -i max
+
+console.log('Cluster module ready');`,
+        lineByLine: [
+          "Line 1-4: Import cluster, http, os, process",
+          "Line 8: os.cpus().length - Number of CPU cores",
+          "Line 10: cluster.isMaster - True for master process",
+          "Line 14-16: cluster.fork() - Creates worker process",
+          "Line 19-21: exit event - Restart failed workers",
+          "Line 24-26: online event - Worker started successfully",
+          "Line 29-32: message event - IPC from workers",
+          "Line 37-46: Worker code - Creates HTTP server",
+          "Line 40: process.pid - Unique worker ID",
+          "Line 43: process.send() - Send message to master",
+          "Line 52-55: Worker with custom environment variables",
+          "Line 58-62: Health check - Send message to workers",
+          "Line 65-68: Graceful shutdown - Kill all workers",
+          "Line 73-77: Worker message handler - Respond to health check",
+          "Line 87-100: Rolling restart - Zero downtime",
+          "Line 89: worker.disconnect() - Stop new connections",
+          "Line 91-96: Create new worker after old one exits",
+          "Line 101-106: Scheduled rolling restart",
+          "Line 113-115: PM2 alternative - Production grade"
+        ],
+        simpleMeaning: "Cluster mode uses all CPU cores to handle more traffic, like having multiple workers on same port",
+        output: "Master 12345 is running\\nWorker 12346 started\\nWorker 12347 started\\nHello from worker 12346",
+        note: "Cluster does not automatically share state (e.g., sessions); use Redis or database"
+      },
+      {
+        name: "8. Crypto Module (Encryption, Hashing, HMAC)",
+        description: "Crypto module provides cryptographic functionality: hashing (SHA, MD5), HMAC, encryption (AES, DES), random bytes, and key generation. Used for password hashing, data integrity, secure communication, and random token generation.",
+        code: `const crypto = require('crypto');
+
+// ========== HASHING (One-way) ==========
+// SHA-256 hash
+const hash = crypto.createHash('sha256');
+hash.update('Hello, Node.js!');
+const hexDigest = hash.digest('hex');
+console.log('SHA-256:', hexDigest);
+
+// Multiple updates
+const hash2 = crypto.createHash('sha512');
+hash2.update('First chunk');
+hash2.update('Second chunk');
+console.log('Hash with chunks:', hash2.digest('base64'));
+
+// ========== HMAC (Hash-based Message Authentication Code) ==========
+const secret = 'my-secret-key';
+const hmac = crypto.createHmac('sha256', secret);
+hmac.update('Important data');
+const hmacDigest = hmac.digest('hex');
+console.log('HMAC:', hmacDigest);
+
+// ========== RANDOM BYTES ==========
+// Synchronous
+const randomBytes = crypto.randomBytes(16); // 16 bytes = 128 bits
+console.log('Random bytes (hex):', randomBytes.toString('hex'));
+
+// Asynchronous
+crypto.randomBytes(32, (err, buf) => {
+    if (err) throw err;
+    console.log('Async random:', buf.toString('base64'));
+});
+
+// Random int (secure)
+crypto.randomInt(1, 100, (err, n) => {
+    if (err) throw err;
+    console.log('Random int:', n);
+});
+
+// ========== SYMMETRIC ENCRYPTION (AES) ==========
+const algorithm = 'aes-256-cbc';
+const key = crypto.randomBytes(32); // 256 bits
+const iv = crypto.randomBytes(16); // Initialization vector
+
+// Encrypt
+const cipher = crypto.createCipheriv(algorithm, key, iv);
+let encrypted = cipher.update('Sensitive data', 'utf8', 'hex');
+encrypted += cipher.final('hex');
+console.log('Encrypted:', encrypted);
+
+// Decrypt
+const decipher = crypto.createDecipheriv(algorithm, key, iv);
+let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+decrypted += decipher.final('utf8');
+console.log('Decrypted:', decrypted);
+
+// ========== ASYMMETRIC ENCRYPTION (RSA) ==========
+// Generate key pair
+const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
+});
+
+console.log('Public key (first 50 chars):', publicKey.substring(0, 50));
+
+// Encrypt with public key
+const encryptedRSA = crypto.publicEncrypt(publicKey, Buffer.from('Secret message'));
+console.log('RSA encrypted (base64):', encryptedRSA.toString('base64'));
+
+// Decrypt with private key
+const decryptedRSA = crypto.privateDecrypt(privateKey, encryptedRSA);
+console.log('RSA decrypted:', decryptedRSA.toString());
+
+// ========== PBKDF2 FOR PASSWORD HASHING ==========
+const password = 'user_password';
+const salt = crypto.randomBytes(16).toString('hex');
+
+crypto.pbkdf2(password, salt, 100000, 64, 'sha512', (err, derivedKey) => {
+    if (err) throw err;
+    console.log('PBKDF2 hash:', derivedKey.toString('hex'));
+});
+
+// ========== CONSTANT TIME COMPARISON ==========
+const a = crypto.randomBytes(32);
+const b = crypto.randomBytes(32);
+const equal = crypto.timingSafeEqual(a, b);
+console.log('Timing safe equal:', equal);
+
+// ========== CREATE HASH FROM FILE ==========
+const fs = require('fs');
+const hashStream = crypto.createHash('sha256');
+const input = fs.createReadStream('file.txt');
+input.on('readable', () => {
+    const data = input.read();
+    if (data) hashStream.update(data);
+    else console.log('File hash:', hashStream.digest('hex'));
+});`,
+        lineByLine: [
+          "Line 1: const crypto = require('crypto') - Imports crypto module",
+          "Line 4-7: crypto.createHash('sha256') - Creates hash object",
+          "Line 5: update() - Feeds data into hash (can be called multiple times)",
+          "Line 6: digest('hex') - Finalises hash and returns hex string",
+          "Line 10-12: Multiple updates - Supports streaming data",
+          "Line 15-20: HMAC - Keyed hash for message authentication",
+          "Line 23-28: crypto.randomBytes() - Generates cryptographically strong random bytes",
+          "Line 26: randomBytes(16) - 128 bits suitable for ID",
+          "Line 31-35: randomInt() - Random integer in range",
+          "Line 38-47: AES encryption - Symmetric (same key for encrypt/decrypt)",
+          "Line 39: aes-256-cbc algorithm - 256-bit key, CBC mode",
+          "Line 40: randomBytes(32) - Secret key",
+          "Line 41: randomBytes(16) - Initialization vector (unique per encryption)",
+          "Line 55-68: RSA encryption - Asymmetric (public/private keys)",
+          "Line 57-63: generateKeyPairSync - Creates RSA 2048-bit keys",
+          "Line 66-68: publicEncrypt/privateDecrypt - Encrypt with public, decrypt with private",
+          "Line 71-76: PBKDF2 - Password hashing with salt and iterations",
+          "Line 73: salt - Random per user, prevents rainbow tables",
+          "Line 74: iterations - 100,000+ slows brute force",
+          "Line 79-83: timingSafeEqual - Prevents timing attacks",
+          "Line 86-91: Stream hashing - Process large files without loading entire into memory"
+        ],
+        simpleMeaning: "Crypto module secures data with encryption, hashing, and random generation",
+        output: "SHA-256: 102...\\nHMAC: ae7...\\nRandom bytes (hex): f3a...\\nEncrypted: 5c3...\\nDecrypted: Sensitive data",
+        note: "Never use MD5 or SHA1 for security; use SHA-256 or SHA-512"
+      },
+      {
+        name: "9. WebSocket with ws Library",
+        description: "WebSocket provides full-duplex communication between client and server. The ws library is fast and simple. Used for real-time chat, notifications, live data feeds, and multiplayer games.",
+        code: `// Install: npm install ws
+
+// ========== SERVER (socket-server.js) ==========
+const WebSocket = require('ws');
+const server = new WebSocket.Server({ port: 8080 });
+
+// Store connected clients
+const clients = new Set();
+
+server.on('connection', (ws, req) => {
+    const clientId = Date.now();
+    clients.add(ws);
+    console.log(\`Client \${clientId} connected from \${req.socket.remoteAddress}\`);
+    
+    // Send welcome message
+    ws.send(JSON.stringify({ type: 'welcome', message: 'Connected to server' }));
+    
+    // Handle incoming messages
+    ws.on('message', (data) => {
+        try {
+            const message = JSON.parse(data);
+            console.log(\`Received from \${clientId}:\`, message);
+            
+            // Broadcast to all clients (except sender)
+            if (message.broadcast) {
+                clients.forEach(client => {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: 'broadcast',
+                            from: clientId,
+                            payload: message.payload
+                        }));
+                    }
+                });
+            } else {
+                ws.send(JSON.stringify({ type: 'echo', data: message.data }));
+            }
+        } catch (err) {
+            console.error('Invalid JSON:', err);
+        }
+    });
+    
+    // Handle disconnection
+    ws.on('close', () => {
+        clients.delete(ws);
+        console.log(\`Client \${clientId} disconnected\`);
+    });
+    
+    // Handle errors
+    ws.on('error', (err) => {
+        console.error(\`WebSocket error for client \${clientId}:\`, err);
+    });
+});
+
+// Optional: Heartbeat to keep connections alive
+const interval = setInterval(() => {
+    clients.forEach(ws => {
+        if (ws.readyState === WebSocket.OPEN) {
+            ws.ping();
+        }
+    });
+}, 30000);
+
+server.on('close', () => {
+    clearInterval(interval);
+});
+
+console.log('WebSocket server running on port 8080');
+
+// ========== CLIENT (frontend or Node.js client) ==========
+// Browser client example
+/* 
+const socket = new WebSocket('ws://localhost:8080');
+socket.onopen = () => {
+    console.log('Connected');
+    socket.send(JSON.stringify({ data: 'Hello server' }));
+};
+socket.onmessage = (event) => {
+    console.log('Server:', JSON.parse(event.data));
+};
+*/
+
+// Node.js client example
+const wsClient = new WebSocket('ws://localhost:8080');
+
+wsClient.on('open', () => {
+    console.log('Client connected');
+    wsClient.send(JSON.stringify({ data: 'Ping' }));
+});
+
+wsClient.on('message', (data) => {
+    console.log('Client received:', JSON.parse(data));
+});
+
+wsClient.on('close', () => {
+    console.log('Client disconnected');
+});
+
+// ========== SECURE WEB SOCKET (wss) ==========
+const fs = require('fs');
+const https = require('https');
+
+const wssServer = new WebSocket.Server({
+    server: https.createServer({
+        key: fs.readFileSync('private-key.pem'),
+        cert: fs.readFileSync('certificate.pem')
+    }).listen(8443)
+});
+
+// ========== ROOM / TOPIC SUPPORT ==========
+const rooms = new Map();
+
+server.on('connection', (ws) => {
+    ws.on('message', (data) => {
+        const { action, room, payload } = JSON.parse(data);
+        
+        if (action === 'join') {
+            if (!rooms.has(room)) rooms.set(room, new Set());
+            rooms.get(room).add(ws);
+            ws.room = room;
+        } else if (action === 'message') {
+            const roomClients = rooms.get(room);
+            if (roomClients) {
+                roomClients.forEach(client => {
+                    if (client !== ws && client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify(payload));
+                    }
+                });
+            }
+        }
+    });
+    
+    ws.on('close', () => {
+        if (ws.room && rooms.has(ws.room)) {
+            rooms.get(ws.room).delete(ws);
+            if (rooms.get(ws.room).size === 0) rooms.delete(ws.room);
+        }
+    });
+});`,
+        lineByLine: [
+          "Line 4: new WebSocket.Server({ port: 8080 }) - Creates WebSocket server",
+          "Line 7: clients Set - Tracks all connected clients",
+          "Line 9-12: connection event - Fires when client connects",
+          "Line 10: req - HTTP request object (access remote address, headers)",
+          "Line 15: ws.send() - Sends message to client",
+          "Line 18: ws.on('message') - Handles incoming messages",
+          "Line 20: JSON.parse() - Parse message from client",
+          "Line 23-33: Broadcast to all other clients",
+          "Line 25: ws.readyState === WebSocket.OPEN - Checks if connection still open",
+          "Line 34-36: Echo back to sender",
+          "Line 39-42: close event - Remove client from set",
+          "Line 45-48: error event - Log errors",
+          "Line 51-57: Heartbeat ping - Keeps connection alive",
+          "Line 68-73: Node.js client example",
+          "Line 76-83: Secure WebSocket (wss) with TLS",
+          "Line 86-109: Room support (chat rooms, topics)"
+        ],
+        simpleMeaning: "WebSocket enables real-time two-way communication between server and clients",
+        output: "WebSocket server running on port 8080\\nClient connected\\nClient received: { type: 'welcome', message: 'Connected to server' }",
+        note: "Handle connection errors and implement reconnection logic on client side"
+      },
+      {
+        name: "10. Database Integration (MongoDB with Mongoose)",
+        description: "Mongoose is ODM for MongoDB. It provides schema validation, middleware, and query building. Used for data persistence, relationships, and aggregation in Node.js apps.",
+        code: `// Install: npm install mongoose
+
+const mongoose = require('mongoose');
+const { Schema } = mongoose;
+
+// ========== CONNECTION ==========
+mongoose.connect('mongodb://localhost:27017/myapp', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+})
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error('Connection error:', err));
+
+// Connection events
+mongoose.connection.on('connected', () => console.log('Mongoose connected'));
+mongoose.connection.on('error', (err) => console.log('Mongoose error:', err));
+mongoose.connection.on('disconnected', () => console.log('Mongoose disconnected'));
+
+// ========== SCHEMA DEFINITION ==========
+const userSchema = new Schema({
+    name: {
+        type: String,
+        required: [true, 'Name is required'],
+        minlength: [2, 'Name must be at least 2 characters'],
+        maxlength: [50, 'Name cannot exceed 50 characters'],
+        trim: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        match: [/^\\S+@\\S+\\.\\S+$/, 'Please enter a valid email']
+    },
+    age: {
+        type: Number,
+        min: [0, 'Age cannot be negative'],
+        max: [150, 'Age cannot exceed 150']
+    },
+    address: {
+        street: String,
+        city: String,
+        zipCode: String
+    },
+    tags: [String],
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+}, {
+    timestamps: true, // Adds createdAt and updatedAt automatically
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// ========== VIRTUALS ==========
+userSchema.virtual('fullAddress').get(function() {
+    if (!this.address) return '';
+    return \`\${this.address.street}, \${this.address.city}\`;
+});
+
+// ========== INSTANCE METHODS ==========
+userSchema.methods.getProfile = function() {
+    return {
+        name: this.name,
+        email: this.email,
+        age: this.age
+    };
+};
+
+// ========== STATIC METHODS ==========
+userSchema.statics.findByEmail = function(email) {
+    return this.findOne({ email: email.toLowerCase() });
+};
+
+// ========== MIDDLEWARE (pre/post hooks) ==========
+userSchema.pre('save', function(next) {
+    console.log(\`Saving user: \${this.name}\`);
+    // Hash password here if exists
+    next();
+});
+
+userSchema.post('save', function(doc) {
+    console.log(\`User \${doc.name} saved successfully\`);
+});
+
+// ========== MODEL ==========
+const User = mongoose.model('User', userSchema);
+
+// ========== CRUD OPERATIONS ==========
+// Create
+const createUser = async () => {
+    try {
+        const user = new User({
+            name: 'John Doe',
+            email: 'john@example.com',
+            age: 30,
+            tags: ['admin', 'developer']
+        });
+        const saved = await user.save();
+        console.log('Created user:', saved._id);
+    } catch (err) {
+        console.error('Create error:', err.errors);
+    }
+};
+
+// Read (find)
+const findUsers = async () => {
+    // All users
+    const all = await User.find();
+    console.log(\`Total users: \${all.length}\`);
+    
+    // With filter
+    const adults = await User.find({ age: { $gte: 18 } }).limit(10).sort('-createdAt');
+    
+    // Single user
+    const user = await User.findById('...');
+    
+    // Chain queries
+    const search = await User.find({ name: /john/i })
+        .select('name email')
+        .populate('posts'); // for references
+};
+
+// Update
+const updateUser = async (id) => {
+    // Find and update
+    const updated = await User.findByIdAndUpdate(id, {
+        $set: { age: 31 },
+        $push: { tags: 'experienced' }
+    }, { new: true }); // Return updated document
+    
+    // Increment age
+    await User.updateOne({ _id: id }, { $inc: { age: 1 } });
+};
+
+// Delete
+const deleteUser = async (id) => {
+    const deleted = await User.findByIdAndDelete(id);
+    console.log('Deleted:', deleted?.name);
+};
+
+// ========== AGGREGATION PIPELINE ==========
+const pipeline = [
+    { $match: { age: { $gte: 18 } } },
+    { $group: { _id: '$address.city', count: { $sum: 1 }, avgAge: { $avg: '$age' } } },
+    { $sort: { count: -1 } }
+];
+const stats = await User.aggregate(pipeline);
+
+// ========== TRANSACTIONS (MongoDB 4.0+) ==========
+const session = await mongoose.startSession();
+session.startTransaction();
+try {
+    const user = await User.create([{ name: 'Alice', email: 'alice@example.com' }], { session });
+    // Other operations...
+    await session.commitTransaction();
+} catch (err) {
+    await session.abortTransaction();
+    throw err;
+} finally {
+    session.endSession();
+}
+
+// ========== DISCONNECT ==========
+process.on('SIGINT', async () => {
+    await mongoose.connection.close();
+    process.exit(0);
+});`,
+        lineByLine: [
+          "Line 4: const mongoose = require('mongoose') - Import Mongoose",
+          "Line 7-10: mongoose.connect() - Connect to MongoDB database",
+          "Line 8-9: Options - New parser and unified topology",
+          "Line 13-15: Connection event listeners",
+          "Line 18-54: Schema definition - Shape of documents",
+          "Line 20: type - MongoDB data type",
+          "Line 21: required - Validation rule (can be function)",
+          "Line 24: trim - Removes surrounding spaces",
+          "Line 28: unique - Ensures email uniqueness",
+          "Line 29: lowercase - Automatically converts email to lowercase",
+          "Line 30: match - Regular expression validation",
+          "Line 36-39: Nested object address",
+          "Line 40: tags - Array of strings",
+          "Line 42-44: createdAt - Default to current timestamp",
+          "Line 46-57: Virtuals - Computed fields",
+          "Line 60-65: Instance methods - Operate on document",
+          "Line 68-71: Static methods - Operate on collection",
+          "Line 74-82: Middleware (pre/post hooks) - Run on save, update, remove",
+          "Line 85: Model - Interface to collection",
+          "Line 89-96: Create document - new Model() + save()",
+          "Line 100-113: Read queries - find, findOne, findById",
+          "Line 107: $gte - Query operator",
+          "Line 108: limit() and sort() - Chainable methods",
+          "Line 111: populate() - Reference another collection",
+          "Line 116-125: Update - findByIdAndUpdate, updateOne",
+          "Line 119: $set, $push - Update operators",
+          "Line 128-131: Delete - findByIdAndDelete",
+          "Line 134-142: Aggregation pipeline - Complex data processing",
+          "Line 145-154: Transactions - ACID compliance",
+          "Line 157-160: Graceful shutdown"
+        ],
+        simpleMeaning: "Mongoose connects Node.js to MongoDB, providing schema validation and powerful querying",
+        output: "MongoDB connected\\nCreated user: 65a1b2c3...\\nTotal users: 5",
+        note: "Always handle connection errors and validate data with schema"
+      },
+      {
+        name: "11. Authentication with JWT (JSON Web Tokens)",
+        description: "JWT is a stateless authentication mechanism. Server signs token with secret; client stores token and sends with each request. Used for API authentication, single sign-on, and mobile apps.",
+        code: `// Install: npm install jsonwebtoken bcryptjs
+
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+// Secret key (store in environment variables)
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-this';
+const REFRESH_SECRET = process.env.REFRESH_SECRET || 'refresh-secret-key';
+
+// ========== USER MODEL (simulated) ==========
+const users = [];
+let nextId = 1;
+
+// ========== PASSWORD HASHING ==========
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+}
+
+async function verifyPassword(password, hash) {
+    return bcrypt.compare(password, hash);
+}
+
+// ========== TOKEN GENERATION ==========
+function generateAccessToken(userId) {
+    return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '15m' });
+}
+
+function generateRefreshToken(userId) {
+    return jwt.sign({ userId }, REFRESH_SECRET, { expiresIn: '7d' });
+}
+
+// ========== REGISTRATION ==========
+app.post('/api/register', async (req, res) => {
+    try {
+        const { email, password, name } = req.body;
+        
+        // Check if user exists
+        if (users.find(u => u.email === email)) {
+            return res.status(400).json({ error: 'User already exists' });
+        }
+        
+        // Hash password
+        const hashedPassword = await hashPassword(password);
+        
+        // Create user
+        const user = {
+            id: nextId++,
+            email,
+            name,
+            passwordHash: hashedPassword,
+            createdAt: new Date()
+        };
+        users.push(user);
+        
+        // Generate tokens
+        const accessToken = generateAccessToken(user.id);
+        const refreshToken = generateRefreshToken(user.id);
+        
+        res.status(201).json({
+            user: { id: user.id, email: user.email, name: user.name },
+            accessToken,
+            refreshToken
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ========== LOGIN ==========
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        const user = users.find(u => u.email === email);
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        
+        const isValid = await verifyPassword(password, user.passwordHash);
+        if (!isValid) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        
+        const accessToken = generateAccessToken(user.id);
+        const refreshToken = generateRefreshToken(user.id);
+        
+        res.json({
+            user: { id: user.id, email: user.email, name: user.name },
+            accessToken,
+            refreshToken
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ========== REFRESH TOKEN ==========
+app.post('/api/refresh', (req, res) => {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+        return res.status(401).json({ error: 'Refresh token required' });
+    }
+    
+    try {
+        const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+        const user = users.find(u => u.id === decoded.userId);
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid refresh token' });
+        }
+        
+        const newAccessToken = generateAccessToken(user.id);
+        res.json({ accessToken: newAccessToken });
+    } catch (err) {
+        res.status(403).json({ error: 'Invalid or expired refresh token' });
+    }
+});
+
+// ========== AUTHENTICATION MIDDLEWARE ==========
+function authenticate(req, res, next) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+    
+    const token = authHeader.split(' ')[1]; // Bearer <token>
+    if (!token) {
+        return res.status(401).json({ error: 'Malformed token' });
+    }
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        req.userId = decoded.userId;
+        next();
+    } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: 'Token expired' });
+        }
+        return res.status(403).json({ error: 'Invalid token' });
+    }
+}
+
+// ========== PROTECTED ROUTE ==========
+app.get('/api/profile', authenticate, (req, res) => {
+    const user = users.find(u => u.id === req.userId);
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+    res.json({ id: user.id, email: user.email, name: user.name });
+});
+
+// ========== LOGOUT (client removes tokens) ==========
+app.post('/api/logout', authenticate, (req, res) => {
+    // On server side, optionally add token to blacklist
+    res.json({ message: 'Logged out successfully' });
+});
+
+// ========== BLACKLIST (using Redis) ==========
+// For production, implement token blacklist with Redis or database
+const tokenBlacklist = new Set();
+
+function addToBlacklist(token) {
+    const decoded = jwt.decode(token);
+    const expiry = decoded.exp * 1000;
+    tokenBlacklist.add(token);
+    setTimeout(() => tokenBlacklist.delete(token), expiry - Date.now());
+}
+
+// Modified authenticate with blacklist check
+function authenticateWithBlacklist(req, res, next) {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (tokenBlacklist.has(token)) {
+        return res.status(401).json({ error: 'Token revoked' });
+    }
+    authenticate(req, res, next);
+}
+
+// ========== START SERVER ==========
+app.listen(3000, () => {
+    console.log('Auth server running on port 3000');
+});`,
+        lineByLine: [
+          "Line 2-3: Install jsonwebtoken and bcryptjs",
+          "Line 7-8: JWT secret - Use environment variables",
+          "Line 13-16: Simulated user storage (use database in production)",
+          "Line 19-23: Password hashing with bcrypt",
+          "Line 20: genSalt(10) - Cost factor",
+          "Line 21: hash(password, salt) - One-way hash",
+          "Line 24-26: compare(password, hash) - Verify",
+          "Line 29-32: generateAccessToken - Short expiration (15 min)",
+          "Line 34-36: generateRefreshToken - Longer expiration (7 days)",
+          "Line 39-54: Registration - Hash password, create user, return tokens",
+          "Line 40-43: Validation",
+          "Line 51-53: Return tokens to client",
+          "Line 57-76: Login - Verify credentials, return tokens",
+          "Line 58-62: Find user by email",
+          "Line 64-66: Verify password with bcrypt",
+          "Line 79-95: Refresh token endpoint - Get new access token",
+          "Line 80-81: Validate refresh token",
+          "Line 84-87: Decode and verify user exists",
+          "Line 91-93: Issue new access token",
+          "Line 98-116: Authentication middleware",
+          "Line 100-103: Check Authorization header",
+          "Line 104-107: Extract Bearer token",
+          "Line 110-115: Verify JWT, catch specific errors",
+          "Line 113: TokenExpiredError - Different status",
+          "Line 119-127: Protected route example",
+          "Line 130-134: Logout (client discards tokens)",
+          "Line 137-148: Token blacklist with Redis",
+          "Line 140-144: Store expired tokens for revocation"
+        ],
+        simpleMeaning: "JWT provides stateless authentication: server signs token, client sends it with each request",
+        output: "POST /api/login → { accessToken, refreshToken, user: {...} }\\nGET /api/profile → { id, email, name }",
+        note: "Store refresh token securely (httpOnly cookie) and implement logout blacklist"
       }
     ]
   }
