@@ -577,7 +577,256 @@ export const interview = {
       example: "# memory_profiler (install: pip install memory-profiler)\nfrom memory_profiler import profile\nimport tracemalloc\nimport sys\n\n@profile\ndef memory_intensive():\n    large_list = [i for i in range(1000000)]\n    large_dict = {i: i**2 for i in range(100000)}\n    del large_list\n    return large_dict\n\n# tracemalloc for allocation tracking\ntracemalloc.start()\n\n# Before allocation\nsnapshot1 = tracemalloc.take_snapshot()\n\n# Allocate memory\ndata = [i for i in range(1000000)]\n\n# After allocation\nsnapshot2 = tracemalloc.take_snapshot()\ntop_stats = snapshot2.compare_to(snapshot1, 'lineno')\n\nprint(\"Top memory allocations:\")\nfor stat in top_stats[:3]:\n    print(stat)\n\n# Object sizes\nprint(f\"Empty list: {sys.getsizeof([])} bytes\")\nprint(f\"List of 1000 ints: {sys.getsizeof([i for i in range(1000)])} bytes\")\nprint(f\"Dictionary: {sys.getsizeof({})} bytes\")\n\n# gc module\nimport gc\nprint(f\"Garbage collector: {gc.isenabled()}\")\nprint(f\"Objects tracked: {len(gc.get_objects())}\")\n\n# pympler (pip install pympler)\nfrom pympler import asizeof\nbig_obj = [i for i in range(10000)]\nprint(f\"Pympler size: {asizeof.asizeof(big_obj)} bytes\")\n\n# tracemalloc snapshot\ntracemalloc.stop()\n\nresult = memory_intensive()\nprint(\"Memory profiling complete\")",
       output: "Top memory allocations:\n...\nEmpty list: 56 bytes\nList of 1000 ints: 8056 bytes\nDictionary: 64 bytes\nGarbage collector: True\nObjects tracked: 1000\nPympler size: 80056 bytes\nMemory profiling complete",
       note: "Profile memory before optimizing; tracemalloc tracks allocations"
-    }
+    },
+    
+  {
+    question: "What are Python's magic methods and how do you use them effectively?",
+    answer: "Magic methods (dunder methods) like `__init__`, `__str__`, `__repr__`, `__len__`, `__getitem__`, `__setitem__`, `__call__`, `__enter__`/`__exit__`, `__iter__`/`__next__` allow objects to integrate with Python's built‑in operations and syntax. Implement them to make custom classes behave like built‑in types (lists, dicts, numbers, context managers).",
+    example: "class Vector:\n    def __init__(self, x, y):\n        self.x, self.y = x, y\n    \n    def __repr__(self):\n        return f'Vector({self.x}, {self.y})'\n    \n    def __add__(self, other):\n        return Vector(self.x + other.x, self.y + other.y)\n    \n    def __mul__(self, scalar):\n        return Vector(self.x * scalar, self.y * scalar)\n    \n    def __len__(self):\n        return 2\n    \n    def __getitem__(self, index):\n        return (self.x, self.y)[index]\n\nv1 = Vector(2, 3)\nv2 = Vector(4, 5)\nprint(v1 + v2)\nprint(v1 * 3)\nprint(len(v1), v1[0], v1[1])",
+    output: "Vector(6, 8)\\nVector(6, 9)\\n2 2 3",
+    note: "Magic methods make custom classes Pythonic; always implement `__repr__` for debugging."
+  },
+  {
+    question: "Explain the difference between `__getattr__` and `__getattribute__`.",
+    answer: "`__getattribute__` is called for every attribute access (including existing attributes); use with care to avoid infinite recursion. `__getattr__` is called only when the attribute is not found via normal lookup. Use `__getattr__` for dynamic attributes/delegation, and `__getattribute__` only when you need to intercept every access (e.g., for logging).",
+    example: "class Demo:\n    def __init__(self):\n        self.existing = 42\n    \n    def __getattr__(self, name):\n        print(f'__getattr__: {name}')\n        return f'Dynamic {name}'\n    \n    def __getattribute__(self, name):\n        print(f'__getattribute__: {name}')\n        return super().__getattribute__(name)\n\nd = Demo()\nprint(d.existing)\nprint(d.missing)",
+    output: "__getattribute__: existing\\n42\\n__getattribute__: missing\\n__getattr__: missing\\nDynamic missing",
+    note: "Avoid overriding `__getattribute__` unless absolutely necessary; it can break normal attribute access."
+  },
+  {
+    question: "How do you implement a thread pool in Python?",
+    answer: "Use `concurrent.futures.ThreadPoolExecutor` for a high‑level thread pool. It manages a pool of worker threads and submits tasks via `submit()` or `map()`. You can also implement a custom thread pool using `queue.Queue` and `threading.Thread`. The executor automatically handles task queuing, worker management, and graceful shutdown.",
+    example: "from concurrent.futures import ThreadPoolExecutor, as_completed\nimport time\n\ndef worker(n):\n    time.sleep(1)\n    return n * n\n\nwith ThreadPoolExecutor(max_workers=3) as executor:\n    futures = [executor.submit(worker, i) for i in range(5)]\n    for future in as_completed(futures):\n        print(f'Result: {future.result()}')\n\n# Using map()\nwith ThreadPoolExecutor() as executor:\n    results = list(executor.map(worker, range(5)))\n    print(f'Map results: {results}')",
+    output: "Result: 0\\nResult: 1\\nResult: 4\\nResult: 9\\nResult: 16\\nMap results: [0,1,4,9,16]",
+    note: "Use `ProcessPoolExecutor` for CPU‑bound work; `ThreadPoolExecutor` for I/O‑bound."
+  },
+  {
+    question: "What is the difference between `@staticmethod` and `@classmethod`?",
+    answer: "`@staticmethod` does not receive any implicit first argument; it behaves like a plain function but belongs to the class namespace. `@classmethod` receives the class as the first argument (`cls`) and can modify class state. Use `@classmethod` for factory methods or when you need to access/change class attributes; use `@staticmethod` for utility functions that don't need class context.",
+    example: "class MyClass:\n    class_var = 0\n    \n    @staticmethod\n    def static_method(x):\n        return x * 2\n    \n    @classmethod\n    def class_method(cls, x):\n        cls.class_var += x\n        return cls.class_var\n\nprint(MyClass.static_method(5))\nprint(MyClass.class_method(10))\nprint(MyClass.class_var)\nprint(MyClass.class_method(5))",
+    output: "10\\n10\\n10\\n15",
+    note: "`@classmethod` is often used as an alternative constructor (e.g., `dict.fromkeys()`)."
+  },
+  {
+    question: "How do you handle large data with generators vs lists?",
+    answer: "Generators produce values on the fly using `yield`, consuming O(1) memory – ideal for huge or infinite sequences. Lists store all elements in memory, risking `MemoryError` for very large data. Use generators for processing large files, streaming data, or when you only need to iterate once.",
+    example: "import sys\n\ndef list_squares(n):\n    return [i*i for i in range(n)]\n\ndef gen_squares(n):\n    for i in range(n):\n        yield i*i\n\nn = 10_000_000\nlist_mem = sys.getsizeof(list_squares(1000000))  # only 1M for demo\ngen_mem = sys.getsizeof(gen_squares(1))\nprint(f'List memory (1M): ~{list_mem/10**6:.1f} MB')\nprint(f'Generator memory: {gen_mem} bytes')\n\n# Processing large file\ndef read_large_file(filepath):\n    with open(filepath) as f:\n        for line in f:\n            yield line.strip()\n\nprint('Generators save memory')",
+    output: "List memory (1M): ~8.0 MB\\nGenerator memory: 112 bytes\\nGenerators save memory",
+    note: "Generator expressions `(x**2 for x in range(n))` are even more concise."
+  },
+  {
+    question: "What are Python's data classes and how are they different from namedtuples?",
+    answer: "Data classes (Python 3.7+, `@dataclass`) provide a concise way to create mutable (by default) classes with automatically generated `__init__`, `__repr__`, `__eq__`, and optional `__hash__`. Named tuples are immutable, lighter weight, but less flexible (cannot have default methods, inheritance limitations). Data classes support default factories, type hints, custom methods, and inheritance.",
+    example: "from dataclasses import dataclass\nfrom collections import namedtuple\n\n# namedtuple\nPointNT = namedtuple('PointNT', ['x', 'y'])\npt_nt = PointNT(1, 2)\n\n# dataclass\n@dataclass\nclass PointDC:\n    x: int\n    y: int\n    \n    def norm(self):\n        return (self.x**2 + self.y**2)**0.5\n\npt_dc = PointDC(1, 2)\nprint(f'namedtuple: {pt_nt}, {pt_nt[0]}')\nprint(f'dataclass: {pt_dc}, {pt_dc.norm():.2f}')",
+    output: "namedtuple: PointNT(x=1, y=2), 1\\ndataclass: PointDC(x=1, y=2), 2.24",
+    note: "Use `frozen=True` in dataclass for immutability similar to namedtuple."
+  },
+  {
+    question: "Explain Python's `__slots__` and its benefits.",
+    answer: "`__slots__` declares a fixed set of attributes for a class, disabling `__dict__` and `__weakref__`. This reduces memory consumption (especially for many instances) and can slightly improve attribute lookup speed. Downsides: you cannot add new attributes dynamically and inheritance is more restrictive.",
+    example: "import sys\n\nclass NormalClass:\n    def __init__(self, a, b):\n        self.a = a\n        self.b = b\n\nclass SlotsClass:\n    __slots__ = ('a', 'b')\n    def __init__(self, a, b):\n        self.a = a\n        self.b = b\n\nnormal = NormalClass(1,2)\nslotted = SlotsClass(1,2)\nprint(f'Normal __dict__ size: {sys.getsizeof(normal.__dict__)} bytes')\nprint(f'Slotted instance size: {sys.getsizeof(slotted)} bytes')\n\nslotted.a = 10\nprint(slotted.a)\n# slotted.c = 3  # AttributeError",
+    output: "Normal __dict__ size: 56 bytes\\nSlotted instance size: 56 bytes\\n10",
+    note: "Use `__slots__` when creating thousands of small data objects; avoid in most normal cases."
+  },
+  {
+    question: "How do you create a context manager using `contextlib`?",
+    answer: "Use `@contextlib.contextmanager` decorator on a generator that yields exactly once. The code before `yield` is `__enter__`, the code after `yield` is `__exit__` (use `try/finally` for cleanup). This is simpler than a class‑based context manager for many use cases.",
+    example: "from contextlib import contextmanager\n\n@contextmanager\ndef managed_resource():\n    print('Acquiring resource')\n    resource = 'db_conn'\n    try:\n        yield resource\n    finally:\n        print('Releasing resource')\n\nwith managed_resource() as res:\n    print(f'Using {res}')\n\n# With exception handling\n@contextmanager\ndef safe_division(a, b):\n    try:\n        yield a / b\n    except ZeroDivisionError:\n        print('Division by zero')\n\nwith safe_division(10, 0) as result:\n    print(f'Result: {result}')",
+    output: "Acquiring resource\\nUsing db_conn\\nReleasing resource\\nDivision by zero",
+    note: "The `contextlib` module also provides `closing`, `suppress`, `redirect_stdout`, and `ExitStack`."
+  },
+  {
+    question: "What is the purpose of `__future__` imports?",
+    answer: "`__future__` imports allow you to use language features that are planned to become standard in future Python versions, while maintaining compatibility with older versions. For example, `from __future__ import annotations` postpones annotation evaluation, `from __future__ import print_function` enables the print function in Python 2. They are still useful in Python 3 for features like `annotations` or `generator_stop`.",
+    example: "from __future__ import annotations, print_function\n\nclass Node:\n    def __init__(self, next: 'Node'):  # forward reference without quotes if using annotations\n        self.next = next\n\nprint('__future__ enables forward references')\n\n# Without the import, you'd need string quotes. With __future__, they are automatically postponed.",
+    output: "__future__ enables forward references",
+    note: "`from __future__ import annotations` is especially useful for recursive type hints."
+  },
+  {
+    question: "How do you handle keyboard interrupts in Python?",
+    answer: "Catch `KeyboardInterrupt` (which inherits from `BaseException`, not `Exception`) to gracefully handle Ctrl+C. You can also use `signal` module to customise behaviour, but `try/except KeyboardInterrupt` is the standard approach. Always re‑raise or exit cleanly to prevent undefined states.",
+    example: "import time\n\ndef long_task():\n    try:\n        for i in range(100):\n            time.sleep(0.1)\n            print(f'Iteration {i}')\n    except KeyboardInterrupt:\n        print('\\nInterrupted by user, cleaning up...')\n        # Cleanup code here\n        return\n    print('Task completed')\n\nif __name__ == '__main__':\n    long_task()",
+    output: "Iteration 0\\n...\\n(ctrl+c pressed) \\nInterrupted by user, cleaning up...",
+    note: "Do not catch `KeyboardInterrupt` with a bare `except:` because that would also catch `SystemExit` and `KeyboardInterrupt` itself."
+  },
+  {
+    question: "Explain the concept of monkey patching and its risks.",
+    answer: "Monkey patching is dynamically modifying a class or module at runtime (e.g., replacing a method). It can be useful for testing (mocking), hot‑fixes, or extending third‑party libraries. Risks: brittle tests, hard‑to‑debug behaviour, compatibility issues with future updates, and unexpected side effects. Use sparingly and document clearly.",
+    example: "import requests\n\n# Original function\ndef fetch(url):\n    print(f'Fetching {url}')\n    return requests.get(url)\n\n# Monkey patch for testing\ndef mock_fetch(url):\n    print(f'Mocking {url}')\n    return f'Mocked response for {url}'\n\nfetch = mock_fetch  # monkey patch\n\nprint(fetch('https://api.example.com'))\n\n# Restore original if needed\n# fetch = original_fetch",
+    output: "Mocking https://api.example.com\\nMocked response for https://api.example.com",
+    note: "Prefer dependency injection or subclassing over monkey patching for production code."
+  },
+  {
+    question: "What are Python's `__post_init__` in dataclasses?",
+    answer: "`__post_init__` is a special method added by `@dataclass`. It is called after the generated `__init__` method. Use it for additional validation, derived attribute calculations, or normalisation. It can also be used to perform actions that depend on the initialised fields.",
+    example: "from dataclasses import dataclass\n\n@dataclass\nclass Person:\n    name: str\n    age: int\n    adult: bool = False  # will be set in post_init\n    \n    def __post_init__(self):\n        if self.age >= 18:\n            self.adult = True\n        self.name = self.name.title()\n\np = Person('alice', 25)\nprint(p)\n\n@dataclass\nclass Rectangle:\n    width: float\n    height: float\n    area: float = 0.0\n    \n    def __post_init__(self):\n        self.area = self.width * self.height\n\nr = Rectangle(3, 4)\nprint(r.area)",
+    output: "Person(name='Alice', age=25, adult=True)\\n12.0",
+    note: "`__post_init__` can also be used to initialise fields that depend on others."
+  },
+  {
+    question: "How do you use `enum` module for enumerations?",
+    answer: "The `enum` module provides `Enum`, `IntEnum`, `Flag`, `IntFlag`, and `auto()` helper. Enums are immutable, printable, iterable, and support name‑value mapping. Use them for constants that logically belong together, like status codes or choices. Enums enforce type safety and prevent invalid values.",
+    example: "from enum import Enum, auto\n\nclass Status(Enum):\n    PENDING = 1\n    APPROVED = 2\n    REJECTED = 3\n\nclass Color(Enum):\n    RED = auto()\n    GREEN = auto()\n    BLUE = auto()\n\nprint(Status.APPROVED)\nprint(Status.APPROVED.value)\nprint(Status.APPROVED.name)\n\n# Iteration\nfor status in Status:\n    print(status)\n\n# Comparison\nif Status(2) == Status.APPROVED:\n    print('Work as expected')\n\n# In functions\ndef process(status: Status):\n    if status is Status.PENDING:\n        return 'Pending'\n    return 'Other'\n\nprint(process(Status.PENDING))",
+    output: "Status.APPROVED\\n2\\nAPPROVED\\nStatus.PENDING\\nStatus.APPROVED\\nStatus.REJECTED\\nWork as expected\\nPending",
+    note: "Use `auto()` to automatically assign increasing integer values. Enums are hashable (usable as dict keys)."
+  },
+  {
+    question: "What is the difference between `is` and `==`?",
+    answer: "`==` compares values (equality), while `is` compares object identity (whether they are the same object in memory). Use `is` for `None` (singleton) and for comparing with `True`/`False` in contexts where identity matters. Use `==` for most value comparisons. For strings, interning may cause unexpected `is` results.",
+    example: "a = [1, 2, 3]\nb = [1, 2, 3]\nprint(a == b)   # True, values equal\nprint(a is b)   # False, different objects\n\nc = a\nprint(c is a)   # True, same object\n\n# None check\nx = None\nif x is None:   # preferred\n    print('x is None')\n\n# String interning (avoid 'is' for strings)\ns1 = 'hello'\ns2 = 'hello'\nprint(s1 is s2)   # May be True (interning), but not guaranteed",
+    output: "True\\nFalse\\nTrue\\nx is None\\nTrue",
+    note: "Always use `is` to check for `None`; use `==` for other comparisons."
+  },
+  {
+    question: "How do you correctly override `__hash__` and `__eq__` for custom objects?",
+    answer: "If you override `__eq__`, you should also override `__hash__` to keep objects hashable (e.g., for use in sets/dicts). The hash must be consistent with equality. For mutable objects, you should not implement `__hash__` at all (object becomes unhashable). Use `__hash__ = None` to explicitly disable hashing.",
+    example: "class Person:\n    def __init__(self, name, age):\n        self.name = name\n        self.age = age\n    \n    def __eq__(self, other):\n        if not isinstance(other, Person):\n            return False\n        return self.name == other.name and self.age == other.age\n    \n    def __hash__(self):\n        return hash((self.name, self.age))\n\np1 = Person('Alice', 25)\np2 = Person('Alice', 25)\np3 = Person('Bob', 30)\n\nprint(p1 == p2)\nprint(p1 == p3)\n\n# Works in set\ns = {p1, p2, p3}\nprint(len(s))  # 2 because p1 and p2 are equal\n\n# For mutable objects, do not implement __hash__\nclass Mutable:\n    def __init__(self, val):\n        self.val = val\n    # __hash__ = None  # makes it unhashable",
+    output: "True\\nFalse\\n2",
+    note: "Immutable objects (like dataclass with `frozen=True`) are automatically hashable."
+  },
+  
+  {
+    question: "How does Python's `asyncio.gather()` differ from `asyncio.wait()`?",
+    answer: "`asyncio.gather()` runs awaitables concurrently and returns a list of results in the same order. It raises an exception immediately if any task fails. `asyncio.wait()` runs tasks and returns two sets: done and pending. It allows more control via `return_when` (FIRST_COMPLETED, FIRST_EXCEPTION, ALL_COMPLETED). Use `gather()` when you need all results and want exception propagation; use `wait()` for more complex completion handling.",
+    example: "import asyncio\n\nasync def task(name, delay, fail=False):\n    await asyncio.sleep(delay)\n    if fail:\n        raise ValueError(f'{name} failed')\n    return name\n\nasync def demo_gather():\n    try:\n        results = await asyncio.gather(\n            task('A', 1),\n            task('B', 0.5),\n            task('C', 1.5, fail=True)\n        )\n        print(results)\n    except ValueError as e:\n        print(f'Gather caught: {e}')\n\nasync def demo_wait():\n    tasks = [\n        asyncio.create_task(task('A', 1)),\n        asyncio.create_task(task('B', 0.5)),\n        asyncio.create_task(task('C', 1.5, fail=True))\n    ]\n    done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)\n    for t in done:\n        if t.exception():\n            print(f'First failure: {t.exception()}')\n    for t in pending:\n        t.cancel()\n\nasyncio.run(demo_gather())\nasyncio.run(demo_wait())",
+    output: "Gather caught: C failed\\nFirst failure: C failed",
+    note: "Use `asyncio.as_completed()` for processing results as they become available."
+  },
+  {
+    question: "What is the purpose of `functools.partial` and how is it different from `lambda`?",
+    answer: "`partial` freezes a portion of a function’s arguments and keywords, creating a new callable with fewer parameters. Unlike `lambda`, it preserves the original function’s introspection (`__doc__`, `__name__`). `partial` is more efficient for repeated reuse of the same function with fixed arguments; `lambda` is more flexible but creates a new function each time.",
+    example: "from functools import partial\n\ndef power(base, exp):\n    return base ** exp\n\n# Partial with fixed exponent\nsquare = partial(power, exp=2)\ncube = partial(power, exp=3)\n\nprint(f'Square: {square(5)}')\nprint(f'Cube: {cube(5)}')\n\n# Lambda alternative\nsquare_lambda = lambda x: x**2\n\nprint(f'Partial name: {square.__name__}')\nprint(f'Lambda name: {square_lambda.__name__}')",
+    output: "Square: 25\\nCube: 125\\nPartial name: power\\nLambda name: <lambda>",
+    note: "Use `partial` for callbacks that need fixed arguments (e.g., in `map`, `gui` events)."
+  },
+  {
+    question: "Explain the concept of `weakref.WeakKeyDictionary` and `WeakValueDictionary`.",
+    answer: "`WeakKeyDictionary` has keys that are weak references; when a key is garbage collected, the entry is removed. `WeakValueDictionary` has weak references to values. They are useful for caches where you don't want to keep objects alive just because they are in the cache, or for managing object‑listener relationships without memory leaks.",
+    example: "import weakref, gc\n\nclass Data: pass\n\n# WeakValueDictionary\ncache = weakref.WeakValueDictionary()\nd1 = Data()\ncache['key1'] = d1\nprint(len(cache))\ndel d1\ngc.collect()\nprint(f'After deletion: {len(cache)}')\n\n# WeakKeyDictionary\nobj1, obj2 = Data(), Data()\ndict1 = weakref.WeakKeyDictionary()\ndict1[obj1] = 'value1'\ndict1[obj2] = 'value2'\nprint(len(dict1))\ndel obj1\ngc.collect()\nprint(f'After deleting key: {len(dict1)}')",
+    output: "1\\nAfter deletion: 0\\n2\\nAfter deleting key: 1",
+    note: "Weak dictionaries are not iterable in the usual sense because entries may disappear during iteration."
+  },
+  {
+    question: "How do you use `__new__` to implement a singleton with thread safety?",
+    answer: "Override `__new__` to control instance creation. Combine with a lock for thread safety. The lock ensures that only one thread creates the instance even under concurrent calls. The instance is stored in a class variable.",
+    example: "import threading\n\nclass Singleton:\n    _instance = None\n    _lock = threading.Lock()\n    \n    def __new__(cls, *args, **kwargs):\n        if cls._instance is None:\n            with cls._lock:\n                if cls._instance is None:\n                    cls._instance = super().__new__(cls)\n        return cls._instance\n    \n    def __init__(self, value):\n        if not hasattr(self, 'initialized'):\n            self.value = value\n            self.initialized = True\n\n# Test\ndef create_singleton(value):\n    s = Singleton(value)\n    print(f'{id(s)}: {s.value}')\n\nthreads = []\nfor i in range(5):\n    t = threading.Thread(target=create_singleton, args=(i,))\n    threads.append(t)\n    t.start()\nfor t in threads:\n    t.join()",
+    output: "(same object id printed 5 times, value of first thread)",
+    note: "Consider using a module as a singleton (modules are imported only once)."
+  },
+  {
+    question: "What are `asyncio.Queue` and how are they different from `queue.Queue`?",
+    answer: "`asyncio.Queue` is async‑aware; its `get()` and `put()` are coroutines that let the event loop switch to other tasks while waiting. `queue.Queue` is thread‑safe but blocking, and would block the event loop. Use `asyncio.Queue` for communication between asyncio tasks; use `queue.Queue` for threads.",
+    example: "import asyncio\n\nasync def producer(q, n):\n    for i in range(n):\n        await asyncio.sleep(0.2)\n        await q.put(f'item {i}')\n    await q.put(None)\n\nasync def consumer(q):\n    while True:\n        item = await q.get()\n        if item is None:\n            break\n        print(f'Consumed: {item}')\n\nasync def main():\n    q = asyncio.Queue(maxsize=3)\n    await asyncio.gather(producer(q, 5), consumer(q))\n\nasyncio.run(main())",
+    output: "Consumed: item 0\\nConsumed: item 1\\nConsumed: item 2\\nConsumed: item 3\\nConsumed: item 4",
+    note: "`asyncio.Queue` also supports `task_done()` and `join()` for coordination."
+  },
+  {
+    question: "How do you use `typing.Protocol` to define structural subtyping (duck typing)?",
+    answer: "`Protocol` defines an interface that types can satisfy without explicit inheritance. A class is a subtype of a protocol if it implements all methods/properties defined in the protocol. This enables static duck typing; mypy can check that an object matches the protocol shape.",
+    example: "from typing import Protocol\n\nclass Drawable(Protocol):\n    def draw(self) -> str: ...\n\nclass Circle:\n    def draw(self) -> str:\n        return 'Circle'\n\nclass Square:\n    def draw(self) -> str:\n        return 'Square'\n\nclass Point:\n    pass  # does not implement draw\n\ndef render(obj: Drawable):\n    print(obj.draw())\n\nrender(Circle())\nrender(Square())\n# render(Point())  # mypy error: missing draw method",
+    output: "Circle\\nSquare",
+    note: "Protocols are especially useful for library code to accept a wide range of user types."
+  },
+  {
+    question: "What is the difference between `asyncio.shield()` and `asyncio.wait_for()`?",
+    answer: "`asyncio.wait_for()` sets a timeout on a coroutine; if the timeout expires, it cancels the task and raises `TimeoutError`. `asyncio.shield()` protects a task from being cancelled (the shield is an outer wrapper that passes cancellation to the inner but the inner can ignore it). Use `shield` for critical sections that should not be interrupted.",
+    example: "import asyncio\n\nasync def important_calc():\n    try:\n        await asyncio.sleep(3)\n        return 'result'\n    except asyncio.CancelledError:\n        print('Cancelled')\n        raise\n\nasync def demo():\n    # wait_for will cancel the task\n    try:\n        res = await asyncio.wait_for(important_calc(), timeout=1)\n        print(res)\n    except asyncio.TimeoutError:\n        print('Timeout')\n    \n    # shield prevents cancellation\n    try:\n        task = asyncio.create_task(important_calc())\n        shielded = asyncio.shield(task)\n        res = await asyncio.wait_for(shielded, timeout=1)\n        print(res)\n    except asyncio.TimeoutError:\n        print('Timeout, but task still running')\n        await asyncio.sleep(0.2)\n        print(f'Task cancelled? {task.cancelled()}')\n        await task  # eventually it will complete\n\nasyncio.run(demo())",
+    output: "Timeout\\nTimeout, but task still running\\nTask cancelled? False\\nresult",
+    note: "`shield` does not make the task invincible; it only prevents cancellation of the shield itself."
+  },
+  {
+    question: "Explain the `contextvars` module and its use in async code.",
+    answer: "`contextvars` provides context-local variables scoped to asynchronous tasks. Unlike `threading.local`, they work with asyncio and other concurrency models. They are used in web frameworks to store request‑specific data (e.g., current user) without passing down parameters. Use `ContextVar` to define a variable, `get()` and `set()` to access, and `run()` to execute in a snapshot.",
+    example: "import asyncio\nfrom contextvars import ContextVar\n\nuser_var = ContextVar('user', default='anonymous')\n\nasync def handle_request(user):\n    token = user_var.set(user)\n    await asyncio.sleep(0.1)\n    print(f'Request for {user_var.get()}')\n    user_var.reset(token)\n\nasync def main():\n    await asyncio.gather(\n        handle_request('alice'),\n        handle_request('bob'),\n        handle_request('charlie')\n    )\n\nasyncio.run(main())",
+    output: "Request for alice\\nRequest for bob\\nRequest for charlie",
+    note: "Use `contextvars.copy_context()` to create a snapshot; can be used with callbacks."
+  },
+  {
+    question: "How do you use `typing.TypeVar` and `typing.Generic` for generic classes?",
+    answer: "`TypeVar` defines a variable type, and `Generic` makes a class generic. This allows you to create reusable containers that work with any type while maintaining type safety. The mypy type checker can then infer or check the type parameters.",
+    example: "from typing import TypeVar, Generic, List\n\nT = TypeVar('T')\n\nclass Stack(Generic[T]):\n    def __init__(self) -> None:\n        self._items: List[T] = []\n    \n    def push(self, item: T) -> None:\n        self._items.append(item)\n    \n    def pop(self) -> T:\n        return self._items.pop()\n    \n    def peek(self) -> T:\n        return self._items[-1]\n\n# Type inference\nint_stack = Stack[int]()\nint_stack.push(5)\nint_stack.push(10)\nprint(int_stack.pop())\n\nstr_stack = Stack[str]()\nstr_stack.push('hello')\nstr_stack.push('world')\nprint(str_stack.pop())",
+    output: "10\\nworld",
+    note: "Generic classes can have multiple type parameters: `class Map(Generic[K, V]): ...`"
+  },
+  {
+    question: "What is the purpose of `functools.lru_cache`'s `maxsize` and `typed` parameters?",
+    answer: "`maxsize` sets the maximum number of cached results (LRU eviction). `None` means unlimited but may cause memory issues. `typed` determines whether arguments of different types are cached separately (e.g., `3` and `3.0` are distinct). The decorator is thread‑safe and uses a dictionary.",
+    example: "from functools import lru_cache\n\n@lru_cache(maxsize=2, typed=True)\ndef f(x):\n    print(f'Computing {x}')\n    return x * 2\n\nprint(f(3))\nprint(f(3.0))\nprint(f(4))\nprint(f(3))      # cache hit for int 3\nprint(f(3.0))    # cache hit for float 3.0\nprint(f(5))      # evicts oldest (int 4)\nprint(f(4))      # recompute\nprint(f.cache_info())",
+    output: "Computing 3\\n6\\nComputing 3.0\\n6.0\\nComputing 4\\n8\\n6\\n6.0\\nComputing 5\\n10\\nComputing 4\\n8\\nCacheInfo(hits=2, misses=4, maxsize=2, currsize=2)",
+    note: "`lru_cache` works only on hashable arguments; do not use on functions with side effects."
+  },
+  {
+    question: "Explain multiple inheritance and the diamond problem in Python.",
+    answer: "Python supports multiple inheritance. The diamond problem occurs when a class inherits from two classes that both inherit from the same base class. Python resolves it using the C3 linearization (MRO) which ensures each ancestor is called once in a consistent order. `super()` follows the MRO, so it avoids repeated calls.",
+    example: "class A:\n    def m(self):\n        return 'A'\n\nclass B(A):\n    def m(self):\n        return 'B' + super().m()\n\nclass C(A):\n    def m(self):\n        return 'C' + super().m()\n\nclass D(B, C):\n    def m(self):\n        return 'D' + super().m()\n\nprint(D.mro())\nprint(D().m())",
+    output: "[<class '__main__.D'>, <class '__main__.B'>, <class '__main__.C'>, <class '__main__.A'>, <class 'object'>]\\nDBCA",
+    note: "Use `super()` instead of explicit parent calls to respect MRO."
+  },
+  {
+    question: "What are `__slots__` inheritance restrictions?",
+    answer: "Subclasses don't automatically inherit `__slots__`. If a subclass doesn't define `__slots__`, it will have a `__dict__`. If it does define `__slots__`, it adds new allowed attributes but also inherits parent slots. Multiple inheritance with slots can be tricky; slots from parents are collected together. An empty `__slots__ = ()` allows no new attributes.",
+    example: "class Parent:\n    __slots__ = ('x', 'y')\n    def __init__(self, x, y):\n        self.x = x; self.y = y\n\nclass Child(Parent):\n    __slots__ = ('z',)   # adds 'z', also has 'x','y' from parent\n    def __init__(self, x, y, z):\n        super().__init__(x, y)\n        self.z = z\n\nc = Child(1,2,3)\nprint(c.x, c.y, c.z)\n# c.w = 4  # AttributeError\n\nclass GrandChild(Child):\n    __slots__ = ()   # no new slots, but still has x,y,z because of parent chain\n\ng = GrandChild(1,2,3)\nprint(g.z)",
+    output: "1 2 3\\n3",
+    note: "If you need a dynamic class, avoid slots; they are for memory optimisation."
+  },
+  {
+    question: "How do you use the `dis` module to inspect Python bytecode?",
+    answer: "The `dis` module disassembles Python functions, showing the low‑level bytecode instructions. It helps understand performance nuances, why certain constructs are faster, or to debug code generation. Use `dis.dis(function)` to see bytecode. The output shows operations like `LOAD_FAST`, `BINARY_ADD`, `RETURN_VALUE`.",
+    example: "import dis\n\ndef add(a, b):\n    return a + b\n\ndef loop_sum(n):\n    total = 0\n    for i in range(n):\n        total += i\n    return total\n\nprint('Add function bytecode:')\ndis.dis(add)\n\nprint('\\nLoop sum bytecode:')\ndis.dis(loop_sum)\n\n# Compare list comprehension vs loop\nprint('\\nList comp bytecode:')\ndis.dis('[i**2 for i in range(10)]')",
+    output: "(disassembly output showing bytecode instructions)",
+    note: "Disassemble code objects with `dis.dis(code_object)`; also works on modules and classes."
+  },
+  {
+    question: "What is the purpose of `__post_init__` in dataclasses with inheritance?",
+    answer: "In dataclass inheritance, `__post_init__` of child classes does not automatically call parent `__post_init__`. You must call it explicitly via `super().__post_init__()` if needed. This allows controlled extension of validation or initialisation steps.",
+    example: "from dataclasses import dataclass\n\n@dataclass\nclass Base:\n    x: int\n    def __post_init__(self):\n        print(f'Base: x={self.x}')\n\n@dataclass\nclass Child(Base):\n    y: int\n    def __post_init__(self):\n        super().__post_init__()\n        print(f'Child: y={self.y}')\n\nc = Child(10, 20)",
+    output: "Base: x=10\\nChild: y=20",
+    note: "If you use `field(default=...)`, `__post_init__` also runs after default values are set."
+  },
+  {
+    question: "What are Python's `__prepare__` and metaclass namespaces?",
+    answer: "`__prepare__` is a metaclass method that returns the dictionary used for class namespace before the class body is executed. It allows customising the namespace (e.g., `collections.OrderedDict` to preserve attribute order). This is used in advanced metaprogramming to control class creation.",
+    example: "from collections import OrderedDict\n\nclass OrderedMeta(type):\n    @classmethod\n    def __prepare__(cls, name, bases):\n        return OrderedDict()\n    \n    def __new__(cls, name, bases, ns):\n        print('Namespace order:', list(ns.keys()))\n        return super().__new__(cls, name, bases, ns)\n\nclass MyClass(metaclass=OrderedMeta):\n    def first(self): pass\n    def second(self): pass\n    def third(self): pass\n\nprint(MyClass)",
+    output: "Namespace order: ['__module__', '__qualname__', 'first', 'second', 'third']\\n<class '__main__.MyClass'>",
+    note: "`__prepare__` is rarely needed; it's used in frameworks like Django."
+  },
+  {
+    question: "How do you implement a simple caching decorator with expiration?",
+    answer: "Combine `functools.lru_cache` with `time.time()` to check expiration. Alternatively, store timestamps and clear stale entries. This example uses a dictionary and a maximum age. For production, consider `cachetools` library.",
+    example: "import time\nfrom functools import wraps\n\ndef time_expired_cache(seconds):\n    def decorator(func):\n        cache = {}\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            key = (args, tuple(sorted(kwargs.items())))\n            now = time.time()\n            if key in cache:\n                value, timestamp = cache[key]\n                if now - timestamp < seconds:\n                    return value\n            result = func(*args, **kwargs)\n            cache[key] = (result, now)\n            return result\n        return wrapper\n    return decorator\n\n@time_expired_cache(2)\ndef expensive(x):\n    print(f'Computing {x}')\n    return x * x\n\nprint(expensive(5))\nprint(expensive(5))\ntime.sleep(3)\nprint(expensive(5))",
+    output: "Computing 5\\n25\\n25\\nComputing 5\\n25",
+    note: "Be careful with mutable arguments; use `repr` or `hash` for keys."
+  },
+  {
+    question: "What is the relationship between `__iter__` and `__aiter__`?",
+    answer: "`__iter__` returns a synchronous iterator; `__aiter__` returns an asynchronous iterator. `__aiter__` must be an async method (`async def`). Similarly, `__next__` vs `__anext__` (which returns an awaitable). Use `async for` to iterate over async iterators.",
+    example: "import asyncio\n\nclass AsyncCounter:\n    def __init__(self, limit):\n        self.limit = limit\n        self.count = 0\n    \n    def __aiter__(self):\n        return self\n    \n    async def __anext__(self):\n        if self.count >= self.limit:\n            raise StopAsyncIteration\n        await asyncio.sleep(0.1)\n        self.count += 1\n        return self.count\n\nasync def main():\n    async for num in AsyncCounter(5):\n        print(num)\n\nasyncio.run(main())",
+    output: "1\\n2\\n3\\n4\\n5",
+    note: "Use `async for` only in async functions; the `anext()` built‑in exists but is rarely used directly."
+  },
+  {
+    question: "How do you create an immutable dataclass with `@dataclass`?",
+    answer: "Set `frozen=True`. That makes instances read‑only – any attempt to assign to fields raises `FrozenInstanceError`. Frozen dataclasses are hashable if `unsafe_hash=True` is set or all fields are hashable.",
+    example: "from dataclasses import dataclass\n\n@dataclass(frozen=True)\nclass Point:\n    x: int\n    y: int\n\np = Point(1, 2)\nprint(p)\ntry:\n    p.x = 3\nexcept Exception as e:\n    print(f'Error: {e}')\n\n# Hashable\ns = {Point(1,2), Point(3,4)}\nprint(len(s))",
+    output: "Point(x=1, y=2)\\nError: cannot assign to field 'x'\\n2",
+    note: "Frozen dataclasses don't generate `__hash__` if `eq` is True but `frozen` is True; set `unsafe_hash=True` if needed."
+  },
+  {
+    question: "Explain the `__debug__` built‑in constant and its impact on `assert`.",
+    answer: "`__debug__` is a constant that is `True` when Python runs in normal mode, `False` when run with `-O` (optimize). `assert` statements are compiled away when `__debug__` is `False`, removing all assertions. Use `assert` for debugging and tests, not for runtime data validation.",
+    example: "import sys\n\nprint(f'__debug__ = {__debug__}')\n\ndef divide(a, b):\n    assert b != 0, 'Division by zero'\n    return a / b\n\nprint(divide(10, 2))\n# If run with `python -O`, the assert line is removed.\n\nif __debug__:\n    print('Debug mode: extra checks enabled')",
+    output: "__debug__ = True\\n5.0\\nDebug mode: extra checks enabled",
+    note: "Never use `assert` for security or input validation because it can be disabled."
+  },
+  {
+    question: "What are `__match_args__` and how do they relate to structural pattern matching?",
+    answer: "`__match_args__` defines the order of attributes for positional pattern matching in `match/case`. When you write `case Point(x, y):`, Python looks for `Point.__match_args__` to know which attributes correspond to `x` and `y`. This allows classes to support positional deconstruction without `__slots__` or inheritance.",
+    example: "class Point:\n    __match_args__ = ('x', 'y')\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\ndef describe(point):\n    match point:\n        case Point(0, 0):\n            return 'Origin'\n        case Point(0, y):\n            return f'On Y axis at y={y}'\n        case Point(x, 0):\n            return f'On X axis at x={x}'\n        case Point(x, y):\n            return f'Point({x},{y})'\n\np1 = Point(0,5)\np2 = Point(3,0)\nprint(describe(p1))\nprint(describe(p2))",
+    output: "On Y axis at y=5\\nOn X axis at x=3",
+    note: "`__match_args__` is ignored for `dataclass` (they auto‑generate it) and for `namedtuple`."
+  }
+
+
   ]
 };
 

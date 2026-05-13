@@ -303,7 +303,7 @@ type Result = { success: true; data: any } | { success: false; error: string };`
           "Line 46-48: Union type - Types can define unions, interfaces cannot"
         ],
         simpleMeaning: "Types and interfaces are similar but interfaces are better for objects and can be extended; types are better for unions and primitives.",
-        output: "Use interface for object shapes, type for unions, primitives, and complex type operations",
+        output: "Use interface for object shapes, type for unions, tuples, and complex type operations",
         note: "Prefer interface for object shapes that might be extended. Use type for unions, tuples, and primitives."
       },
       {
@@ -1041,6 +1041,780 @@ type Route2 = ParseRoute<'/api/products'>; // { resource: 'products' }`,
         simpleMeaning: "Template literal types create new string types by combining strings, unions, and inferred parts.",
         output: "ColorSize creates all color-size combinations; ParseRoute extracts parts from URL patterns",
         note: "Template literal types are powerful for string validation and transformation utilities."
+      },
+      {
+        name: "6. Decorators",
+        description: "Decorators provide a way to add annotations and meta-programming syntax for class declarations and members. They are a stage 2 proposal for JavaScript and available as an experimental feature in TypeScript.",
+        code: `// Enable decorators in tsconfig.json:
+// {
+//   "compilerOptions": {
+//     "experimentalDecorators": true,
+//     "emitDecoratorMetadata": true
+//   }
+// }
+
+// 1. Class decorator
+function sealed(constructor: Function) {
+  Object.seal(constructor);
+  Object.seal(constructor.prototype);
+}
+
+@sealed
+class Greeter {
+  greeting: string;
+  constructor(message: string) {
+    this.greeting = message;
+  }
+  greet() {
+    return "Hello, " + this.greeting;
+  }
+}
+
+// 2. Method decorator
+function enumerable(value: boolean) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    descriptor.enumerable = value;
+  };
+}
+
+class Person {
+  name: string;
+  constructor(name: string) {
+    this.name = name;
+  }
+  
+  @enumerable(false)
+  getName() {
+    return this.name;
+  }
+}
+
+// 3. Property decorator
+function format(formatString: string) {
+  return function (target: any, propertyKey: string) {
+    let value = target[propertyKey];
+    
+    const getter = function () {
+      return \`\${formatString} \${value}\`;
+    };
+    
+    const setter = function (newVal: any) {
+      value = newVal;
+    };
+    
+    Object.defineProperty(target, propertyKey, {
+      get: getter,
+      set: setter,
+      enumerable: true,
+      configurable: true
+    });
+  };
+}
+
+class User {
+  @format("Mr.")
+  name: string;
+  
+  constructor(name: string) {
+    this.name = name;
+  }
+}
+
+// 4. Parameter decorator
+function required(target: any, propertyKey: string, parameterIndex: number) {
+  console.log(\`Parameter \${parameterIndex} of \${propertyKey} is required\`);
+}
+
+class Example {
+  greet(@required name: string) {
+    return \`Hello \${name}\`;
+  }
+}
+
+// 5. Decorator factory with parameters
+function log(prefix: string) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+    const originalMethod = descriptor.value;
+    
+    descriptor.value = function (...args: any[]) {
+      console.log(\`\${prefix} Calling \${propertyKey} with args: \${JSON.stringify(args)}\`);
+      const result = originalMethod.apply(this, args);
+      console.log(\`\${prefix} Result: \${result}\`);
+      return result;
+    };
+    
+    return descriptor;
+  };
+}
+
+class Calculator {
+  @log("DEBUG")
+  add(a: number, b: number): number {
+    return a + b;
+  }
+}
+
+const calc = new Calculator();
+calc.add(5, 3); // Logs the call and result`,
+        lineByLine: [
+          "Line 2-7: tsconfig.json - Enable experimentalDecorators",
+          "Line 10-15: Class decorator - Seals the class constructor and prototype",
+          "Line 17-22: @sealed - Applies class decorator",
+          "Line 25-30: Method decorator - Changes enumerable property of a method",
+          "Line 33-38: @enumerable - Applies method decorator",
+          "Line 41-57: Property decorator - Formats property value with getter/setter",
+          "Line 60-66: @format - Applies property decorator",
+          "Line 69-75: Parameter decorator - Logs parameter index",
+          "Line 78-92: Decorator factory - Logs method calls with custom prefix",
+          "Line 95-99: @log - Applies method decorator factory"
+        ],
+        simpleMeaning: "Decorators are special declarations that can be attached to classes, methods, properties, or parameters to modify their behavior.",
+        output: "Class can be sealed; method can be hidden from enumeration; property can be formatted; method calls can be logged.",
+        note: "Decorators are experimental and may change in future ECMAScript versions. They are heavily used in frameworks like Angular and NestJS."
+      },
+      {
+        name: "7. Declaration Merging",
+        description: "Declaration merging allows multiple declarations with the same name to be combined into a single definition. This is most powerful for interfaces and namespaces.",
+        code: `// ========== INTERFACE MERGING ==========
+interface Box {
+  height: number;
+  width: number;
+}
+
+// Second declaration merges with the first
+interface Box {
+  scale: number;
+}
+
+const box: Box = { height: 10, width: 20, scale: 0.5 };
+
+// Interface merging with function overloading
+interface Document {
+  createElement(tagName: any): Element;
+}
+
+interface Document {
+  createElement(tagName: "div"): HTMLDivElement;
+  createElement(tagName: "span"): HTMLSpanElement;
+}
+
+// ========== NAMESPACE MERGING ==========
+namespace Validators {
+  export interface StringValidator {
+    isAcceptable(s: string): boolean;
+  }
+}
+
+namespace Validators {
+  export const numberRegexp = /^[0-9]+$/;
+  
+  export class ZipCodeValidator implements StringValidator {
+    isAcceptable(s: string) {
+      return s.length === 5 && numberRegexp.test(s);
+    }
+  }
+}
+
+// ========== NAMESPACE WITH CLASS MERGING ==========
+class Album {
+  label: string;
+}
+
+namespace Album {
+  export const defaultAlbum = new Album();
+}
+Album.defaultAlbum.label = "Greatest Hits";
+
+// ========== NAMESPACE WITH FUNCTION MERGING ==========
+function buildLabel(name: string): string {
+  return buildLabel.prefix + name;
+}
+
+namespace buildLabel {
+  export const prefix = "Hello, ";
+}
+
+console.log(buildLabel("John")); // "Hello, John"
+
+// ========== NAMESPACE WITH ENUM MERGING ==========
+enum Color {
+  Red = 1,
+  Green = 2,
+}
+
+namespace Color {
+  export function mix(color1: Color, color2: Color): Color {
+    return color1 + color2;
+  }
+}
+
+// Now you can use Color.mix along with enum values
+
+// ========== GLOBAL AUGMENTATION ==========
+// Augmenting global types (e.g., adding a property to Window)
+interface Window {
+  myCustomProperty: string;
+}
+
+// Now you can assign: window.myCustomProperty = "value";
+
+// ========== MODULE AUGMENTATION ==========
+// Given a module './observable' that exports Observable<T>
+// You can augment it:
+declare module './observable' {
+  interface Observable<T> {
+    map<U>(f: (x: T) => U): Observable<U>;
+  }
+}
+
+// Then import and use the augmented method`,
+        lineByLine: [
+          "Line 2-6: First Box interface - Defines height and width",
+          "Line 9-11: Second Box interface - Adds scale property, merged with first",
+          "Line 13: box object - Must include all properties from merged interface",
+          "Line 16-20: Function overload merging - Adds more specific overloads",
+          "Line 23-37: Namespace merging - Extends Validators namespace with new types",
+          "Line 40-45: Class + namespace merging - Adds static property to class",
+          "Line 48-55: Function + namespace merging - Adds static property to function",
+          "Line 58-67: Enum + namespace merging - Adds static method to enum",
+          "Line 70-77: Global augmentation - Adding properties to global interfaces",
+          "Line 80-88: Module augmentation - Extending module types externally"
+        ],
+        simpleMeaning: "Declaration merging lets you combine multiple declarations of the same name into one. This is how TypeScript extends built-in types and libraries.",
+        output: "Interfaces automatically merge; namespaces can be spread across files; you can augment existing modules.",
+        note: "Declaration merging is mostly used for augmenting third-party libraries or splitting large interfaces across files."
+      },
+      {
+        name: "8. Modules & Namespaces",
+        description: "TypeScript modules (ES modules) and namespaces provide different ways to organize code. Modules are preferred for modern applications.",
+        code: `// ========== ES MODULES (Recommended) ==========
+// math.ts
+export function add(a: number, b: number): number {
+  return a + b;
+}
+
+export const PI = 3.14159;
+
+export interface Calculator {
+  multiply(a: number, b: number): number;
+}
+
+export default class MathUtils {
+  static subtract(a: number, b: number): number {
+    return a - b;
+  }
+}
+
+// app.ts - Importing
+import MathUtils, { add, PI, Calculator } from './math.js';
+
+class MyCalc implements Calculator {
+  multiply(a: number, b: number): number {
+    return a * b;
+  }
+}
+
+console.log(add(2, 3)); // 5
+console.log(PI); // 3.14159
+
+// ========== NAMESPACES (Legacy, mainly for global code) ==========
+namespace Geometry {
+  export interface Point {
+    x: number;
+    y: number;
+  }
+  
+  export function distance(a: Point, b: Point): number {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  
+  export namespace Utils {
+    export function midpoint(p1: Point, p2: Point): Point {
+      return {
+        x: (p1.x + p2.x) / 2,
+        y: (p1.y + p2.y) / 2
+      };
+    }
+  }
+}
+
+// Using namespace
+const p1: Geometry.Point = { x: 0, y: 0 };
+const p2: Geometry.Point = { x: 3, y: 4 };
+const dist = Geometry.distance(p1, p2);
+const mid = Geometry.Utils.midpoint(p1, p2);
+
+// ========== AMBIENT MODULES (declare module) ==========
+// For third-party libraries without types
+declare module 'some-library' {
+  export function doSomething(param: string): number;
+}
+
+// Then you can import it (even without actual types)
+// import { doSomething } from 'some-library';
+
+// ========== PATH MAPPING (tsconfig.json) ==========
+// {
+//   "compilerOptions": {
+//     "baseUrl": ".",
+//     "paths": {
+//       "@utils/*": ["src/utils/*"],
+//       "@models/*": ["src/models/*"]
+//     }
+//   }
+// }
+
+// Then you can import using the alias:
+// import { helper } from '@utils/helper';
+
+// ========== RE-EXPORTING ==========
+// features/index.ts
+export * from './feature1.js';
+export { specialFunction } from './feature2.js';
+
+// ========== DYNAMIC IMPORTS ==========
+async function loadModule() {
+  const module = await import('./heavyModule.js');
+  module.heavyFunction();
+}`,
+        lineByLine: [
+          "Line 2-14: ES module exports - Named exports and default export",
+          "Line 17-23: ES module imports - Default, named, and namespace imports",
+          "Line 26-44: Namespace - Legacy way to organize code, can be nested",
+          "Line 47-52: Ambient module declaration - For libraries without type definitions",
+          "Line 55-64: Path mapping - Configuring import aliases in tsconfig.json",
+          "Line 67-69: Re-exporting - Aggregating exports from multiple files",
+          "Line 72-76: Dynamic imports - Lazy loading modules at runtime"
+        ],
+        simpleMeaning: "Modules are the modern way to organize TypeScript code. Use 'export' and 'import' keywords. Namespaces are older but still useful for global scripts.",
+        output: "Code can be split into multiple files; aliases simplify imports; dynamic imports enable code splitting.",
+        note: "Use ES modules for all new code. Avoid namespaces unless you are working with legacy global code. Configure path aliases for cleaner imports."
+      },
+      {
+        name: "9. TypeScript with React",
+        description: "Using TypeScript with React provides type safety for props, state, hooks, and event handlers.",
+        code: `// ========== BASIC FUNCTIONAL COMPONENT ==========
+// components/Button.tsx
+import React from 'react';
+
+interface ButtonProps {
+  label: string;
+  onClick: () => void;
+  variant?: 'primary' | 'secondary';
+  disabled?: boolean;
+}
+
+export const Button: React.FC<ButtonProps> = ({ 
+  label, 
+  onClick, 
+  variant = 'primary',
+  disabled = false 
+}) => {
+  return (
+    <button 
+      className={\`btn btn-\${variant}\`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {label}
+    </button>
+  );
+};
+
+// ========== COMPONENT WITH CHILDREN ==========
+interface CardProps {
+  title: string;
+  children: React.ReactNode;
+  footer?: React.ReactElement;
+}
+
+const Card: React.FC<CardProps> = ({ title, children, footer }) => {
+  return (
+    <div className="card">
+      <h2>{title}</h2>
+      <div>{children}</div>
+      {footer && <div className="card-footer">{footer}</div>}
+    </div>
+  );
+};
+
+// ========== USESTATE WITH TYPES ==========
+import { useState } from 'react';
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+const UserProfile: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | undefined>();
+  
+  // TypeScript infers the type of 'count' as number
+  const [count, setCount] = useState(0);
+  
+  return <div>{user?.name}</div>;
+};
+
+// ========== USEEFFECT WITH TYPES ==========
+useEffect(() => {
+  let isMounted = true;
+  
+  fetchUser()
+    .then(data => {
+      if (isMounted) setUser(data);
+    })
+    .catch(err => setError(err.message));
+    
+  return () => { isMounted = false };
+}, []); // Empty dependency array
+
+// ========== USECALLBACK / USEMEMO ==========
+const handleLogin = useCallback((email: string, password: string) => {
+  // login logic
+}, []);
+
+const memoizedValue = useMemo(() => expensiveCalculation(user), [user]);
+
+// ========== USECONTEXT WITH TYPES ==========
+interface ThemeContextType {
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+}
+
+const ThemeContext = React.createContext<ThemeContextType | undefined>(undefined);
+
+const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+const useTheme = () => {
+  const context = React.useContext(ThemeContext);
+  if (!context) throw new Error('useTheme must be used within ThemeProvider');
+  return context;
+};
+
+// ========== EVENT HANDLERS ==========
+const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  console.log(e.target.value);
+};
+
+const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  e.preventDefault();
+  console.log('clicked');
+};
+
+const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  // form submission
+};
+
+// ========== FORWARDING REFS ==========
+interface FancyInputProps {
+  placeholder?: string;
+}
+
+const FancyInput = React.forwardRef<HTMLInputElement, FancyInputProps>(
+  (props, ref) => {
+    return <input ref={ref} {...props} />;
+  }
+);
+
+// ========== CUSTOM HOOK WITH TYPES ==========
+function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T) => void] {
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+  
+  const setValue = (value: T) => {
+    try {
+      setStoredValue(value);
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+  return [storedValue, setValue];
+}
+
+// Usage:
+const [token, setToken] = useLocalStorage<string>('auth-token', '');
+
+// ========== GENERIC COMPONENT ==========
+interface ListProps<T> {
+  items: T[];
+  renderItem: (item: T) => React.ReactNode;
+}
+
+function List<T>({ items, renderItem }: ListProps<T>) {
+  return <ul>{items.map(renderItem)}</ul>;
+}
+
+// Usage:
+<List items={[{ id: 1, name: 'John' }]} renderItem={(user) => <li key={user.id}>{user.name}</li>} />`,
+        lineByLine: [
+          "Line 4-12: ButtonProps interface - Defines props with optional variants",
+          "Line 15-25: Button component - React.FC with typed props",
+          "Line 28-40: Card with children - React.ReactNode type for children",
+          "Line 43-58: useState - Union types and optional types for state",
+          "Line 61-70: useEffect - Cleanup function and error handling",
+          "Line 73-86: useCallback/useMemo - Preserving function identity",
+          "Line 89-114: Context - Creating typed context with custom hook",
+          "Line 117-125: Event handlers - React.ChangeEvent, MouseEvent, FormEvent",
+          "Line 128-135: forwardRef - Typing refs in React",
+          "Line 138-158: Custom hook - Generic useLocalStorage hook",
+          "Line 161-171: Generic component - List component that works with any type"
+        ],
+        simpleMeaning: "TypeScript with React ensures type safety for component props, state, hooks, and event handlers, catching errors early.",
+        output: "Fully typed React components with autocompletion and compile-time type checking for props, state, and events.",
+        note: "Always type component props. Use React.FC for components with children. For custom hooks, use generics when needed."
+      },
+      {
+        name: "10. Advanced Compiler Configuration",
+        description: "Fine-tuning the tsconfig.json file to control type checking, module resolution, output, and strictness.",
+        code: `{
+  "compilerOptions": {
+    // Basic Options
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "removeComments": true,
+    "noEmit": false,
+    "importHelpers": true,
+    "downlevelIteration": true,
+    "isolatedModules": true,
+    
+    // Strict Type-Checking Options
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
+    
+    // Additional Checks
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "exactOptionalPropertyTypes": true,
+    
+    // Module Resolution
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"],
+      "@utils/*": ["./src/utils/*"]
+    },
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    
+    // Source Maps
+    "sourceMap": true,
+    "inlineSourceMap": false,
+    "sourceRoot": "/",
+    
+    // Experimental
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    
+    // Advanced
+    "skipLibCheck": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    "incremental": true,
+    "tsBuildInfoFile": ".tsbuildinfo",
+    "preserveConstEnums": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"],
+  "references": [
+    { "path": "../shared" }
+  ]
+}`,
+        lineByLine: [
+          "Line 2-13: Basic Options - Target, module, output directories",
+          "Line 16-27: Strict Options - Enables full type safety",
+          "Line 30-37: Additional Checks - Catch common mistakes",
+          "Line 40-50: Module Resolution - Path aliases, interop",
+          "Line 53-55: Source Maps - Debugging support",
+          "Line 58-59: Experimental Features - Decorators",
+          "Line 62-69: Advanced Options - Declaration files, incremental builds",
+          "Line 72-74: Project References - Multi-project builds"
+        ],
+        simpleMeaning: "tsconfig.json controls how TypeScript compiles your code. Adjust strictness, module resolution, output, and more.",
+        output: "Fine-tuned compilation settings for production, development, or library publishing.",
+        note: "Start with 'strict': true. Use 'paths' for cleaner imports. Enable 'noUncheckedIndexedAccess' for safer array access."
+      },
+      {
+        name: "11. Advanced Type Guards & Assertion Functions",
+        description: "User-defined type guards and assertion functions allow you to narrow types in complex ways.",
+        code: `// ========== SIMPLE CUSTOM TYPE GUARD ==========
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+function processValue(value: string | number) {
+  if (isString(value)) {
+    // value is string here
+    console.log(value.toUpperCase());
+  } else {
+    // value is number here
+    console.log(value.toFixed(2));
+  }
+}
+
+// ========== TYPE GUARD WITH OBJECT SHAPE ==========
+interface Dog {
+  bark(): void;
+  name: string;
+}
+
+interface Cat {
+  meow(): void;
+  name: string;
+}
+
+function isDog(pet: Dog | Cat): pet is Dog {
+  return (pet as Dog).bark !== undefined;
+}
+
+function playWithPet(pet: Dog | Cat) {
+  if (isDog(pet)) {
+    pet.bark();
+  } else {
+    pet.meow();
+  }
+}
+
+// ========== ASSERTION FUNCTIONS ==========
+function assert(condition: any, msg?: string): asserts condition {
+  if (!condition) {
+    throw new Error(msg);
+  }
+}
+
+function processString(value: unknown) {
+  assert(typeof value === 'string', 'Value must be a string');
+  // TypeScript now knows 'value' is string
+  console.log(value.toLowerCase());
+}
+
+// ========== ASSERTION WITH GENERIC ==========
+function assertIsNumber(val: unknown): asserts val is number {
+  if (typeof val !== 'number') {
+    throw new Error(\`Expected number, got \${typeof val}\`);
+  }
+}
+
+function doubleValue(x: unknown) {
+  assertIsNumber(x);
+  // x is number here
+  return x * 2;
+}
+
+// ========== ASSERT EXACT TYPE ==========
+class MyError extends Error {
+  code: number;
+  constructor(msg: string, code: number) {
+    super(msg);
+    this.code = code;
+  }
+}
+
+function isMyError(error: Error): error is MyError {
+  return error instanceof MyError;
+}
+
+function handleError(error: Error) {
+  if (isMyError(error)) {
+    console.log(\`Custom error code: \${error.code}\`);
+  } else {
+    console.log(error.message);
+  }
+}
+
+// ========== TYPE GUARD FOR DISCRIMINATED UNIONS ==========
+interface Square {
+  kind: 'square';
+  size: number;
+}
+
+interface Circle {
+  kind: 'circle';
+  radius: number;
+}
+
+type Shape = Square | Circle;
+
+function isSquare(shape: Shape): shape is Square {
+  return shape.kind === 'square';
+}
+
+function area(shape: Shape) {
+  if (isSquare(shape)) {
+    return shape.size * shape.size;
+  } else {
+    return Math.PI * shape.radius ** 2;
+  }
+}
+
+// ========== ASSERTION FUNCTION FOR NON-NULL ==========
+function assertNonNullish<T>(value: T, message?: string): asserts value is NonNullable<T> {
+  if (value === null || value === undefined) {
+    throw new Error(message || 'Value is null or undefined');
+  }
+}
+
+let maybeString: string | null = 'hello';
+assertNonNullish(maybeString);
+// maybeString is now string
+console.log(maybeString.length);`,
+        lineByLine: [
+          "Line 2-5: isString - Type guard using 'value is string' syntax",
+          "Line 8-14: processValue - Uses type guard to narrow union",
+          "Line 17-27: Dog/Cat interfaces - Discriminated by method presence",
+          "Line 29-31: isDog - Type guard checking for bark method",
+          "Line 38-41: assert - Simple assertion function",
+          "Line 44-48: processString - Assertion narrows type",
+          "Line 51-54: assertIsNumber - Generic assertion with type predicate",
+          "Line 57-61: doubleValue - Correctly narrows after assertion",
+          "Line 64-70: MyError - Custom error class",
+          "Line 72-74: isMyError - Type guard for custom error",
+          "Line 81-96: Discriminated union guard - Using 'kind' property",
+          "Line 99-104: assertNonNullish - Asserts value is not null/undefined"
+        ],
+        simpleMeaning: "Advanced type guards and assertion functions let you teach TypeScript about your runtime checks, narrowing types more precisely.",
+        output: "Custom validation functions that both throw errors and inform TypeScript about the resulting type.",
+        note: "Use assertion functions for validation that throws. Use type guards for conditional narrowing. They are invaluable for parsing unknown data."
       }
     ]
   }

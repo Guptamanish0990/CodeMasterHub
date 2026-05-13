@@ -2952,7 +2952,1342 @@ function App() {
         simpleMeaning: "React-Bootstrap provides Bootstrap components as true React components with props, state, and no jQuery dependency.",
         output: "Fully functional React components with Bootstrap styling that work seamlessly with React's component model.",
         note: "Import only needed components for better performance. Use React state for component visibility. No jQuery needed. TypeScript definitions included."
+      },
+      {
+  name: "6. Bootstrap with Next.js Integration",
+  description: "Complete guide to using Bootstrap 5 with Next.js App Router, including SSR compatibility and optimization.",
+  explanation: `🎯 WHY NEXT.JS + BOOTSTRAP?
+Next.js provides server-side rendering, static generation, and optimal performance. Combining with Bootstrap gives you a powerful UI framework.
+
+🔧 CHALLENGES WITH SSR:
+- Bootstrap JS requires browser APIs
+- CSS imports need proper handling
+- Component hydration mismatches
+- Dynamic imports for client components
+
+📦 INSTALLATION FOR NEXT.JS:
+npm install bootstrap react-bootstrap
+npm install @popperjs/core (for tooltips/popovers)
+
+📁 NEXT.JS APP ROUTER STRUCTURE:
+- 'use client' directive for interactive components
+- Bootstrap CSS imported in layout or component
+- Dynamic imports for heavy components
+- Lazy loading for modals/tooltips
+
+🎨 CSS STRATEGIES:
+1. Global import in layout.tsx
+2. CSS Modules for scoped styling
+3. Sass import for customization
+4. Dynamic CSS loading
+
+⚡ PERFORMANCE TIPS:
+- Use next/dynamic for large components
+- Prefetch Bootstrap CSS
+- Tree-shake unused components
+- Use CDN for production
+
+🔄 HYDRATION BEST PRACTICES:
+- Suppress hydration warnings
+- Use useEffect for client-only code
+- Dynamic imports with ssr: false
+- State initialization patterns`,
+  code: `// ========== PART 1: NEXT.JS SETUP WITH BOOTSTRAP ==========
+// app/layout.tsx
+import type { Metadata } from 'next';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Next.js Bootstrap App',
+  description: 'Bootstrap 5 with Next.js',
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        {children}
+      </body>
+    </html>
+  );
+}
+
+// ========== PART 2: CLIENT COMPONENTS WITH BOOTSTRAP ==========
+// app/components/BootstrapNavbar.tsx
+'use client';
+
+import { useState } from 'react';
+import { Navbar, Nav, NavDropdown, Container, Button } from 'react-bootstrap';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+
+export default function BootstrapNavbar() {
+  const [expanded, setExpanded] = useState(false);
+  const pathname = usePathname();
+
+  return (
+    <Navbar 
+      bg="dark" 
+      variant="dark" 
+      expand="lg" 
+      expanded={expanded}
+      onToggle={() => setExpanded(!expanded)}
+      className="mb-4"
+    >
+      <Container>
+        <Navbar.Brand as={Link} href="/">
+          Next.js + Bootstrap
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="me-auto" activeKey={pathname}>
+            <Nav.Link as={Link} href="/" eventKey="/">
+              Home
+            </Nav.Link>
+            <Nav.Link as={Link} href="/about" eventKey="/about">
+              About
+            </Nav.Link>
+            <Nav.Link as={Link} href="/contact" eventKey="/contact">
+              Contact
+            </Nav.Link>
+            <NavDropdown title="Services" id="services-dropdown">
+              <NavDropdown.Item as={Link} href="/services/web">
+                Web Development
+              </NavDropdown.Item>
+              <NavDropdown.Item as={Link} href="/services/mobile">
+                Mobile Apps
+              </NavDropdown.Item>
+              <NavDropdown.Divider />
+              <NavDropdown.Item as={Link} href="/services/consulting">
+                Consulting
+              </NavDropdown.Item>
+            </NavDropdown>
+          </Nav>
+          <Button variant="outline-light">Login</Button>
+        </Navbar.Collapse>
+      </Container>
+    </Navbar>
+  );
+}
+
+// ========== PART 3: SERVER COMPONENT WITH CLIENT COMPONENTS ==========
+// app/page.tsx (Server Component)
+import BootstrapNavbar from '@/components/BootstrapNavbar';
+import BootstrapCarousel from '@/components/BootstrapCarousel';
+import { Card, Container, Row, Col } from 'react-bootstrap';
+
+// Server component can fetch data
+async function getProducts() {
+  const res = await fetch('https://api.example.com/products', {
+    next: { revalidate: 3600 }
+  });
+  return res.json();
+}
+
+export default async function HomePage() {
+  const products = await getProducts();
+  
+  return (
+    <>
+      <BootstrapNavbar />
+      
+      <Container className="py-4">
+        <BootstrapCarousel />
+        
+        <h2 className="mt-5 mb-4">Featured Products</h2>
+        <Row xs={1} md={2} lg={4} className="g-4">
+          {products.slice(0, 4).map((product: any) => (
+            <Col key={product.id}>
+              <Card className="h-100 shadow-sm">
+                <Card.Img 
+                  variant="top" 
+                  src={product.image} 
+                  alt={product.name}
+                  style={{ height: '200px', objectFit: 'cover' }}
+                />
+                <Card.Body>
+                  <Card.Title>{product.name}</Card.Title>
+                  <Card.Text>{product.description}</Card.Text>
+                  <Button variant="primary">View Details</Button>
+                </Card.Body>
+              </Card>
+            </Col>
+          ))}
+        </Row>
+      </Container>
+    </>
+  );
+}
+
+// ========== PART 4: DYNAMIC IMPORTS FOR CLIENT COMPONENTS ==========
+// app/components/ClientModal.tsx
+'use client';
+
+import { useState } from 'react';
+import { Modal, Button } from 'react-bootstrap';
+
+export default function ClientModal() {
+  const [show, setShow] = useState(false);
+  
+  return (
+    <>
+      <Button variant="primary" onClick={() => setShow(true)}>
+        Launch Modal
+      </Button>
+      
+      <Modal show={show} onHide={() => setShow(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Modal Title</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>This modal loads client-side only!</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={() => setShow(false)}>
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
+  );
+}
+
+// app/page.tsx - using dynamic import
+import dynamic from 'next/dynamic';
+
+// Load modal component only on client side
+const ClientModal = dynamic(() => import('@/components/ClientModal'), {
+  ssr: false, // Don't render on server
+  loading: () => <Button disabled>Loading Modal...</Button>
+});
+
+export default function Page() {
+  return (
+    <div>
+      <h1>Dynamic Import Example</h1>
+      <ClientModal />
+    </div>
+  );
+}
+
+// ========== PART 5: BOOTSTRAP WITH SERVER ACTIONS ==========
+// app/actions/formActions.ts
+'use server';
+
+import { z } from 'zod';
+import { redirect } from 'next/navigation';
+
+const contactSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  message: z.string().min(10)
+});
+
+export async function submitContactForm(formData: FormData) {
+  const validatedFields = contactSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    message: formData.get('message')
+  });
+  
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+      message: 'Validation failed'
+    };
+  }
+  
+  // Process form data
+  const { name, email, message } = validatedFields.data;
+  
+  // Save to database or send email
+  console.log({ name, email, message });
+  
+  redirect('/thank-you');
+}
+
+// app/contact/page.tsx
+'use client';
+
+import { useFormState } from 'react-dom';
+import { submitContactForm } from '../actions/formActions';
+import { Form, Button, Alert } from 'react-bootstrap';
+
+const initialState = {
+  message: '',
+  errors: null
+};
+
+export default function ContactPage() {
+  const [state, formAction] = useFormState(submitContactForm, initialState);
+  
+  return (
+    <div className="container py-5">
+      <h1 className="mb-4">Contact Us</h1>
+      
+      {state.message && (
+        <Alert variant="danger">{state.message}</Alert>
+      )}
+      
+      <Form action={formAction}>
+        <Form.Group className="mb-3">
+          <Form.Label>Name</Form.Label>
+          <Form.Control 
+            type="text" 
+            name="name" 
+            isInvalid={!!state.errors?.name}
+          />
+          <Form.Control.Feedback type="invalid">
+            {state.errors?.name}
+          </Form.Control.Feedback>
+        </Form.Group>
+        
+        <Form.Group className="mb-3">
+          <Form.Label>Email</Form.Label>
+          <Form.Control 
+            type="email" 
+            name="email"
+            isInvalid={!!state.errors?.email}
+          />
+          <Form.Control.Feedback type="invalid">
+            {state.errors?.email}
+          </Form.Control.Feedback>
+        </Form.Group>
+        
+        <Form.Group className="mb-3">
+          <Form.Label>Message</Form.Label>
+          <Form.Control 
+            as="textarea" 
+            rows={5}
+            name="message"
+            isInvalid={!!state.errors?.message}
+          />
+          <Form.Control.Feedback type="invalid">
+            {state.errors?.message}
+          </Form.Control.Feedback>
+        </Form.Group>
+        
+        <Button type="submit" variant="primary">
+          Send Message
+        </Button>
+      </Form>
+    </div>
+  );
+}
+
+// ========== PART 6: CUSTOM BOOTSTRAP THEMING WITH NEXT.JS ==========
+// app/styles/bootstrap-custom.scss
+// Custom Bootstrap variables
+$primary: #4361ee;
+$secondary: #6c757d;
+$success: #06ffa5;
+$danger: #ef233c;
+$warning: #ffb703;
+$info: #00b4d8;
+
+$font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+$border-radius: 0.5rem;
+$border-radius-lg: 0.75rem;
+$border-radius-sm: 0.375rem;
+
+$box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+
+// Import Bootstrap
+@import 'bootstrap/scss/bootstrap';
+
+// app/layout.tsx - import custom theme
+import './styles/bootstrap-custom.scss';
+
+// ========== PART 7: LAZY LOADING BOOTSTRAP COMPONENTS ==========
+// app/components/LazyCarousel.tsx
+'use client';
+
+import dynamic from 'next/dynamic';
+import { Spinner } from 'react-bootstrap';
+
+// Lazy load heavy carousel component
+const CarouselComponent = dynamic(
+  () => import('react-bootstrap/Carousel'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="text-center py-5">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-2">Loading carousel...</p>
+      </div>
+    )
+  }
+);
+
+export default function LazyCarousel({ items }: { items: any[] }) {
+  return (
+    <CarouselComponent>
+      {items.map((item, idx) => (
+        <CarouselComponent.Item key={idx}>
+          <img
+            className="d-block w-100"
+            src={item.image}
+            alt={item.title}
+            style={{ height: '400px', objectFit: 'cover' }}
+          />
+          <CarouselComponent.Caption>
+            <h3>{item.title}</h3>
+            <p>{item.description}</p>
+          </CarouselComponent.Caption>
+        </CarouselComponent.Item>
+      ))}
+    </CarouselComponent>
+  );
+}
+
+// ========== PART 8: BOOTSTRAP WITH NEXT.JS MIDDLEWARE ==========
+// middleware.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+export function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+  
+  // Add Bootstrap-related headers
+  response.headers.set('X-Bootstrap-Version', '5.3.0');
+  response.headers.set('X-Using-CDN', 'true');
+  
+  return response;
+}
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+};
+
+// ========== PART 9: PERFORMANCE OPTIMIZATION ==========
+// next.config.js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: ['cdn.example.com', 'images.unsplash.com'],
+  },
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  experimental: {
+    optimizePackageImports: ['react-bootstrap', 'bootstrap'],
+  },
+  // Custom webpack config for Bootstrap optimization
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
+  },
+};
+
+module.exports = nextConfig;
+
+// ========== PART 10: BOOTSTRAP WITH NEXT.JS APP ROUTER - COMPLETE EXAMPLE ==========
+// app/dashboard/layout.tsx (Group layout)
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="dashboard-layout">
+      <aside className="sidebar bg-dark text-white vh-100 p-3">
+        <h4>Dashboard</h4>
+        <nav className="nav flex-column">
+          <a href="/dashboard" className="nav-link text-white">Overview</a>
+          <a href="/dashboard/analytics" className="nav-link text-white">Analytics</a>
+          <a href="/dashboard/settings" className="nav-link text-white">Settings</a>
+        </nav>
+      </aside>
+      <main className="main-content p-4">
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// app/dashboard/page.tsx
+'use client';
+
+import { Row, Col, Card, Table, Badge, Button } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+
+export default function DashboardPage() {
+  const [stats, setStats] = useState({
+    users: 0,
+    revenue: 0,
+    orders: 0
+  });
+  
+  useEffect(() => {
+    // Fetch dashboard data
+    fetch('/api/dashboard/stats')
+      .then(res => res.json())
+      .then(setStats);
+  }, []);
+  
+  return (
+    <div>
+      <h1 className="mb-4">Dashboard Overview</h1>
+      
+      <Row className="g-4 mb-5">
+        <Col md={4}>
+          <Card className="text-center shadow-sm">
+            <Card.Body>
+              <h6 className="text-muted">Total Users</h6>
+              <h2 className="display-4">\${stats.users.toLocaleString()}</h2>
+              <Badge bg="success">+12% from last month</Badge>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="text-center shadow-sm">
+            <Card.Body>
+              <h6 className="text-muted">Revenue</h6>
+              <h2 className="display-4">$\${stats.revenue.toLocaleString()}</h2>
+              <Badge bg="success">+8% from last month</Badge>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={4}>
+          <Card className="text-center shadow-sm">
+            <Card.Body>
+              <h6 className="text-muted">Total Orders</h6>
+              <h2 className="display-4">\${stats.orders.toLocaleString()}</h2>
+              <Badge bg="warning">+5% from last month</Badge>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+      
+      <Card className="shadow-sm">
+        <Card.Header>
+          <h5 className="mb-0">Recent Orders</h5>
+        </Card.Header>
+        <Card.Body>
+          <Table responsive striped hover>
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* Dynamic orders would go here */}
+              <tr>
+                <td>#12345</td>
+                <td>John Doe</td>
+                <td>$299.99</td>
+                <td><Badge bg="success">Completed</Badge></td>
+                <td><Button size="sm" variant="outline-primary">View</Button></td>
+              </tr>
+            </tbody>
+          </Table>
+        </Card.Body>
+      </Card>
+    </div>
+  );
+}`,
+  lineByLine: [
+    "Line 4-18: Next.js setup - Import Bootstrap CSS in layout",
+    "Line 21-65: Client component - Navbar with useState and Next.js Link",
+    "Line 68-106: Server component - Async data fetching with Bootstrap cards",
+    "Line 109-138: Dynamic imports - Lazy loading modals with ssr: false",
+    "Line 141-195: Server Actions - Form handling with React Bootstrap",
+    "Line 198-209: Custom theming - Override Bootstrap variables",
+    "Line 212-239: Lazy loading - Heavy carousel component",
+    "Line 242-251: Middleware - Adding Bootstrap headers",
+    "Line 254-272: Performance - Next.js config optimization",
+    "Line 275-343: Complete dashboard - Full example with sidebar and stats"
+  ],
+  simpleMeaning: "Integrate Bootstrap 5 with Next.js App Router using client components, dynamic imports, and server actions for optimal performance.",
+  output: "Fully functional Next.js app with Bootstrap styling that supports SSR, client-side interactivity, and server actions.",
+  note: "Use 'use client' for interactive components. Dynamic imports reduce bundle size. Suppress hydration warnings when needed."
+},
+      
+      {
+        name: "7. Bootstrap Performance Optimization",
+        description: "Comprehensive guide to optimizing Bootstrap 5 for production, reducing bundle size, and improving load times.",
+        explanation: `🎯 WHY OPTIMIZE BOOTSTRAP?
+Bootstrap full CSS is ~150KB, full JS is ~80KB. Optimization can reduce this by 70-80% for faster page loads.
+
+📦 BUNDLE SIZE BREAKDOWN:
+- bootstrap.min.css: 150KB
+- bootstrap.min.js: 80KB
+- Popper.js: 20KB
+- jQuery (v4): 30KB (not needed for v5)
+- Total: ~280KB unoptimized
+
+🔧 OPTIMIZATION STRATEGIES:
+1. Custom Sass build (remove unused components)
+2. PurgeCSS for unused CSS classes
+3. Import only needed components
+4. CDN with SRI hashes
+5. Lazy load below-the-fold components
+6. Preload critical CSS
+7. Use Bootstrap Icons selectively
+
+📁 SASS PARTIAL IMPORTS:
+Instead of @import "bootstrap", import only needed:
+- Functions, variables, mixins (always needed)
+- Reboot, utilities (core)
+- Grid, forms, buttons (common)
+- Components by project need
+
+⚡ CRITICAL CSS PATTERNS:
+- Extract above-fold CSS
+- Load non-critical async
+- Use rel="preload" for fonts
+- Inline critical styles
+
+📊 MEASUREMENT TOOLS:
+- Lighthouse performance score
+- Webpack Bundle Analyzer
+- Coverage tab in DevTools
+- Bundlephobia for packages
+
+🎨 TREE SHAKING:
+- React-Bootstrap supports tree shaking
+- Use named imports: import { Button, Card }
+- Webpack/Next.js automatically optimize`,
+        code: `// ========== PART 1: CUSTOM SASS BUILD (SMALLEST) ==========
+// custom-bootstrap.scss - Only import what you need
+// 1. Required (always include)
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/mixins";
+@import "bootstrap/scss/root";
+
+// 2. Layout (core)
+@import "bootstrap/scss/reboot";
+@import "bootstrap/scss/type";
+@import "bootstrap/scss/containers";
+@import "bootstrap/scss/grid";
+
+// 3. Components (choose what you use)
+@import "bootstrap/scss/tables";
+@import "bootstrap/scss/forms";
+@import "bootstrap/scss/buttons";
+@import "bootstrap/scss/transitions";
+// @import "bootstrap/scss/dropdown"; // Comment if not used
+// @import "bootstrap/scss/button-group";
+@import "bootstrap/scss/nav";
+@import "bootstrap/scss/navbar";
+@import "bootstrap/scss/card";
+// @import "bootstrap/scss/accordion";
+// @import "bootstrap/scss/breadcrumb";
+// @import "bootstrap/scss/pagination";
+@import "bootstrap/scss/badge";
+@import "bootstrap/scss/alert";
+// @import "bootstrap/scss/progress";
+// @import "bootstrap/scss/list-group";
+// @import "bootstrap/scss/close";
+// @import "bootstrap/scss/toasts";
+// @import "bootstrap/scss/modal";
+// @import "bootstrap/scss/tooltip";
+// @import "bootstrap/scss/popover";
+// @import "bootstrap/scss/carousel";
+// @import "bootstrap/scss/spinners";
+// @import "bootstrap/scss/offcanvas";
+
+// 4. Helpers & Utilities
+@import "bootstrap/scss/helpers";
+@import "bootstrap/scss/utilities/api";
+
+// Result: ~40KB instead of 150KB!
+
+// ========== PART 2: CUSTOM VARIABLES FOR SMALLER CSS ==========
+// _optimized-variables.scss
+// Disable features you don't need
+$enable-shadows: false;
+$enable-gradients: false;
+$enable-rounded: true;  // Keep if using rounded corners
+$enable-important-utilities: false;  // Reduce specificity
+$enable-smooth-scroll: false;
+$enable-caret: true;  // Keep for dropdowns
+$enable-validation-icons: false;  // Remove validation icons
+$enable-dark-mode: false;  // Disable if not using
+
+// Reduce color palette
+$theme-colors: (
+  "primary": #4361ee,
+  "secondary": #6c757d,
+  "success": #06ffa5,
+  "danger": #ef233c,
+  "warning": #ffb703,
+  "info": #00b4d8,
+  // Remove light/dark if not needed
+);
+
+// Reduce spacing scale
+$spacers: (
+  0: 0,
+  1: 0.25rem,
+  2: 0.5rem,
+  3: 1rem,
+  4: 1.5rem,
+  5: 3rem,
+  // Remove 6-10 if not needed
+);
+
+// Reduce border radius options
+$border-radius: 0.5rem;
+$border-radius-sm: 0.375rem;
+$border-radius-lg: 0.75rem;
+// Remove xl, 2xl, pill if not needed
+
+// ========== PART 3: TREE SHAKING WITH REACT-BOOTSTRAP ==========
+// Good - named imports only import needed components
+import { Button, Card, Navbar, Container } from 'react-bootstrap';
+
+// Bad - imports everything
+import Bootstrap from 'react-bootstrap';
+
+// Even better - direct imports (smallest)
+import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
+import Navbar from 'react-bootstrap/Navbar';
+
+// ========== PART 4: CDN WITH SRI (SECURITY + CACHING) ==========
+<!-- bootstrap.min.css with SRI -->
+<link 
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+  rel="stylesheet" 
+  integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" 
+  crossorigin="anonymous"
+/>
+
+<!-- bootstrap.bundle.min.js (includes Popper) -->
+<script 
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
+  integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" 
+  crossorigin="anonymous"
+></script>
+
+<!-- Or separate JS + Popper -->
+<script 
+  src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+  integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+  crossorigin="anonymous"
+></script>
+<script 
+  src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+  integrity="sha384-fbbOQedDUMZZ5KreZpsRE1DMZ5zig8ZX2RRVvAs8SG7p1J3T4yN7OFjBg7Hp8DgU"
+  crossorigin="anonymous"
+></script>
+
+// ========== PART 5: PURGECSS CONFIGURATION ==========
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'postcss-import': {},
+    'tailwindcss/nesting': {},
+    tailwindcss: {},
+    autoprefixer: {},
+    ...(process.env.NODE_ENV === 'production' ? {
+      '@fullhuman/postcss-purgecss': {
+        content: [
+          './pages/**/*.{js,jsx,ts,tsx}',
+          './components/**/*.{js,jsx,ts,tsx}',
+          './app/**/*.{js,jsx,ts,tsx}',
+        ],
+        defaultExtractor: (content) => content.match(/[\w-/:]+(?<!:)/g) || [],
+        safelist: {
+          standard: [
+            /^(nav|navbar|dropdown|modal|tooltip|popover)/,
+            /-(show|active|disabled|fade|collapse)/,
+            'html', 'body',
+          ],
+          deep: [/^modal-/, /^tooltip-/, /^popover-/],
+        }
       }
+    } : {})
+  }
+};
+
+// ========== PART 6: LAZY LOADING BOOTSTRAP COMPONENTS ==========
+// Lazy load Bootstrap JS only when needed
+// utils/bootstrap-loader.js
+let bootstrapLoaded = false;
+
+export async function loadBootstrap() {
+  if (bootstrapLoaded) return;
+  
+  if (typeof window !== 'undefined') {
+    await import('bootstrap');
+    bootstrapLoaded = true;
+  }
+}
+
+// Component that needs Bootstrap JS
+// components/ModalTrigger.jsx
+'use client';
+import { useState, useEffect } from 'react';
+import { loadBootstrap } from '@/utils/bootstrap-loader';
+
+export default function ModalTrigger() {
+  const [isReady, setIsReady] = useState(false);
+  
+  useEffect(() => {
+    loadBootstrap().then(() => setIsReady(true));
+  }, []);
+  
+  if (!isReady) return <button className="btn btn-primary">Loading...</button>;
+  
+  return (
+    <button 
+      className="btn btn-primary" 
+      data-bs-toggle="modal" 
+      data-bs-target="#exampleModal"
+    >
+      Launch Modal
+    </button>
+  );
+}
+
+// ========== PART 7: CRITICAL CSS INLINE ==========
+// pages/_document.js or app/layout.js
+// Inline critical Bootstrap CSS for above-fold content
+const criticalCSS = \`
+  .container { width: 100%; padding-right: var(--bs-gutter-x, 0.75rem); padding-left: var(--bs-gutter-x, 0.75rem); margin-right: auto; margin-left: auto; }
+  .btn { display: inline-block; font-weight: 400; line-height: 1.5; text-align: center; text-decoration: none; vertical-align: middle; cursor: pointer; padding: 0.375rem 0.75rem; font-size: 1rem; border-radius: 0.375rem; }
+  .btn-primary { color: #fff; background-color: #0d6efd; border-color: #0d6efd; }
+  @media (min-width: 576px) { .container { max-width: 540px; } }
+  @media (min-width: 768px) { .container { max-width: 720px; } }
+  @media (min-width: 992px) { .container { max-width: 960px; } }
+  @media (min-width: 1200px) { .container { max-width: 1140px; } }
+  /* Only include critical styles for above-fold content */
+\`;
+
+// ========== PART 8: WEBPACK BUNDLE ANALYZER ==========
+// next.config.js with bundle analyzer
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
+module.exports = withBundleAnalyzer({
+  // your Next.js config
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.optimization.splitChunks.cacheGroups = {
+        ...config.optimization.splitChunks.cacheGroups,
+        bootstrap: {
+          test: /[\\\\/]node_modules[\\\\/](bootstrap|react-bootstrap|@popperjs)[\\\\/]/,
+          name: 'bootstrap-vendor',
+          chunks: 'all',
+          priority: 10
+        }
+      };
+    }
+    return config;
+  }
+});
+
+// ========== PART 9: PREFETCH AND PRELOAD STRATEGIES ==========
+// Preload critical Bootstrap CSS
+<link rel="preload" href="/css/bootstrap-critical.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
+<noscript><link rel="stylesheet" href="/css/bootstrap-critical.css" /></noscript>
+
+// Load full Bootstrap async
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" as="style" onLoad="this.onload=null;this.rel='stylesheet'" />
+
+// Preconnect to CDN
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+
+// ========== PART 10: PERFORMANCE MONITORING ==========
+// utils/performance-monitor.js
+export function measureBootstrapPerformance() {
+  if (typeof window === 'undefined') return;
+  
+  // Measure CSS load time
+  const cssLoaded = performance.getEntriesByType('resource')
+    .filter(entry => entry.name.includes('bootstrap') && entry.name.includes('.css'));
+  
+  if (cssLoaded.length) {
+    console.log('Bootstrap CSS load time:', cssLoaded[0].duration, 'ms');
+  }
+  
+  // Measure JS load time
+  const jsLoaded = performance.getElementsByName('resource')
+    .filter(entry => entry.name.includes('bootstrap') && entry.name.includes('.js'));
+  
+  if (jsLoaded.length) {
+    console.log('Bootstrap JS load time:', jsLoaded[0].duration, 'ms');
+  }
+  
+  // Check if Bootstrap is fully loaded
+  if (typeof bootstrap !== 'undefined') {
+    console.log('Bootstrap version:', bootstrap.Tooltip.VERSION);
+  }
+}
+
+// Call on client side
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', measureBootstrapPerformance);
+}`,
+        lineByLine: [
+          "Line 4-41: Custom Sass build - Import only needed components",
+          "Line 44-73: Optimized variables - Disable unused features",
+          "Line 76-86: Tree shaking - Use named imports or direct imports",
+          "Line 89-113: CDN with SRI - Security and caching benefits",
+          "Line 116-140: PurgeCSS - Remove unused CSS classes",
+          "Line 143-167: Lazy loading - Load Bootstrap JS on demand",
+          "Line 170-185: Critical CSS - Inline above-fold styles",
+          "Line 188-207: Bundle analyzer - Analyze and optimize bundles",
+          "Line 210-218: Preload strategies - Preload critical resources",
+          "Line 221-244: Performance monitoring - Measure load times"
+        ],
+        simpleMeaning: "Optimize Bootstrap by removing unused components, using custom builds, lazy loading, and CDN with proper caching strategies.",
+        output: "Smaller bundle size (70-80% reduction), faster load times, and better Lighthouse scores.",
+        note: "Always measure before optimizing. Use PurgeCSS for custom classes. Preload critical CSS for above-fold content. Test after each optimization."
+      },
+      
+      {
+        name: "8. Bootstrap Accessibility (A11y) Best Practices",
+        description: "Complete guide to making Bootstrap websites accessible to all users, including keyboard navigation and screen readers.",
+        explanation: `🎯 WHY ACCESSIBILITY MATTERS?
+Accessibility ensures everyone can use your website, including people with:
+- Visual impairments (blindness, low vision)
+- Motor disabilities (keyboard only users)
+- Cognitive disabilities
+- Hearing impairments
+
+📋 WCAG 2.1 LEVELS:
+- A (minimum): Basic accessibility
+- AA (standard): Most common requirement
+- AAA (advanced): Highest level
+
+🔧 BOOTSTRAP ACCESSIBILITY FEATURES:
+- Semantic HTML5 elements
+- ARIA attributes built-in
+- Keyboard navigation support
+- Focus management
+- Color contrast compliance
+- Screen reader announcements
+
+🎨 COLOR CONTRAST REQUIREMENTS:
+- Normal text: 4.5:1 minimum
+- Large text (18pt+): 3:1 minimum
+- UI components: 3:1 minimum
+- Focus indicators: Visible
+
+♿ KEYBOARD ACCESSIBILITY:
+- Tab navigation order
+- Focus indicators
+- Skip navigation links
+- Keyboard event handlers
+- Modal focus trapping
+
+📢 SCREEN READER PATTERNS:
+- aria-label for unlabeled elements
+- aria-hidden for decorative content
+- role attributes for custom widgets
+- aria-live for dynamic content
+- sr-only for hidden text
+
+🧪 TESTING TOOLS:
+- WAVE (Web Accessibility Evaluation)
+- axe DevTools
+- Lighthouse Accessibility audit
+- NVDA (Windows screen reader)
+- VoiceOver (Mac screen reader)`,
+        code: `<!-- ========== PART 1: BASIC ACCESSIBILITY STRUCTURE ========== -->
+<!-- Use semantic HTML whenever possible -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Accessible Bootstrap Site</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+  <!-- Skip navigation link -->
+  <a href="#main-content" class="visually-hidden-focusable">
+    Skip to main content
+  </a>
+  
+  <!-- Main navigation with proper ARIA -->
+  <nav class="navbar navbar-expand-lg bg-dark" aria-label="Main navigation">
+    <div class="container">
+      <a class="navbar-brand" href="/">
+        <img src="logo.png" alt="Company Logo" height="40">
+      </a>
+      <button class="navbar-toggler" type="button" 
+              data-bs-toggle="collapse" data-bs-target="#navbarNav"
+              aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/about">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="/contact">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  
+  <!-- Main content with landmark role -->
+  <main id="main-content" tabindex="-1">
+    <div class="container py-4">
+      <h1>Welcome to Accessible Website</h1>
+      <p>This site follows WCAG 2.1 AA accessibility guidelines.</p>
+    </div>
+  </main>
+  
+  <!-- Footer with landmark role -->
+  <footer class="bg-light py-3" role="contentinfo">
+    <div class="container text-center">
+      <p>&copy; 2024 Your Company</p>
+    </div>
+  </footer>
+</body>
+</html>
+
+<!-- ========== PART 2: ACCESSIBLE FORMS ========== -->
+<form class="row g-3 needs-validation" novalidate>
+  <!-- Form with proper labels -->
+  <div class="col-md-6">
+    <label for="firstName" class="form-label">First Name <span aria-hidden="true">*</span></label>
+    <input type="text" class="form-control" id="firstName" 
+           required aria-required="true"
+           aria-describedby="firstNameHelp">
+    <div id="firstNameHelp" class="form-text">
+      Enter your legal first name as shown on ID.
+    </div>
+    <div class="invalid-feedback">
+      Please provide your first name.
+    </div>
+  </div>
+  
+  <!-- Radio group with fieldset -->
+  <fieldset class="col-md-12">
+    <legend class="form-label">Preferred Contact Method</legend>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="contactMethod" 
+             id="contactEmail" value="email" checked>
+      <label class="form-check-label" for="contactEmail">Email</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="contactMethod" 
+             id="contactPhone" value="phone">
+      <label class="form-check-label" for="contactPhone">Phone</label>
+    </div>
+  </fieldset>
+  
+  <!-- Checkbox group -->
+  <div class="col-md-12">
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+      <label class="form-check-label" for="agreeTerms">
+        I agree to the <a href="/terms" target="_blank">terms and conditions</a>
+      </label>
+      <div class="invalid-feedback">
+        You must agree before submitting.
+      </div>
+    </div>
+  </div>
+  
+  <!-- Submit button with ARIA -->
+  <div class="col-12">
+    <button class="btn btn-primary" type="submit" aria-label="Submit contact form">
+      Submit
+    </button>
+  </div>
+</form>
+
+<!-- ========== PART 3: ACCESSIBLE MODALS ========== -->
+<!-- Modal with proper ARIA -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" 
+        data-bs-target="#accessibleModal" aria-haspopup="dialog">
+  Open Accessible Modal
+</button>
+
+<div class="modal fade" id="accessibleModal" tabindex="-1" 
+     aria-labelledby="modalTitle" aria-describedby="modalDescription" aria-modal="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalTitle">Modal Title</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" 
+                aria-label="Close modal"></button>
+      </div>
+      <div class="modal-body">
+        <p id="modalDescription">This is an accessible modal dialog with proper ARIA attributes.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                aria-label="Cancel and close modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-primary" 
+                aria-label="Confirm action and close modal">
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PART 4: ACCESSIBLE CAROUSEL ========== -->
+<div id="accessibleCarousel" class="carousel slide" data-bs-ride="carousel"
+     aria-label="Featured products carousel" role="region">
+  
+  <!-- Carousel indicators as tabs -->
+  <div class="carousel-indicators">
+    <button type="button" data-bs-target="#accessibleCarousel" data-bs-slide-to="0"
+            class="active" aria-current="true" aria-label="Slide 1: Product 1"></button>
+    <button type="button" data-bs-target="#accessibleCarousel" data-bs-slide-to="1"
+            aria-label="Slide 2: Product 2"></button>
+    <button type="button" data-bs-target="#accessibleCarousel" data-bs-slide-to="2"
+            aria-label="Slide 3: Product 3"></button>
+  </div>
+  
+  <!-- Carousel items with alt text -->
+  <div class="carousel-inner">
+    <div class="carousel-item active">
+      <img src="product1.jpg" class="d-block w-100" alt="Product 1: Wireless Headphones with noise cancellation"
+           style="height: 400px; object-fit: cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h3>Wireless Headphones</h3>
+        <p>Premium sound quality with 30-hour battery life</p>
+        <button class="btn btn-primary" aria-label="Shop Wireless Headphones">
+          Shop Now
+        </button>
+      </div>
+    </div>
+    <div class="carousel-item">
+      <img src="product2.jpg" class="d-block w-100" alt="Product 2: Smart Watch with fitness tracking"
+           style="height: 400px; object-fit: cover;">
+      <div class="carousel-caption d-none d-md-block">
+        <h3>Smart Watch</h3>
+        <p>Track your fitness and stay connected</p>
+        <button class="btn btn-primary" aria-label="Shop Smart Watch">
+          Shop Now
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Carousel controls with accessible labels -->
+  <button class="carousel-control-prev" type="button" 
+          data-bs-target="#accessibleCarousel" data-bs-slide="prev"
+          aria-label="Previous slide">
+    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+  </button>
+  <button class="carousel-control-next" type="button" 
+          data-bs-target="#accessibleCarousel" data-bs-slide="next"
+          aria-label="Next slide">
+    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+  </button>
+</div>
+
+<!-- ========== PART 5: ACCESSIBLE DROPDOWNS ========== -->
+<div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle" type="button" 
+          id="accessibleDropdown" data-bs-toggle="dropdown" 
+          aria-expanded="false" aria-haspopup="true">
+    Accessible Dropdown
+  </button>
+  <ul class="dropdown-menu" aria-labelledby="accessibleDropdown">
+    <li><a class="dropdown-item" href="#" aria-label="Edit item">Edit</a></li>
+    <li><a class="dropdown-item" href="#" aria-label="Duplicate item">Duplicate</a></li>
+    <li><hr class="dropdown-divider" aria-hidden="true"></li>
+    <li><a class="dropdown-item text-danger" href="#" aria-label="Delete item permanently">Delete</a></li>
+  </ul>
+</div>
+
+<!-- ========== PART 6: ACCESSIBLE TOOLTIPS ========== -->
+<!-- Tooltips with keyboard support -->
+<button type="button" class="btn btn-primary" 
+        data-bs-toggle="tooltip" data-bs-placement="top"
+        title="This is an accessible tooltip"
+        aria-describedby="tooltip-description">
+  Hover or focus for tooltip
+</button>
+
+<!-- Custom accessible tooltip with description -->
+<p id="tooltip-description" class="visually-hidden">
+  Additional information about this button appears when focused or hovered
+</p>
+
+<!-- ========== PART 7: ACCESSIBLE TABLES ========== -->
+<!-- Table with proper headers and captions -->
+<table class="table table-striped" aria-label="Employee directory">
+  <caption class="visually-hidden">List of employees with their positions and departments</caption>
+  <thead>
+    <tr>
+      <th scope="col">Name</th>
+      <th scope="col">Position</th>
+      <th scope="col">Department</th>
+      <th scope="col">Email</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">John Doe</th>
+      <td>Developer</td>
+      <td>Engineering</td>
+      <td><a href="mailto:john@example.com" aria-label="Email John Doe">john@example.com</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ========== PART 8: ACCESSIBLE ALERTS ========== -->
+<!-- Alert with ARIA live region -->
+<div class="alert alert-success alert-dismissible fade show" 
+     role="alert" aria-live="polite">
+  <strong>Success!</strong> Your changes have been saved successfully.
+  <button type="button" class="btn-close" data-bs-dismiss="alert" 
+          aria-label="Close alert message"></button>
+</div>
+
+<!-- Dynamic alert container -->
+<div id="liveAlert" role="region" aria-live="assertive" aria-atomic="true" 
+     class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+  <!-- Dynamic alerts appear here -->
+</div>
+
+<!-- ========== PART 9: ACCESSIBLE PROGRESS BARS ========== -->
+<div role="progressbar" class="progress mb-3" 
+     aria-label="File upload progress"
+     aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+  <div class="progress-bar bg-success" style="width: 75%">
+    <span class="visually-hidden">75% Complete</span>
+  </div>
+</div>
+
+<!-- With live announcement -->
+<div class="progress mb-3">
+  <div class="progress-bar" id="uploadProgress" role="progressbar" 
+       style="width: 0%" aria-label="Upload progress">
+    <span class="visually-hidden" id="progressText">0% complete</span>
+  </div>
+</div>
+
+<script>
+  // Update progress with live announcement
+  function updateProgress(percent) {
+    const progressBar = document.getElementById('uploadProgress');
+    const progressText = document.getElementById('progressText');
+    progressBar.style.width = percent + '%';
+    progressBar.setAttribute('aria-valuenow', percent);
+    progressText.textContent = percent + '% complete';
+  }
+</script>
+
+<!-- ========== PART 10: COLOR CONTRAST CHECKING ========== -->
+<!-- Use Bootstrap's accessible color palette -->
+<div class="bg-primary text-white p-3">Good contrast (4.5:1+)</div>
+<div class="bg-success text-white p-3">Good contrast (4.5:1+)</div>
+<div class="bg-danger text-white p-3">Good contrast (4.5:1+)</div>
+
+<!-- Avoid these combinations -->
+<div class="bg-secondary text-muted p-3">Poor contrast - avoid</div>
+<div class="bg-light text-white p-3">Poor contrast - avoid</div>
+
+<!-- Custom accessible colors -->
+<style>
+  /* Ensure custom colors meet contrast requirements */
+  .custom-primary-bg {
+    background-color: #2563eb; /* Darker blue for better contrast */
+  }
+  .custom-primary-text {
+    color: #1e40af; /* Darker blue text on light backgrounds */
+  }
+</style>
+
+<!-- ========== PART 11: FOCUS MANAGEMENT ========== -->
+<!-- Visible focus indicators (Bootstrap has these by default) -->
+<button class="btn btn-outline-primary">I have visible focus ring</button>
+
+<!-- Custom focus styles -->
+<style>
+  /* Enhance default focus rings */
+  .btn:focus-visible,
+  .nav-link:focus-visible,
+  .form-control:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.5);
+  }
+  
+  /* Ensure skip link is visible when focused */
+  .visually-hidden-focusable:focus-visible {
+    position: relative !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0.5rem 1rem;
+    background: white;
+    color: black;
+    z-index: 1000;
+  }
+</style>
+
+<!-- ========== PART 12: SCREEN READER UTILITIES ========== -->
+<!-- Visually hidden but available to screen readers -->
+<p class="visually-hidden">This text is only read by screen readers</p>
+
+<!-- Hide decorative content from screen readers -->
+<i class="bi bi-star" aria-hidden="true"></i>
+
+<!-- Live region for dynamic content updates -->
+<div aria-live="polite" aria-atomic="true" class="visually-hidden">
+  <!-- Screen reader announces changes to this region -->
+</div>
+
+<!-- Comprehensive accessibility testing with axe -->
+<script src="https://cdn.jsdelivr.net/npm/axe-core@4.7.0/axe.min.js"></script>
+<script>
+  if (process.env.NODE_ENV === 'development') {
+    axe.run().then(results => {
+      if (results.violations.length) {
+        console.warn('Accessibility violations:', results.violations);
+      }
+    });
+  }
+</script>`,
+        lineByLine: [
+          "Line 2-10: Semantic HTML - lang attribute, viewport, title",
+          "Line 13-15: Skip link - Visually hidden focusable for keyboard users",
+          "Line 18-43: Navigation - ARIA labels, semantic nav, proper heading structure",
+          "Line 46-51: Landmarks - main and footer with proper roles",
+          "Line 55-83: Forms - Proper labels, aria-describedby, required attributes",
+          "Line 86-98: Radio groups - Fieldset and legend for grouping",
+          "Line 101-112: Checkboxes - Proper labeling and validation",
+          "Line 118-152: Modals - ARIA modal attributes, labelledby, describedby",
+          "Line 158-213: Carousel - ARIA labels, alt text, accessible controls",
+          "Line 219-233: Dropdowns - aria-expanded, aria-haspopup",
+          "Line 237-247: Tooltips - keyboard accessible, aria-describedby",
+          "Line 251-271: Tables - Scope attributes, captions, proper headers",
+          "Line 275-288: Alerts - ARIA live regions for announcements",
+          "Line 293-319: Progress bars - ARIA progress attributes, live updates",
+          "Line 326-347: Color contrast - Accessible color combinations",
+          "Line 353-371: Focus management - Visible focus indicators",
+          "Line 375-394: Screen reader utilities - sr-only, aria-hidden, live regions"
+        ],
+        simpleMeaning: "Build Bootstrap websites that work for everyone, including users with disabilities and those using assistive technologies.",
+        output: "Fully accessible website that passes WCAG 2.1 AA standards and works with screen readers and keyboard navigation.",
+        note: "Test with actual assistive technology (NVDA, VoiceOver). Use semantic HTML before ARIA. Always provide alt text and labels."
+      }
+
     ]
   }
 };
