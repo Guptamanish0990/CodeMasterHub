@@ -255,6 +255,17 @@ export default function Sidebar({ currentTopic, setCurrentTopic }) {
             <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
               25+ Technologies<br />Basic → Advanced
             </p>
+            <div className="mt-2 border-t border-gray-200/70 pt-2 text-[10px] text-gray-600 dark:border-gray-700 dark:text-gray-400">
+              <span>Built by </span>
+              <a
+                href="https://github.com/Guptamanish0990/CodeMasterHub"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
+              >
+                MGManish Gupta
+              </a>
+            </div>
           </div>
         </div>
       </aside>
