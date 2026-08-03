@@ -501,13 +501,16 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
       {/* Settings Sidebar Toggle Button */}
       <button 
         onClick={() => setShowSidebar(!showSidebar)}
-        className="fixed left-4 top-20 z-30 bg-white dark:bg-gray-800 rounded-full p-2 shadow-lg hover:shadow-xl transition-all hover:scale-105"
+        className="fixed right-4 top-4 z-30 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full p-2.5 shadow-lg hover:shadow-xl transition-all hover:scale-105 border border-gray-200 dark:border-gray-700"
         aria-label="Toggle Settings"
       >
-        <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
+        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span className="text-[10px] font-semibold hidden sm:inline">Preferences</span>
+        </div>
       </button>
 
       {/* Settings Sidebar Panel */}
@@ -634,24 +637,24 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
         <div className={`relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r ${currentInfo.gradient} shadow-lg`}>
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative p-4 md:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <div className="flex items-center justify-center gap-3 flex-wrap">
                 <div className="relative">
                   <div className="absolute inset-0 bg-white/20 rounded-xl blur-md"></div>
                   <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-2xl sm:text-3xl shadow-lg">
                     {currentInfo.icon}
                   </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 flex-wrap">
                     <h1 className="text-xl sm:text-2xl font-bold text-white drop-shadow-md">{currentInfo.name}</h1>
                     <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">Pro</span>
                   </div>
-                  <p className="text-white/80 text-[10px] sm:text-xs mt-0.5">Master {currentInfo.name} from basics to advanced</p>
+                  <p className="text-white/80 text-[10px] sm:text-xs mt-0.5">Learning, Interview Q&A, Problem Solving, and Practice Questions</p>
                 </div>
               </div>
               
-              <div className="flex flex-wrap gap-1.5">
+              <div className="flex flex-wrap justify-center gap-1.5">
                 <div className="px-2 py-1 bg-white/15 backdrop-blur rounded-lg flex items-center gap-1.5 hover:scale-105 transition">
                   <span className="text-sm">⭐</span>
                   <div><div className="text-white font-bold text-xs">{starredCount}</div><div className="text-white/60 text-[9px]">Starred</div></div>
@@ -741,9 +744,9 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                   return (
                     <div key={idx} className={`group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border ${isCompleted ? 'border-green-500/50' : 'border-gray-200/50 dark:border-gray-700/50'} hover:scale-[1.01]`}>
                       <div onClick={() => toggleCard(idx)} className="cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition p-4">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <div className="relative">
                                 <input 
                                   type="checkbox" 
@@ -756,15 +759,15 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
                                 {isCompleted ? '✅' : '📚'}
                               </div>
-                              <h3 className={`text-sm font-bold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'} group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:bg-clip-text transition`}>
+                              <h3 className={`text-sm font-bold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'} group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-indigo-600 group-hover:bg-clip-text transition break-words`}>
                                 {topicItem.name}
                               </h3>
                             </div>
-                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-xs">
+                            <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-xs break-words whitespace-pre-wrap">
                               {topicItem.description}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                          <div className="flex items-center justify-end gap-1 sm:ml-2 sm:flex-shrink-0">
                             <StarIcon starred={isStarred} onClick={() => toggleStar(itemId)} />
                             <BookmarkIcon bookmarked={isBookmarked} onClick={() => toggleBookmark(itemId)} />
                             <ShareButton title={topicItem.name} onShare={handleShare} />
@@ -865,8 +868,8 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                   return (
                     <div key={idx} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-md transition-all duration-300 group">
                       <div onClick={() => toggleQuestion(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="flex-1 flex items-start gap-2.5">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 min-w-0 flex items-start gap-2.5">
                             <div className="relative">
                               <input 
                                 type="checkbox" 
@@ -877,11 +880,11 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                               />
                             </div>
                             <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">{idx + 1}</div>
-                            <h3 className={`font-semibold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'} text-sm pr-3 leading-relaxed`}>
+                            <h3 className={`font-semibold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'} text-sm pr-3 leading-relaxed break-words`}>
                               {item.question}
                             </h3>
                           </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center justify-end gap-1 sm:flex-shrink-0">
                             <StarIcon starred={isStarred} onClick={() => toggleStar(itemId)} />
                             <BookmarkIcon bookmarked={isBookmarked} onClick={() => toggleBookmark(itemId)} />
                             <ShareButton title={item.question} onShare={handleShare} />
@@ -961,8 +964,8 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                   return (
                     <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
                       <div onClick={() => toggleCard(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <div className="relative">
                                 <input 
@@ -974,16 +977,16 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
                                 />
                               </div>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${expLevel === 'fresher' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' : 'bg-gradient-to-r from-orange-500 to-red-500 text-white'}`}>{idx + 1}</div>
-                              <h3 className={`text-sm font-bold ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'}`}>{problemTitle}</h3>
+                              <h3 className={`text-sm font-bold break-words ${isCompleted ? 'text-gray-500 line-through' : 'text-gray-800 dark:text-white'}`}>{problemTitle}</h3>
                               {problem.difficulty && (
                                 <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${problem.difficulty === 'Easy' ? 'bg-green-100 text-green-700' : problem.difficulty === 'Hard' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{problem.difficulty}</span>
                               )}
                             </div>
-                            <p className={`text-gray-600 dark:text-gray-400 leading-relaxed text-xs ${isCompleted ? 'line-through opacity-70' : ''}`}>
+                            <p className={`text-gray-600 dark:text-gray-400 leading-relaxed text-xs break-words whitespace-pre-wrap ${isCompleted ? 'line-through opacity-70' : ''}`}>
                               {problemDescription}
                             </p>
                           </div>
-                          <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                          <div className="flex items-center justify-end gap-1 sm:ml-2 sm:flex-shrink-0">
                             <StarIcon starred={isStarred} onClick={() => toggleStar(itemId)} />
                             <BookmarkIcon bookmarked={isBookmarked} onClick={() => toggleBookmark(itemId)} />
                             <ShareButton title={problemTitle} onShare={handleShare} />

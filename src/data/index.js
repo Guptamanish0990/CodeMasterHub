@@ -66,6 +66,71 @@ import { questions as typescriptQuestions } from './typescript/questions.js';
 import { questions as tailwindQuestions } from './tailwind/questions.js';
 import { questions as mysqlQuestions } from './mysql/questions.js';
 
+const comingSoonLearning = {
+  basic: {
+    title: 'Coming Soon',
+    topics: [
+      {
+        name: 'Content is being prepared',
+        description: 'This topic is currently under development. We are preparing beginner-friendly explanations, examples, and exercises for this technology.',
+        simpleMeaning: 'This topic will be available soon.'
+      }
+    ]
+  },
+  advanced: {
+    title: 'Coming Soon',
+    topics: [
+      {
+        name: 'Advanced content is being prepared',
+        description: 'Advanced concepts and real-world patterns for this topic are being documented and will be released soon.',
+        simpleMeaning: 'More advanced material is on the way.'
+      }
+    ]
+  }
+};
+
+const comingSoonInterview = {
+  fresher: [
+    {
+      question: 'This topic is coming soon',
+      answer: 'We are preparing interview questions and answers for this technology. Check back soon for the complete set.',
+      note: 'This topic is currently under development.'
+    }
+  ],
+  experienced: [
+    {
+      question: 'Advanced interview material is coming soon',
+      answer: 'This section is being prepared with practical, interview-focused explanations and scenario-based questions.',
+      note: 'Stay tuned for updates.'
+    }
+  ]
+};
+
+const comingSoonProblems = {
+  fresher: [
+    {
+      title: 'Coming soon',
+      description: 'Practice problems for this topic are being prepared.',
+      difficulty: 'Easy'
+    }
+  ],
+  experienced: [
+    {
+      title: 'Coming soon',
+      description: 'Advanced coding challenges for this topic are being prepared.',
+      difficulty: 'Hard'
+    }
+  ]
+};
+
+const comingSoonPractice = [
+  {
+    line: 'Coming soon',
+    explanation: 'Practice questions for this topic are being prepared and will be added shortly.',
+    output: 'Awaiting content'
+  }
+];
+
 // ========== EXPORT TOPICS ==========
 export const topics = {
   html: { name: "HTML", icon: "🌐", color: "orange" },
@@ -82,7 +147,17 @@ export const topics = {
   bootstrap: { name: "Bootstrap", icon: "🧩", color: "indigo" },
   typescript: { name: "TypeScript", icon: "📘", color: "blue" },
   tailwind: { name: "Tailwind CSS", icon: "💨", color: "teal" },
-  mysql: { name: "MySQL", icon: "🐬", color: "orange" }
+  mysql: { name: "MySQL", icon: "🐬", color: "orange" },
+  cpp: { name: "C++", icon: "⚙️", color: "blue" },
+  java: { name: "Java", icon: "☕", color: "red" },
+  go: { name: "Go", icon: "🐹", color: "cyan" },
+  rust: { name: "Rust", icon: "🦀", color: "orange" },
+  php: { name: "PHP", icon: "🐘", color: "indigo" },
+  ruby: { name: "Ruby", icon: "💎", color: "red" },
+  csharp: { name: "C#", icon: "🎯", color: "green" },
+  swift: { name: "Swift", icon: "🛠️", color: "orange" },
+  kotlin: { name: "Kotlin", icon: "📱", color: "purple" },
+  dart: { name: "Dart", icon: "🎯", color: "blue" }
 };
 
 // ========== EXPORT AGGREGATED DATA ==========
@@ -101,7 +176,17 @@ export const learningData = {
   bootstrap: bootstrapLearning,
   typescript: typescriptLearning,
   tailwind: tailwindLearning,
-  mysql: mysqlLearning
+  mysql: mysqlLearning,
+  cpp: comingSoonLearning,
+  java: comingSoonLearning,
+  go: comingSoonLearning,
+  rust: comingSoonLearning,
+  php: comingSoonLearning,
+  ruby: comingSoonLearning,
+  csharp: comingSoonLearning,
+  swift: comingSoonLearning,
+  kotlin: comingSoonLearning,
+  dart: comingSoonLearning
 };
 
 export const interviewData = {
@@ -119,7 +204,17 @@ export const interviewData = {
   bootstrap: bootstrapInterview,
   typescript: typescriptInterview,
   tailwind: tailwindInterview,
-  mysql: mysqlInterview
+  mysql: mysqlInterview,
+  cpp: comingSoonInterview,
+  java: comingSoonInterview,
+  go: comingSoonInterview,
+  rust: comingSoonInterview,
+  php: comingSoonInterview,
+  ruby: comingSoonInterview,
+  csharp: comingSoonInterview,
+  swift: comingSoonInterview,
+  kotlin: comingSoonInterview,
+  dart: comingSoonInterview
 };
 
 export const problemsData = {
@@ -137,7 +232,17 @@ export const problemsData = {
   bootstrap: bootstrapProblems,
   typescript: typescriptProblems,
   tailwind: tailwindProblems,
-  mysql: mysqlProblems
+  mysql: mysqlProblems,
+  cpp: comingSoonProblems,
+  java: comingSoonProblems,
+  go: comingSoonProblems,
+  rust: comingSoonProblems,
+  php: comingSoonProblems,
+  ruby: comingSoonProblems,
+  csharp: comingSoonProblems,
+  swift: comingSoonProblems,
+  kotlin: comingSoonProblems,
+  dart: comingSoonProblems
 };
 
 export const practiceData = {
@@ -155,5 +260,15 @@ export const practiceData = {
   bootstrap: bootstrapQuestions,
   typescript: typescriptQuestions,
   tailwind: tailwindQuestions,
-  mysql: mysqlQuestions
+  mysql: mysqlQuestions,
+  cpp: comingSoonPractice,
+  java: comingSoonPractice,
+  go: comingSoonPractice,
+  rust: comingSoonPractice,
+  php: comingSoonPractice,
+  ruby: comingSoonPractice,
+  csharp: comingSoonPractice,
+  swift: comingSoonPractice,
+  kotlin: comingSoonPractice,
+  dart: comingSoonPractice
 };

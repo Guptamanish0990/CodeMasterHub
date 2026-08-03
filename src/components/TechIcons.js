@@ -88,6 +88,76 @@ export const TechIcons = {
     bgColor: "bg-red-50 dark:bg-red-950/20",
     color: "#F05032"
   },
+  cpp: {
+    name: "C++",
+    icon: "⚙️",
+    gradient: "from-blue-500 to-indigo-500",
+    bgColor: "bg-blue-50 dark:bg-blue-950/20",
+    color: "#00599C"
+  },
+  java: {
+    name: "Java",
+    icon: "☕",
+    gradient: "from-red-500 to-orange-500",
+    bgColor: "bg-red-50 dark:bg-red-950/20",
+    color: "#ED8B00"
+  },
+  go: {
+    name: "Go",
+    icon: "🐹",
+    gradient: "from-cyan-500 to-blue-500",
+    bgColor: "bg-cyan-50 dark:bg-cyan-950/20",
+    color: "#00ADD8"
+  },
+  rust: {
+    name: "Rust",
+    icon: "🦀",
+    gradient: "from-orange-500 to-red-500",
+    bgColor: "bg-orange-50 dark:bg-orange-950/20",
+    color: "#CE422B"
+  },
+  php: {
+    name: "PHP",
+    icon: "🐘",
+    gradient: "from-indigo-500 to-violet-500",
+    bgColor: "bg-indigo-50 dark:bg-indigo-950/20",
+    color: "#777BB4"
+  },
+  ruby: {
+    name: "Ruby",
+    icon: "💎",
+    gradient: "from-red-500 to-pink-500",
+    bgColor: "bg-red-50 dark:bg-red-950/20",
+    color: "#CC342D"
+  },
+  csharp: {
+    name: "C#",
+    icon: "🎯",
+    gradient: "from-green-500 to-emerald-500",
+    bgColor: "bg-green-50 dark:bg-green-950/20",
+    color: "#239120"
+  },
+  swift: {
+    name: "Swift",
+    icon: "🛠️",
+    gradient: "from-orange-500 to-yellow-500",
+    bgColor: "bg-orange-50 dark:bg-orange-950/20",
+    color: "#F05138"
+  },
+  kotlin: {
+    name: "Kotlin",
+    icon: "📱",
+    gradient: "from-purple-500 to-violet-500",
+    bgColor: "bg-purple-50 dark:bg-purple-950/20",
+    color: "#7F52FF"
+  },
+  dart: {
+    name: "Dart",
+    icon: "🎯",
+    gradient: "from-blue-500 to-cyan-500",
+    bgColor: "bg-blue-50 dark:bg-blue-950/20",
+    color: "#0175C2"
+  },
   
   // CMS Icons
   wordpress: {
