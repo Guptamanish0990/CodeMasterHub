@@ -3,7 +3,7 @@
 import { topics } from '@/data';
 import { useState, useEffect } from 'react';
 
-export default function Sidebar({ currentTopic, setCurrentTopic }) {
+export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = false, onToggleDark = () => {} }) {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
@@ -148,7 +148,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic }) {
         `}
       >
         <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center shadow-md">
                 <span className="text-white text-sm font-bold">CV</span>
@@ -160,13 +160,25 @@ export default function Sidebar({ currentTopic, setCurrentTopic }) {
                 <p className="text-[10px] text-gray-500 dark:text-gray-400">Learn · Interview · Solve</p>
               </div>
             </div>
-            {isMobile && (
-              <button onClick={closeSidebar} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onToggleDark}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white/80 text-lg shadow-sm transition hover:scale-105 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/80 dark:text-yellow-300 dark:hover:bg-gray-700"
+                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                title={darkMode ? 'Light mode' : 'Dark mode'}
+              >
+                {darkMode ? '☀️' : '🌙'}
               </button>
-            )}
+
+              {isMobile && (
+                <button onClick={closeSidebar} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -263,7 +275,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic }) {
                 rel="noopener noreferrer"
                 className="font-semibold text-blue-600 underline-offset-2 hover:underline dark:text-blue-400"
               >
-                MGManish Gupta
+                Manish Gupta
               </a>
             </div>
           </div>

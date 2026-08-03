@@ -51,7 +51,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300 flex flex-col">
       <div className="flex flex-1">
-        <Sidebar currentTopic={currentTopic} setCurrentTopic={handleTopicChange} darkMode={darkMode} />
+        <Sidebar currentTopic={currentTopic} setCurrentTopic={handleTopicChange} darkMode={darkMode} onToggleDark={toggleDark} />
         <main className="flex-1 min-w-0 flex flex-col">
           <div className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-3 py-3 sm:px-4">
             <div className="flex items-center justify-between gap-3">
