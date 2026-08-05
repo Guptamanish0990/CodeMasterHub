@@ -119,17 +119,19 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
   return (
     <>
       {isMobile && (
-        <button
-          onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transition-all duration-300 hover:scale-105 lg:hidden"
-          aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-        >
-          <span className="relative h-5 w-5">
-            <span className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? 'translate-y-2 rotate-45' : 'translate-y-0 rotate-0'}`} />
-            <span className={`absolute left-0 top-2 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'}`} />
-            <span className={`absolute left-0 top-4 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? '-translate-y-2 -rotate-45' : 'translate-y-0 rotate-0'}`} />
-          </span>
-        </button>
+        <div className="fixed left-4 top-4 z-50 lg:hidden">
+          <button
+            onClick={toggleSidebar}
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transition-all duration-300 hover:scale-105"
+            aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+          >
+            <span className="relative h-5 w-5">
+              <span className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? 'translate-y-2 rotate-45' : 'translate-y-0 rotate-0'}`} />
+              <span className={`absolute left-0 top-2 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'}`} />
+              <span className={`absolute left-0 top-4 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? '-translate-y-2 -rotate-45' : 'translate-y-0 rotate-0'}`} />
+            </span>
+          </button>
+        </div>
       )}
 
       {isMobile && sidebarOpen && (
@@ -162,15 +164,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={onToggleDark}
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white/80 text-lg shadow-sm transition hover:scale-105 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800/80 dark:text-yellow-300 dark:hover:bg-gray-700"
-                aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-                title={darkMode ? 'Light mode' : 'Dark mode'}
-              >
-                {darkMode ? '☀️' : '🌙'}
-              </button>
-
               {isMobile && (
                 <button onClick={closeSidebar} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                   <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

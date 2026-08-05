@@ -239,7 +239,7 @@ function ProgressTracker({ totalItems = 0, completedItems = 0 }) {
 }
 
 // ==================== MAIN TOPIC PANEL COMPONENT ====================
-export default function TopicPanel({ topic, activeTab, setActiveTab }) {
+export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = false, onToggleDark = () => {} }) {
   const [expandedCard, setExpandedCard] = useState(null);
   const [activeLevel, setActiveLevel] = useState('basic');
   const [expLevel, setExpLevel] = useState('fresher');
@@ -497,138 +497,6 @@ export default function TopicPanel({ topic, activeTab, setActiveTab }) {
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-cyan-200/20 to-blue-200/20 dark:from-cyan-500/5 dark:to-blue-500/5 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-200/20 to-pink-200/20 dark:from-purple-500/5 dark:to-pink-500/5 rounded-full blur-3xl"></div>
       </div>
-
-      {/* Settings Sidebar Toggle Button */}
-      <button 
-        onClick={() => setShowSidebar(!showSidebar)}
-        className="fixed right-4 top-4 z-30 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full p-2.5 shadow-lg hover:shadow-xl transition-all hover:scale-105 border border-gray-200 dark:border-gray-700"
-        aria-label="Toggle Settings"
-      >
-        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span className="text-[10px] font-semibold hidden sm:inline">Preferences</span>
-        </div>
-      </button>
-
-      {/* Settings Sidebar Panel */}
-      {showSidebar && (
-        <>
-          <div 
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={() => setShowSidebar(false)}
-          />
-          
-          <div className="fixed left-0 top-0 h-full w-72 bg-white dark:bg-gray-900 shadow-2xl z-50 transform transition-transform duration-300 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
-                  <span className="text-sm">⚙️</span>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-gray-800 dark:text-white">Preferences</h3>
-                  <p className="text-[10px] text-gray-500">Customize your experience</p>
-                </div>
-              </div>
-              <button 
-                onClick={() => setShowSidebar(false)}
-                className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition text-gray-500"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="p-4 space-y-5">
-              {/* Filters Section */}
-              <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-2">🔍 Filters</label>
-                <div className="space-y-2">
-                  <button onClick={() => setShowStarredFilter(!showStarredFilter)} className={`w-full text-left text-[11px] px-3 py-2 rounded-lg flex items-center justify-between transition-all ${showStarredFilter ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border border-yellow-300 dark:border-yellow-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
-                    <span className="flex items-center gap-2">⭐ Starred Only</span>
-                    <span className="text-xs font-bold">{starredCount}</span>
-                  </button>
-                  <button onClick={() => setShowBookmarksFilter(!showBookmarksFilter)} className={`w-full text-left text-[11px] px-3 py-2 rounded-lg flex items-center justify-between transition-all ${showBookmarksFilter ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border border-blue-300 dark:border-blue-700' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
-                    <span className="flex items-center gap-2">🔖 Bookmarks</span>
-                    <span className="text-xs font-bold">{bookmarkedCount}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Section-wise Progress */}
-              <div className="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                <p className="text-[10px] font-semibold text-gray-500 dark:text-gray-400">📊 Section Progress</p>
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center text-[10px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">📘</span>
-                      <span>Learning</span>
-                    </div>
-                    <span className="font-medium text-green-600 dark:text-green-400">{completedLearningCount}/{totalLearning}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">🎤</span>
-                      <span>Interview</span>
-                    </div>
-                    <span className="font-medium text-blue-600 dark:text-blue-400">{completedInterviewCount}/{totalInterview}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">⚡</span>
-                      <span>Problems</span>
-                    </div>
-                    <span className="font-medium text-orange-600 dark:text-orange-400">{completedProblemsCount}/{totalProblems}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[10px]">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">📝</span>
-                      <span>Practice</span>
-                    </div>
-                    <span className="font-medium text-purple-600 dark:text-purple-400">{completedPracticeCount}/{totalPractice}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Overall Progress Bar */}
-              <div className="pt-2">
-                <ProgressTracker totalItems={totalAll} completedItems={completedAll} />
-              </div>
-
-              {/* Danger Zone */}
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <button onClick={() => {
-                  if (confirm('Are you sure? This will delete all your starred items, bookmarks, and completed lessons for ALL sections in this topic.')) {
-                    localStorage.removeItem(`starred_${topic}`);
-                    localStorage.removeItem(`bookmarks_${topic}`);
-                    localStorage.removeItem(`completed_learning_${topic}`);
-                    localStorage.removeItem(`completed_interview_${topic}`);
-                    localStorage.removeItem(`completed_problems_${topic}`);
-                    localStorage.removeItem(`completed_practice_${topic}`);
-                    setStarredItems({});
-                    setBookmarkedItems({});
-                    setCompletedLearning({});
-                    setCompletedInterview({});
-                    setCompletedProblems({});
-                    setCompletedPractice({});
-                    setShowStarredFilter(false);
-                    setShowBookmarksFilter(false);
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs shadow-lg z-50 animate-fade-in';
-                    toast.textContent = 'All data cleared successfully!';
-                    document.body.appendChild(toast);
-                    setTimeout(() => toast.remove(), 2000);
-                  }
-                }} className="w-full text-[11px] px-3 py-2 rounded-lg bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 transition flex items-center justify-center gap-2">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                  Clear All Data
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Main Content */}
       <div className="relative max-w-5xl mx-auto px-4 py-6 md:px-6 md:py-8">
