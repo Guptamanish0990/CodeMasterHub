@@ -13,8 +13,24 @@ import {
   FaJava,
   FaPhp,
   FaCode,
-  FaRedo      // Redux ke liye (FaRedux exist nahi karta)
+  FaRedo
 } from 'react-icons/fa';
+
+// 👇 Simple Icons for languages not in Font Awesome
+import {
+  SiRust,
+  SiNextdotjs,
+  SiTailwindcss,
+  SiTypescript,
+  SiMysql,
+  SiCplusplus,
+  SiGo,
+  SiRuby,
+  SiSwift,
+  SiKotlin,
+  SiDart,
+  SiRedux
+} from 'react-icons/si';
 
 export const TechIcons = {
   // Frontend Icons
@@ -48,14 +64,14 @@ export const TechIcons = {
   },
   nextjs: {
     name: "Next.js",
-    icon: FaCode,   // Next.js specific icon available in `react-icons/si` but we keep generic to avoid errors
+    icon: SiNextdotjs,
     gradient: "from-gray-500 to-gray-700",
     bgColor: "bg-gray-100 dark:bg-gray-800",
     color: "#000000"
   },
   tailwind: {
     name: "Tailwind CSS",
-    icon: FaCode,
+    icon: SiTailwindcss,
     gradient: "from-teal-500 to-cyan-500",
     bgColor: "bg-teal-50 dark:bg-teal-950/20",
     color: "#38B2AC"
@@ -69,7 +85,7 @@ export const TechIcons = {
   },
   typescript: {
     name: "TypeScript",
-    icon: FaCode,
+    icon: SiTypescript,
     gradient: "from-blue-500 to-indigo-500",
     bgColor: "bg-blue-50 dark:bg-blue-950/20",
     color: "#3178C6"
@@ -85,14 +101,14 @@ export const TechIcons = {
   },
   nodejs: {
     name: "Node.js",
-    icon: FaNode,   // FaNode exists in react-icons/fa
+    icon: FaNode,
     gradient: "from-emerald-500 to-teal-500",
     bgColor: "bg-emerald-50 dark:bg-emerald-950/20",
     color: "#339933"
   },
   mysql: {
     name: "MySQL",
-    icon: FaCode,
+    icon: SiMysql,
     gradient: "from-orange-500 to-red-500",
     bgColor: "bg-orange-50 dark:bg-orange-950/20",
     color: "#4479A1"
@@ -106,7 +122,7 @@ export const TechIcons = {
   },
   cpp: {
     name: "C++",
-    icon: FaCode,
+    icon: SiCplusplus,
     gradient: "from-blue-500 to-indigo-500",
     bgColor: "bg-blue-50 dark:bg-blue-950/20",
     color: "#00599C"
@@ -120,14 +136,14 @@ export const TechIcons = {
   },
   go: {
     name: "Go",
-    icon: FaCode,
+    icon: SiGo,
     gradient: "from-cyan-500 to-blue-500",
     bgColor: "bg-cyan-50 dark:bg-cyan-950/20",
     color: "#00ADD8"
   },
   rust: {
     name: "Rust",
-    icon: FaCode,
+    icon: SiRust,   // 🦀 Actual Rust logo
     gradient: "from-orange-500 to-red-500",
     bgColor: "bg-orange-50 dark:bg-orange-950/20",
     color: "#CE422B"
@@ -141,35 +157,35 @@ export const TechIcons = {
   },
   ruby: {
     name: "Ruby",
-    icon: FaCode,   // FaRuby doesn't exist, using FaCode
+    icon: SiRuby,
     gradient: "from-red-500 to-pink-500",
     bgColor: "bg-red-50 dark:bg-red-950/20",
     color: "#CC342D"
   },
   csharp: {
     name: "C#",
-    icon: FaCode,
+    icon: FaCode,   // ✅ SiCsharp not available, using FaCode
     gradient: "from-green-500 to-emerald-500",
     bgColor: "bg-green-50 dark:bg-green-950/20",
     color: "#239120"
   },
   swift: {
     name: "Swift",
-    icon: FaCode,
+    icon: SiSwift,
     gradient: "from-orange-500 to-yellow-500",
     bgColor: "bg-orange-50 dark:bg-orange-950/20",
     color: "#F05138"
   },
   kotlin: {
     name: "Kotlin",
-    icon: FaCode,
+    icon: SiKotlin,
     gradient: "from-purple-500 to-violet-500",
     bgColor: "bg-purple-50 dark:bg-purple-950/20",
     color: "#7F52FF"
   },
   dart: {
     name: "Dart",
-    icon: FaCode,
+    icon: SiDart,
     gradient: "from-blue-500 to-cyan-500",
     bgColor: "bg-blue-50 dark:bg-blue-950/20",
     color: "#0175C2"
@@ -192,13 +208,12 @@ export const TechIcons = {
   },
   redux: {
     name: "Redux",
-    icon: FaRedo,   // FaRedux doesn't exist, using FaRedo (refresh icon, close enough)
+    icon: SiRedux,
     gradient: "from-violet-500 to-purple-500",
     bgColor: "bg-violet-50 dark:bg-violet-950/20",
     color: "#764ABC"
   },
 
-  // Default fallback
   default: {
     name: "Technology",
     icon: FaCode,

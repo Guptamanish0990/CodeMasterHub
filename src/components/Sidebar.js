@@ -23,6 +23,7 @@ import {
   FaGem,         // Ruby ke liye (FaRuby exist nahi karta)
   FaCode
 } from 'react-icons/fa';
+import { SiRust } from 'react-icons/si';
 import { HiMenu, HiX } from 'react-icons/hi';
 import { IoLogoInstagram } from 'react-icons/io';
 
@@ -117,7 +118,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     cpp: FaCode,
     java: FaJava,
     go: FaCode,
-    rust: FaCode,
+    rust: SiRust,
     php: FaPhp,
     ruby: FaGem,         // Ruby ke liye FaGem
     csharp: FaCode,
