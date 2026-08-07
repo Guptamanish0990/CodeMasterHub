@@ -2,7 +2,6 @@
 'use client';
 import { topics } from '@/data';
 import { useState, useEffect } from 'react';
-// 👇 React Icons imports
 import {
   FaGithub,
   FaLinkedin,
@@ -16,11 +15,11 @@ import {
   FaGitAlt,
   FaWordpress,
   FaShoppingCart,
-  FaRedo,        // Redux ke liye
+  FaRedo,
   FaBootstrap,
   FaJava,
   FaPhp,
-  FaGem,         // Ruby ke liye (FaRuby exist nahi karta)
+  FaGem,
   FaCode
 } from 'react-icons/fa';
 import { SiRust } from 'react-icons/si';
@@ -35,9 +34,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth > 768) {
-        setSidebarOpen(false);
-      }
+      if (window.innerWidth > 768) setSidebarOpen(false);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -53,7 +50,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     '📦 CMS & Others': ['wordpress', 'woocommerce', 'redux']
   };
 
-  // Social links with React Icons
   const socialLinks = [
     { href: 'https://guptamanish0990.github.io/Manish_Gupta/#/', label: 'Portfolio', icon: '💼' },
     { href: 'https://github.com/Guptamanish0990', label: 'GitHub', icon: FaGithub },
@@ -62,7 +58,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     { href: 'mailto:websitedeveloper0990@gmail.com', label: 'Email', icon: FaEnvelope }
   ];
 
-  // Technology icon URLs (CDN)
   const getIconUrl = (key) => {
     const icons = {
       html: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg',
@@ -98,7 +93,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     setImageErrors(prev => ({ ...prev, [key]: true }));
   };
 
-  // 👇 Fallback icons using Font Awesome (Fa) – sab valid hain
   const fallbackIcons = {
     html: FaHtml5,
     css: FaCss3Alt,
@@ -120,17 +114,16 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     go: FaCode,
     rust: SiRust,
     php: FaPhp,
-    ruby: FaGem,         // Ruby ke liye FaGem
+    ruby: FaGem,
     csharp: FaCode,
     swift: FaCode,
     kotlin: FaCode,
     dart: FaCode
   };
 
-  // 👇 FallbackIcon component – renders appropriate Fa icon
   const FallbackIcon = ({ tech }) => {
     const Icon = fallbackIcons[tech] || FaCode;
-    return <Icon className="w-5 h-5" />;
+    return <Icon className="w-5 h-5 text-current" />;
   };
 
   const getTopicColor = (key) => {
@@ -166,7 +159,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
 
   return (
     <>
-      {/* Mobile toggle button */}
       {isMobile && (
         <div className="fixed left-4 top-4 z-50 lg:hidden">
           <button
@@ -174,21 +166,15 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
             className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transition-all duration-300 hover:scale-105"
             aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
           >
-            {sidebarOpen ? (
-              <HiX className="h-5 w-5" />
-            ) : (
-              <HiMenu className="h-5 w-5" />
-            )}
+            {sidebarOpen ? <HiX className="h-5 w-5" /> : <HiMenu className="h-5 w-5" />}
           </button>
         </div>
       )}
 
-      {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />
       )}
 
-      {/* Sidebar */}
       <aside
         className={`
           bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950
@@ -200,7 +186,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
           }
         `}
       >
-        {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -214,7 +199,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                 <p className="text-[10px] text-gray-500 dark:text-gray-400">Learn · Interview · Solve</p>
               </div>
             </div>
-
             <div className="flex items-center gap-2">
               {isMobile && (
                 <button onClick={closeSidebar} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
@@ -225,7 +209,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
           </div>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3">
           <div className="space-y-5">
             {Object.entries(groupedTopics).map(([category, topicKeys]) => (
@@ -242,7 +225,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                     const topicName = topics[key]?.name || key;
                     const iconUrl = getIconUrl(key);
                     const hasError = imageErrors[key];
-                    const showFallback = !iconUrl || hasError;
+                    const showFallback = !iconUrl || hasError || key === 'rust';
 
                     return (
                       <button
@@ -287,7 +270,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
           </div>
         </nav>
 
-        {/* Footer */}
         <div className="p-3 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
           <div className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 shadow-inner">
             <div className="flex justify-center items-center gap-2 mb-2 flex-wrap">

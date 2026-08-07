@@ -15,8 +15,6 @@ import {
   FaCode,
   FaRedo
 } from 'react-icons/fa';
-
-// 👇 Simple Icons for languages not in Font Awesome
 import {
   SiRust,
   SiNextdotjs,
@@ -33,7 +31,6 @@ import {
 } from 'react-icons/si';
 
 export const TechIcons = {
-  // Frontend Icons
   html: {
     name: "HTML",
     icon: FaHtml5,
@@ -90,8 +87,6 @@ export const TechIcons = {
     bgColor: "bg-blue-50 dark:bg-blue-950/20",
     color: "#3178C6"
   },
-
-  // Backend Icons
   python: {
     name: "Python",
     icon: FaPython,
@@ -143,7 +138,7 @@ export const TechIcons = {
   },
   rust: {
     name: "Rust",
-    icon: SiRust,   // 🦀 Actual Rust logo
+    icon: SiRust,
     gradient: "from-orange-500 to-red-500",
     bgColor: "bg-orange-50 dark:bg-orange-950/20",
     color: "#CE422B"
@@ -164,7 +159,7 @@ export const TechIcons = {
   },
   csharp: {
     name: "C#",
-    icon: FaCode,   // ✅ SiCsharp not available, using FaCode
+    icon: FaCode,
     gradient: "from-green-500 to-emerald-500",
     bgColor: "bg-green-50 dark:bg-green-950/20",
     color: "#239120"
@@ -190,8 +185,6 @@ export const TechIcons = {
     bgColor: "bg-blue-50 dark:bg-blue-950/20",
     color: "#0175C2"
   },
-
-  // CMS Icons
   wordpress: {
     name: "WordPress",
     icon: FaWordpress,
@@ -213,7 +206,6 @@ export const TechIcons = {
     bgColor: "bg-violet-50 dark:bg-violet-950/20",
     color: "#764ABC"
   },
-
   default: {
     name: "Technology",
     icon: FaCode,

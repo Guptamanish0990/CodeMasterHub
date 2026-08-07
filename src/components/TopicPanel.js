@@ -1,9 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { learningData, interviewData, problemsData, practiceData } from '@/data';
-import { FaSun, FaMoon } from 'react-icons/fa';
 import TechIcons from '@/components/TechIcons';
-// 👇 React Icons for tab navigation + share buttons
+// 👇 React Icons for tab navigation + share buttons + theme
 import {
   FaBook,
   FaMicrophone,
@@ -12,7 +11,9 @@ import {
   FaShareAlt,
   FaCopy,
   FaTwitter,
-  FaLinkedin
+  FaLinkedin,
+  FaSun,
+  FaMoon
 } from 'react-icons/fa';
 
 // ==================== CODE EDITOR COMPONENT ====================
@@ -787,8 +788,8 @@ export default function TopicPanel({
                         localStorage.setItem(`sortOption_${topic}`, val);
                       }}
                       className={`px-3 py-1.5 text-xs rounded-lg transition ${sortOption === opt.toLowerCase()
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                     >
                       {opt}
@@ -827,8 +828,8 @@ export default function TopicPanel({
                         setActiveTab(tab.id);
                       }}
                       className={`px-3 py-1.5 text-xs rounded-lg transition ${defaultTab === tab.id
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                     >
                       {tab.label}
@@ -1060,7 +1061,7 @@ export default function TopicPanel({
                 <div className="relative">
                   <div className="absolute inset-0 bg-white/20 rounded-xl blur-md"></div>
                   <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-2xl sm:text-3xl shadow-lg">
-                    {/* 👇 CORRECTED: Render React icon component */}
+                    {/* 👇 CORRECT: Render React icon component */}
                     {typeof currentInfo.icon === 'function' ? (
                       <currentInfo.icon className="w-6 h-6 text-white" />
                     ) : (
@@ -1134,8 +1135,8 @@ export default function TopicPanel({
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`group relative p-2.5 rounded-lg transition-all duration-300 ${activeTab === tab.id
-                ? `bg-gradient-to-r ${currentInfo.gradient} text-white shadow-md transform scale-[1.02]`
-                : 'bg-white/70 dark:bg-gray-800/70 backdrop-blur text-gray-700 dark:text-gray-300 hover:scale-105 hover:shadow-md border border-gray-200/50 dark:border-gray-700/50'
+                  ? `bg-gradient-to-r ${currentInfo.gradient} text-white shadow-md transform scale-[1.02]`
+                  : 'bg-white/70 dark:bg-gray-800/70 backdrop-blur text-gray-700 dark:text-gray-300 hover:scale-105 hover:shadow-md border border-gray-200/50 dark:border-gray-700/50'
                 }`}
             >
               <div className="flex flex-col items-center gap-0.5">
@@ -1184,7 +1185,13 @@ export default function TopicPanel({
 
                   return (
                     <div key={idx} className={`group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border ${isCompleted ? 'border-green-500/50' : 'border-gray-200/50 dark:border-gray-700/50'} hover:scale-[1.01]`}>
-                      <div onClick={() => toggleCard(idx)} className="cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition p-4">
+                      {/* 👇 FIXED: Conditional hover based on darkMode */}
+                      <div onClick={() => toggleCard(idx)}
+                        className={`cursor-pointer transition p-4 ${darkMode
+                            ? 'hover:bg-gray-700'
+                            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                          }`}
+                      >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1308,7 +1315,13 @@ export default function TopicPanel({
 
                   return (
                     <div key={idx} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-md transition-all duration-300 group">
-                      <div onClick={() => toggleQuestion(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
+                      {/* 👇 FIXED: Conditional hover based on darkMode */}
+                      <div onClick={() => toggleQuestion(idx)}
+                        className={`cursor-pointer transition p-4 ${darkMode
+                            ? 'hover:bg-gray-700'
+                            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                          }`}
+                      >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="flex-1 min-w-0 flex items-start gap-2.5">
                             <div className="relative">
@@ -1404,7 +1417,13 @@ export default function TopicPanel({
 
                   return (
                     <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
-                      <div onClick={() => toggleCard(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
+                      {/* 👇 FIXED: Conditional hover based on darkMode */}
+                      <div onClick={() => toggleCard(idx)}
+                        className={`cursor-pointer transition p-4 ${darkMode
+                            ? 'hover:bg-gray-700'
+                            : 'hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100'
+                          }`}
+                      >
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -1497,7 +1516,11 @@ export default function TopicPanel({
 
                   return (
                     <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
-                      <div className="flex gap-2.5">
+                      {/* 👇 FIXED: Practice card hover - wrapps whole card */}
+                      <div className={`flex gap-2.5 transition ${darkMode
+                          ? 'hover:bg-gray-700'
+                          : 'hover:bg-gray-50'
+                        }`}>
                         <div className="relative">
                           <input
                             type="checkbox"
