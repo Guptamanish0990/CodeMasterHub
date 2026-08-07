@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { learningData, interviewData, problemsData, practiceData } from '@/data';
 import TechIcons from '@/components/TechIcons';
 
@@ -14,14 +14,14 @@ function CodeEditor({ initialCode = '', onRun }) {
     setIsRunning(true);
     setError('');
     setOutput('');
-    
+
     const originalLog = console.log;
     const originalError = console.error;
     const originalWarn = console.warn;
     const originalInfo = console.info;
-    
+
     let logs = [];
-    
+
     console.log = (...args) => {
       logs.push(args.map(arg => {
         if (arg === null) return 'null';
@@ -29,7 +29,7 @@ function CodeEditor({ initialCode = '', onRun }) {
         if (typeof arg === 'object') {
           try {
             return JSON.stringify(arg, null, 2);
-          } catch(e) {
+          } catch (e) {
             return String(arg);
           }
         }
@@ -57,14 +57,14 @@ function CodeEditor({ initialCode = '', onRun }) {
       cleanCode = cleanCode.replace(/__dirname/g, 'null');
       cleanCode = cleanCode.replace(/__filename/g, 'null');
       cleanCode = cleanCode.replace(/module\.exports/g, 'null');
-      
+
       const executeCode = new Function(cleanCode);
       executeCode();
-      
+
       if (logs.length === 0) {
         logs.push('✓ Code executed successfully! (No console output)');
       }
-      
+
       setOutput(logs.join('\n'));
     } catch (err) {
       let errorMsg = err.message;
@@ -118,11 +118,11 @@ function CodeEditor({ initialCode = '', onRun }) {
         </div>
       </div>
       <div className="relative">
-        <textarea 
-          value={code || ''} 
-          onChange={(e) => setCode(e.target.value)} 
-          className="w-full h-64 bg-gray-900 text-gray-100 font-mono text-sm p-4 outline-none resize-none" 
-          spellCheck="false" 
+        <textarea
+          value={code || ''}
+          onChange={(e) => setCode(e.target.value)}
+          className="w-full h-64 bg-gray-900 text-gray-100 font-mono text-sm p-4 outline-none resize-none"
+          spellCheck="false"
         />
       </div>
       {(output || error) && (
@@ -144,7 +144,7 @@ function CodeEditor({ initialCode = '', onRun }) {
 // ==================== STARRED/FAVORITE ICON ====================
 function StarIcon({ starred = false, onClick }) {
   return (
-    <button 
+    <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       className={`transition-transform hover:scale-110 ${starred ? 'text-yellow-500' : 'text-gray-400 hover:text-yellow-500'}`}
     >
@@ -158,7 +158,7 @@ function StarIcon({ starred = false, onClick }) {
 // ==================== BOOKMARK ICON ====================
 function BookmarkIcon({ bookmarked = false, onClick }) {
   return (
-    <button 
+    <button
       onClick={(e) => { e.stopPropagation(); onClick(); }}
       className={`transition-transform hover:scale-110 ${bookmarked ? 'text-blue-500' : 'text-gray-400 hover:text-blue-500'}`}
     >
@@ -172,11 +172,11 @@ function BookmarkIcon({ bookmarked = false, onClick }) {
 // ==================== SHARE BUTTON ====================
 function ShareButton({ title, onShare }) {
   const [showShareOptions, setShowShareOptions] = useState(false);
-  
+
   const handleShare = async (platform) => {
     const url = window.location.href;
     const text = `Check out this ${title || 'resource'} on LearnHub!`;
-    
+
     if (platform === 'native' && navigator.share) {
       try {
         await navigator.share({ title: title || 'LearnHub', text, url });
@@ -191,10 +191,10 @@ function ShareButton({ title, onShare }) {
     }
     setShowShareOptions(false);
   };
-  
+
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setShowShareOptions(!showShareOptions)}
         className="text-gray-400 hover:text-green-500 transition p-1"
       >
@@ -214,32 +214,19 @@ function ShareButton({ title, onShare }) {
   );
 }
 
-// ==================== PROGRESS TRACKER ====================
-function ProgressTracker({ totalItems = 0, completedItems = 0 }) {
-  const percentage = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-  
-  return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-400">
-        <span>Overall Progress</span>
-        <span className="font-medium">{Math.round(percentage)}%</span>
-      </div>
-      <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-        <div 
-          className="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-300" 
-          style={{ width: `${percentage}%` }} 
-        />
-      </div>
-      <div className="flex justify-between text-[9px] text-gray-500 dark:text-gray-500">
-        <span>✅ Completed: {completedItems}</span>
-        <span>📚 Total: {totalItems}</span>
-      </div>
-    </div>
-  );
-}
-
 // ==================== MAIN TOPIC PANEL COMPONENT ====================
-export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = false, onToggleDark = () => {} }) {
+export default function TopicPanel({
+  topic,
+  activeTab: propActiveTab,
+  setActiveTab: propSetActiveTab,
+  darkMode = false,
+  onToggleDark = () => { }
+}) {
+  // Internal activeTab if default tab is used
+  const [internalActiveTab, setInternalActiveTab] = useState(propActiveTab || 'learn');
+  const activeTab = propActiveTab || internalActiveTab;
+  const setActiveTab = propSetActiveTab || setInternalActiveTab;
+
   const [expandedCard, setExpandedCard] = useState(null);
   const [activeLevel, setActiveLevel] = useState('basic');
   const [expLevel, setExpLevel] = useState('fresher');
@@ -251,8 +238,8 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
   const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [showEditor, setShowEditor] = useState(null);
-  
-  // Feature states - Separate for each section
+
+  // Feature states
   const [starredItems, setStarredItems] = useState({});
   const [bookmarkedItems, setBookmarkedItems] = useState({});
   const [completedLearning, setCompletedLearning] = useState({});
@@ -264,25 +251,34 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
   const [showSidebar, setShowSidebar] = useState(false);
   const [copiedShare, setCopiedShare] = useState(false);
 
+  // Preferences states
+  const [sortOption, setSortOption] = useState('default');
+  const [hideCompleted, setHideCompleted] = useState(false);
+  const [defaultTab, setDefaultTab] = useState('learn');
+
   // Load saved data
   useEffect(() => {
     setMounted(true);
-    
+
     const savedStarred = localStorage.getItem(`starred_${topic}`);
     const savedBookmarks = localStorage.getItem(`bookmarks_${topic}`);
     const savedCompletedLearning = localStorage.getItem(`completed_learning_${topic}`);
     const savedCompletedInterview = localStorage.getItem(`completed_interview_${topic}`);
     const savedCompletedProblems = localStorage.getItem(`completed_problems_${topic}`);
     const savedCompletedPractice = localStorage.getItem(`completed_practice_${topic}`);
-    const savedShowSidebar = localStorage.getItem('showSidebar');
-    
+    const savedSortOption = localStorage.getItem(`sortOption_${topic}`);
+    const savedHideCompleted = localStorage.getItem(`hideCompleted_${topic}`);
+    const savedDefaultTab = localStorage.getItem(`defaultTab_${topic}`);
+
     if (savedStarred) setStarredItems(JSON.parse(savedStarred));
     if (savedBookmarks) setBookmarkedItems(JSON.parse(savedBookmarks));
     if (savedCompletedLearning) setCompletedLearning(JSON.parse(savedCompletedLearning));
     if (savedCompletedInterview) setCompletedInterview(JSON.parse(savedCompletedInterview));
     if (savedCompletedProblems) setCompletedProblems(JSON.parse(savedCompletedProblems));
     if (savedCompletedPractice) setCompletedPractice(JSON.parse(savedCompletedPractice));
-    if (savedShowSidebar) setShowSidebar(savedShowSidebar === 'true');
+    if (savedSortOption) setSortOption(savedSortOption);
+    if (savedHideCompleted) setHideCompleted(savedHideCompleted === 'true');
+    if (savedDefaultTab) setDefaultTab(savedDefaultTab);
   }, [topic]);
 
   const learning = learningData[topic];
@@ -311,7 +307,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
     });
   }, [topic]);
 
-  // Complete functions for different sections
+  // Complete functions
   const toggleCompleteLearning = useCallback((itemId) => {
     setCompletedLearning(prev => {
       const newState = { ...prev, [itemId]: !prev[itemId] };
@@ -396,67 +392,126 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
     return practice || [];
   };
 
-  let learningDataList = getLearningData();
-  let interviewList = getInterviewData();
-  let problemsList = getProblemsData();
-  let practiceList = getPracticeData();
+  // ===== STABLE ID GENERATORS =====
+  const getLearningId = (item, idx) => item.name || `learning_${idx}`;
+  const getInterviewId = (item, idx) => item.question || `interview_${idx}`;
+  const getProblemId = (item, idx) => item.title || item.question || item.name || `problem_${idx}`;
+  const getPracticeId = (item, idx) => item.line || item.question || `practice_${idx}`;
 
-  // Apply filters
+  // ============================================================
+  // 1. RAW DATA (level-filtered only) for calculating progress
+  // ============================================================
+  const rawLearning = getLearningData().map((item, idx) => ({ ...item, _id: getLearningId(item, idx) }));
+  const rawInterview = getInterviewData().map((item, idx) => ({ ...item, _id: getInterviewId(item, idx) }));
+  const rawProblems = getProblemsData().map((item, idx) => ({ ...item, _id: getProblemId(item, idx) }));
+  const rawPractice = getPracticeData().map((item, idx) => ({ ...item, _id: getPracticeId(item, idx) }));
+
+  // Calculate totals and completed counts from raw data
+  const totalLearning = rawLearning.length;
+  const totalInterview = rawInterview.length;
+  const totalProblems = rawProblems.length;
+  const totalPractice = rawPractice.length;
+
+  const completedLearningCount = rawLearning.filter(item => completedLearning[item._id]).length;
+  const completedInterviewCount = rawInterview.filter(item => completedInterview[item._id]).length;
+  const completedProblemsCount = rawProblems.filter(item => completedProblems[item._id]).length;
+  const completedPracticeCount = rawPractice.filter(item => completedPractice[item._id]).length;
+
+  const totalAll = totalLearning + totalInterview + totalProblems + totalPractice;
+  const completedAll = completedLearningCount + completedInterviewCount + completedProblemsCount + completedPracticeCount;
+
+  // ============================================================
+  // 2. Filtered data for display (starred, bookmarks, hideCompleted, search)
+  // ============================================================
+  let learningDataList = [...rawLearning];
+  let interviewList = [...rawInterview];
+  let problemsList = [...rawProblems];
+  let practiceList = [...rawPractice];
+
+  // Apply filters (starred, bookmarks)
   if (showStarredFilter) {
-    learningDataList = learningDataList.filter(item => starredItems[item.name || item.id || item]);
-    interviewList = interviewList.filter(item => starredItems[item.question || item.id || item]);
-    problemsList = problemsList.filter(item => starredItems[item.title || item.id || item]);
-    practiceList = practiceList.filter(item => starredItems[item.line || item.id || item]);
+    learningDataList = learningDataList.filter(item => starredItems[item._id]);
+    interviewList = interviewList.filter(item => starredItems[item._id]);
+    problemsList = problemsList.filter(item => starredItems[item._id]);
+    practiceList = practiceList.filter(item => starredItems[item._id]);
   }
   if (showBookmarksFilter) {
-    learningDataList = learningDataList.filter(item => bookmarkedItems[item.name || item.id || item]);
-    interviewList = interviewList.filter(item => bookmarkedItems[item.question || item.id || item]);
-    problemsList = problemsList.filter(item => bookmarkedItems[item.title || item.id || item]);
-    practiceList = practiceList.filter(item => bookmarkedItems[item.line || item.id || item]);
+    learningDataList = learningDataList.filter(item => bookmarkedItems[item._id]);
+    interviewList = interviewList.filter(item => bookmarkedItems[item._id]);
+    problemsList = problemsList.filter(item => bookmarkedItems[item._id]);
+    practiceList = practiceList.filter(item => bookmarkedItems[item._id]);
   }
 
-  const filteredLearning = learningDataList.filter(item => 
+  // Apply Hide Completed
+  if (hideCompleted) {
+    learningDataList = learningDataList.filter(item => !completedLearning[item._id]);
+    interviewList = interviewList.filter(item => !completedInterview[item._id]);
+    problemsList = problemsList.filter(item => !completedProblems[item._id]);
+    practiceList = practiceList.filter(item => !completedPractice[item._id]);
+  }
+
+  // Sorting function
+  const sortItems = (items, sortKey) => {
+    if (sortKey === 'default') return items;
+    const copy = [...items];
+    if (sortKey === 'name') {
+      copy.sort((a, b) => (a.name || a.title || a.question || '').localeCompare(b.name || b.title || b.question || ''));
+    } else if (sortKey === 'difficulty') {
+      const diffOrder = { 'Easy': 0, 'Medium': 1, 'Hard': 2 };
+      copy.sort((a, b) => (diffOrder[a.difficulty] || 1) - (diffOrder[b.difficulty] || 1));
+    } else if (sortKey === 'progress') {
+      // For learning items, check completed status from respective completed state
+      const getComp = (item) => {
+        if (item._id && completedLearning[item._id]) return true;
+        if (item._id && completedInterview[item._id]) return true;
+        if (item._id && completedProblems[item._id]) return true;
+        if (item._id && completedPractice[item._id]) return true;
+        return false;
+      };
+      copy.sort((a, b) => {
+        const aComp = getComp(a);
+        const bComp = getComp(b);
+        return (aComp === bComp) ? 0 : aComp ? -1 : 1;
+      });
+    }
+    return copy;
+  };
+
+  // Apply sorting
+  const sortedLearning = sortItems(learningDataList, sortOption);
+  const sortedInterview = sortItems(interviewList, sortOption);
+  const sortedProblems = sortItems(problemsList, sortOption);
+  const sortedPractice = sortItems(practiceList, sortOption);
+
+  // Search filtering
+  const filteredLearning = sortedLearning.filter(item =>
     item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredInterview = interviewList.filter(item =>
+  const filteredInterview = sortedInterview.filter(item =>
     item.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.answer?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const filteredProblems = problemsList.filter(item =>
-    (item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     item.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     item.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredProblems = sortedProblems.filter(item =>
+  (item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.question?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.name?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const filteredPractice = practiceList.filter(item =>
+  const filteredPractice = sortedPractice.filter(item =>
     item.line?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.explanation?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Calculate totals for each section
-  const totalLearning = learningDataList.length;
-  const totalInterview = interviewList.length;
-  const totalProblems = problemsList.length;
-  const totalPractice = practiceList.length;
-  
-  const completedLearningCount = Object.values(completedLearning).filter(Boolean).length;
-  const completedInterviewCount = Object.values(completedInterview).filter(Boolean).length;
-  const completedProblemsCount = Object.values(completedProblems).filter(Boolean).length;
-  const completedPracticeCount = Object.values(completedPractice).filter(Boolean).length;
-  
-  // Overall totals
-  const totalAll = totalLearning + totalInterview + totalProblems + totalPractice;
-  const completedAll = completedLearningCount + completedInterviewCount + completedProblemsCount + completedPracticeCount;
-  
+  // Counts for starred/bookmarked (already computed earlier)
   const starredCount = Object.values(starredItems).filter(Boolean).length;
   const bookmarkedCount = Object.values(bookmarkedItems).filter(Boolean).length;
 
   const topicKey = topic?.toLowerCase() || '';
   const techIcon = TechIcons[topicKey] || TechIcons.default;
-  
+
   const currentInfo = {
     name: techIcon.name || topic || "Technology",
     icon: techIcon.icon || "💻",
@@ -465,12 +520,135 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
     color: techIcon.color || "#6b7280"
   };
 
+  // Reset individual section
+  const resetSection = (section) => {
+    if (!confirm(`Are you sure you want to reset ${section} progress?`)) return;
+    const keyMap = {
+      learning: 'completed_learning',
+      interview: 'completed_interview',
+      problems: 'completed_problems',
+      practice: 'completed_practice'
+    };
+    const setMap = {
+      learning: setCompletedLearning,
+      interview: setCompletedInterview,
+      problems: setCompletedProblems,
+      practice: setCompletedPractice
+    };
+    localStorage.removeItem(`${keyMap[section]}_${topic}`);
+    setMap[section]({});
+  };
+
+  // Clear all data
+  const clearAllData = () => {
+    if (window.confirm('Are you sure you want to clear ALL data? This cannot be undone.')) {
+      setStarredItems({});
+      setBookmarkedItems({});
+      setCompletedLearning({});
+      setCompletedInterview({});
+      setCompletedProblems({});
+      setCompletedPractice({});
+      setShowStarredFilter(false);
+      setShowBookmarksFilter(false);
+      setSortOption('default');
+      setHideCompleted(false);
+      setDefaultTab('learn');
+      localStorage.removeItem(`starred_${topic}`);
+      localStorage.removeItem(`bookmarks_${topic}`);
+      localStorage.removeItem(`completed_learning_${topic}`);
+      localStorage.removeItem(`completed_interview_${topic}`);
+      localStorage.removeItem(`completed_problems_${topic}`);
+      localStorage.removeItem(`completed_practice_${topic}`);
+      localStorage.removeItem(`sortOption_${topic}`);
+      localStorage.removeItem(`hideCompleted_${topic}`);
+      localStorage.removeItem(`defaultTab_${topic}`);
+    }
+  };
+
+  // Export data
+  const exportData = () => {
+    const data = {
+      starred: starredItems,
+      bookmarks: bookmarkedItems,
+      completedLearning,
+      completedInterview,
+      completedProblems,
+      completedPractice,
+      sortOption,
+      hideCompleted,
+      defaultTab
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `learnhub_${topic}_backup.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Import data
+  const fileInputRef = useRef(null);
+  const importData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.starred) setStarredItems(data.starred);
+        if (data.bookmarks) setBookmarkedItems(data.bookmarks);
+        if (data.completedLearning) setCompletedLearning(data.completedLearning);
+        if (data.completedInterview) setCompletedInterview(data.completedInterview);
+        if (data.completedProblems) setCompletedProblems(data.completedProblems);
+        if (data.completedPractice) setCompletedPractice(data.completedPractice);
+        if (data.sortOption) setSortOption(data.sortOption);
+        if (data.hideCompleted !== undefined) setHideCompleted(data.hideCompleted);
+        if (data.defaultTab) setDefaultTab(data.defaultTab);
+        // Save to localStorage
+        Object.keys(data).forEach(key => {
+          if (key === 'starred') localStorage.setItem(`starred_${topic}`, JSON.stringify(data.starred));
+          else if (key === 'bookmarks') localStorage.setItem(`bookmarks_${topic}`, JSON.stringify(data.bookmarks));
+          else if (key === 'completedLearning') localStorage.setItem(`completed_learning_${topic}`, JSON.stringify(data.completedLearning));
+          else if (key === 'completedInterview') localStorage.setItem(`completed_interview_${topic}`, JSON.stringify(data.completedInterview));
+          else if (key === 'completedProblems') localStorage.setItem(`completed_problems_${topic}`, JSON.stringify(data.completedProblems));
+          else if (key === 'completedPractice') localStorage.setItem(`completed_practice_${topic}`, JSON.stringify(data.completedPractice));
+          else if (key === 'sortOption') localStorage.setItem(`sortOption_${topic}`, data.sortOption);
+          else if (key === 'hideCompleted') localStorage.setItem(`hideCompleted_${topic}`, String(data.hideCompleted));
+          else if (key === 'defaultTab') localStorage.setItem(`defaultTab_${topic}`, data.defaultTab);
+        });
+        alert('Data imported successfully!');
+      } catch (err) {
+        alert('Invalid file format.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
   const mainTabs = [
     { id: 'learn', label: 'Learning', icon: '📘', desc: 'Basic → Advanced' },
     { id: 'interview', label: 'Interview', icon: '🎤', desc: 'Q&A' },
     { id: 'problems', label: 'Problems', icon: '⚡', desc: 'Coding Challenges' },
     { id: 'practice', label: 'Practice', icon: '📝', desc: 'Questions' }
   ];
+
+  // Set default tab on mount
+  useEffect(() => {
+    if (defaultTab && !propActiveTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab]);
+
+  // Progress bar color helper
+  const getProgressColor = (completed, total) => {
+    if (total === 0) return 'bg-gray-300 dark:bg-gray-600';
+    const pct = (completed / total) * 100;
+    if (pct === 100) return 'bg-green-500';
+    if (pct >= 50) return 'bg-blue-500';
+    if (pct >= 25) return 'bg-yellow-500';
+    return 'bg-orange-500';
+  };
 
   if (!mounted) {
     return (
@@ -491,16 +669,339 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+    // Dark mode applied to root container
+    <div className={`min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 ${darkMode ? 'dark' : ''}`}>
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-cyan-200/20 to-blue-200/20 dark:from-cyan-500/5 dark:to-blue-500/5 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-r from-purple-200/20 to-pink-200/20 dark:from-purple-500/5 dark:to-pink-500/5 rounded-full blur-3xl"></div>
       </div>
 
+      {/* Preferences Toggle Button */}
+      <button
+        type="button"
+        onClick={() => setShowSidebar(!showSidebar)}
+        className="fixed right-4 top-4 z-30 flex items-center gap-2 rounded-full border border-gray-200 dark:border-gray-700 bg-white/90 dark:bg-gray-800/90 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-lg backdrop-blur transition hover:scale-105"
+        aria-label="Toggle Preferences"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span>Preferences</span>
+      </button>
+
+      {/* ==================== UPDATED PREFERENCES SIDEBAR ==================== */}
+      {showSidebar && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowSidebar(false)} />
+          <aside className="fixed left-0 top-0 z-50 h-full w-80 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-2xl overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 p-4 sticky top-0 bg-white dark:bg-gray-900 z-10">
+              <div>
+                <h3 className="text-sm font-bold text-gray-800 dark:text-white">Preferences</h3>
+                <p className="text-[10px] text-gray-500 dark:text-gray-400">Customize your learning view</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSidebar(false)}
+                className="flex h-7 w-7 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-4 space-y-6">
+              {/* Dark Mode Toggle */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Theme</p>
+                <button
+                  onClick={() => onToggleDark(!darkMode)}
+                  className={`w-full py-2 text-sm rounded-lg transition flex items-center justify-center gap-2 ${darkMode
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
+                    }`}
+                >
+                  {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+                </button>
+              </div>
+
+              {/* Sort Order */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Sort Order</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Default', 'Name', 'Difficulty', 'Progress'].map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        const val = opt.toLowerCase();
+                        setSortOption(val);
+                        localStorage.setItem(`sortOption_${topic}`, val);
+                      }}
+                      className={`px-3 py-1.5 text-xs rounded-lg transition ${sortOption === opt.toLowerCase()
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                        }`}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hide Completed */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Completed</p>
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hideCompleted}
+                    onChange={() => {
+                      setHideCompleted(!hideCompleted);
+                      localStorage.setItem(`hideCompleted_${topic}`, String(!hideCompleted));
+                    }}
+                    className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                  />
+                  <span>Hide completed items</span>
+                </label>
+              </div>
+
+              {/* Default Tab */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Default Tab</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {mainTabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setDefaultTab(tab.id);
+                        localStorage.setItem(`defaultTab_${topic}`, tab.id);
+                        setActiveTab(tab.id);
+                      }}
+                      className={`px-3 py-1.5 text-xs rounded-lg transition ${defaultTab === tab.id
+                          ? 'bg-indigo-600 text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                        }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Filters</p>
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showStarredFilter}
+                      onChange={() => setShowStarredFilter(!showStarredFilter)}
+                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span>Starred Only</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">({starredCount})</span>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showBookmarksFilter}
+                      onChange={() => setShowBookmarksFilter(!showBookmarksFilter)}
+                      className="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span>Bookmarks</span>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 ml-auto">({bookmarkedCount})</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Starred Items List */}
+              {starredCount > 0 && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5 mb-2">⭐ Starred Items</h4>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {Object.entries(starredItems)
+                      .filter(([_, val]) => val)
+                      .map(([id]) => {
+                        let found = null;
+                        const allData = [
+                          ...rawLearning.map(d => ({ ...d, section: 'Learning' })),
+                          ...rawInterview.map(d => ({ ...d, section: 'Interview' })),
+                          ...rawProblems.map(d => ({ ...d, section: 'Problems' })),
+                          ...rawPractice.map(d => ({ ...d, section: 'Practice' }))
+                        ];
+                        found = allData.find(d => d._id === id);
+                        if (!found) return null;
+                        const title = found.name || found.question || found.title || found.line || 'Item';
+                        return (
+                          <div key={id} className="flex justify-between items-center p-1.5 bg-gray-50 dark:bg-gray-800 rounded-md text-[10px]">
+                            <span className="truncate max-w-[180px]">{title}</span>
+                            <button onClick={() => toggleStar(id)} className="text-yellow-500 hover:text-yellow-700">✕</button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* Bookmarks List */}
+              {bookmarkedCount > 0 && (
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
+                  <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5 mb-2">🔖 Bookmarks</h4>
+                  <div className="max-h-48 overflow-y-auto space-y-1">
+                    {Object.entries(bookmarkedItems)
+                      .filter(([_, val]) => val)
+                      .map(([id]) => {
+                        let found = null;
+                        const allData = [
+                          ...rawLearning.map(d => ({ ...d, section: 'Learning' })),
+                          ...rawInterview.map(d => ({ ...d, section: 'Interview' })),
+                          ...rawProblems.map(d => ({ ...d, section: 'Problems' })),
+                          ...rawPractice.map(d => ({ ...d, section: 'Practice' }))
+                        ];
+                        found = allData.find(d => d._id === id);
+                        if (!found) return null;
+                        const title = found.name || found.question || found.title || found.line || 'Item';
+                        return (
+                          <div key={id} className="flex justify-between items-center p-1.5 bg-gray-50 dark:bg-gray-800 rounded-md text-[10px]">
+                            <span className="truncate max-w-[180px]">{title}</span>
+                            <button onClick={() => toggleBookmark(id)} className="text-blue-500 hover:text-blue-700">✕</button>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+              )}
+
+              {/* ==================== UPDATED PROGRESS SECTION ==================== */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Progress</p>
+                <div className="space-y-2">
+                  {/* Learning */}
+                  <div>
+                    <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-400">
+                      <span>📘 Learning</span>
+                      <span className="font-medium">{completedLearningCount}/{totalLearning}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className={`h-full ${getProgressColor(completedLearningCount, totalLearning)} rounded-full transition-all duration-500`}
+                        style={{ width: totalLearning > 0 ? `${(completedLearningCount / totalLearning) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Interview */}
+                  <div>
+                    <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-400">
+                      <span>🎤 Interview</span>
+                      <span className="font-medium">{completedInterviewCount}/{totalInterview}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className={`h-full ${getProgressColor(completedInterviewCount, totalInterview)} rounded-full transition-all duration-500`}
+                        style={{ width: totalInterview > 0 ? `${(completedInterviewCount / totalInterview) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Problems */}
+                  <div>
+                    <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-400">
+                      <span>⚡ Problems</span>
+                      <span className="font-medium">{completedProblemsCount}/{totalProblems}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className={`h-full ${getProgressColor(completedProblemsCount, totalProblems)} rounded-full transition-all duration-500`}
+                        style={{ width: totalProblems > 0 ? `${(completedProblemsCount / totalProblems) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Practice */}
+                  <div>
+                    <div className="flex justify-between text-[10px] text-gray-600 dark:text-gray-400">
+                      <span>📝 Practice</span>
+                      <span className="font-medium">{completedPracticeCount}/{totalPractice}</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className={`h-full ${getProgressColor(completedPracticeCount, totalPractice)} rounded-full transition-all duration-500`}
+                        style={{ width: totalPractice > 0 ? `${(completedPracticeCount / totalPractice) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Overall */}
+                  <div className="pt-1 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between text-[11px] font-medium text-gray-700 dark:text-gray-300">
+                      <span>📊 Overall</span>
+                      <span>{completedAll}/{totalAll} ({totalAll > 0 ? Math.round((completedAll / totalAll) * 100) : 0}%)</span>
+                    </div>
+                    <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mt-0.5">
+                      <div
+                        className="h-full bg-indigo-600 rounded-full transition-all duration-500"
+                        style={{ width: totalAll > 0 ? `${(completedAll / totalAll) * 100}%` : '0%' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Reset Individual Sections */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Reset Progress</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Learning', 'Interview', 'Problems', 'Practice'].map((sec) => (
+                    <button
+                      key={sec}
+                      onClick={() => resetSection(sec.toLowerCase())}
+                      className="px-3 py-1.5 text-xs rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 transition"
+                    >
+                      Reset {sec}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Export / Import */}
+              <div>
+                <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Backup</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={exportData}
+                    className="flex-1 py-1.5 text-xs rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
+                  >
+                    📥 Export
+                  </button>
+                  <label className="flex-1 py-1.5 text-xs rounded-lg bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/40 transition text-center cursor-pointer">
+                    📤 Import
+                    <input
+                      type="file"
+                      accept=".json"
+                      onChange={importData}
+                      ref={fileInputRef}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {/* Clear All Data */}
+              <button
+                onClick={clearAllData}
+                className="w-full py-2.5 text-sm font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors border border-red-200 dark:border-red-800/30"
+              >
+                🗑️ Clear All Data
+              </button>
+            </div>
+          </aside>
+        </>
+      )}
+
       {/* Main Content */}
       <div className="relative max-w-5xl mx-auto px-4 py-6 md:px-6 md:py-8">
-        
         {/* Hero Section */}
         <div className={`relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r ${currentInfo.gradient} shadow-lg`}>
           <div className="absolute inset-0 bg-black/10"></div>
@@ -521,7 +1022,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                   <p className="text-white/80 text-[10px] sm:text-xs mt-0.5">Learning, Interview Q&A, Problem Solving, and Practice Questions</p>
                 </div>
               </div>
-              
+
               <div className="flex flex-wrap justify-center gap-1.5">
                 <div className="px-2 py-1 bg-white/15 backdrop-blur rounded-lg flex items-center gap-1.5 hover:scale-105 transition">
                   <span className="text-sm">⭐</span>
@@ -541,7 +1042,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
         </div>
 
         {/* Active Filters Bar */}
-        {(showStarredFilter || showBookmarksFilter) && (
+        {(showStarredFilter || showBookmarksFilter || hideCompleted) && (
           <div className="flex items-center gap-2 mb-4 flex-wrap">
             <span className="text-[10px] text-gray-500">Active filters:</span>
             {showStarredFilter && (
@@ -550,19 +1051,22 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
             {showBookmarksFilter && (
               <button onClick={() => setShowBookmarksFilter(false)} className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 flex items-center gap-1">🔖 Bookmarks Only ✕</button>
             )}
-            <button onClick={() => { setShowStarredFilter(false); setShowBookmarksFilter(false); }} className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 transition">Clear all</button>
+            {hideCompleted && (
+              <button onClick={() => { setHideCompleted(false); localStorage.setItem(`hideCompleted_${topic}`, 'false'); }} className="text-[10px] px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex items-center gap-1">✅ Hide Completed ✕</button>
+            )}
+            <button onClick={() => { setShowStarredFilter(false); setShowBookmarksFilter(false); setHideCompleted(false); localStorage.setItem(`hideCompleted_${topic}`, 'false'); }} className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600 transition">Clear all</button>
           </div>
         )}
 
         {/* Search Bar */}
         <div className="relative mb-5">
           <div className="relative">
-            <input 
-              type="text" 
-              placeholder="🔍 Search topics, questions, or problems..." 
-              value={searchTerm || ''} 
-              onChange={(e) => setSearchTerm(e.target.value)} 
-              className="w-full px-4 py-2.5 pl-10 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm" 
+            <input
+              type="text"
+              placeholder="🔍 Search topics, questions, or problems..."
+              value={searchTerm || ''}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full px-4 py-2.5 pl-10 rounded-lg bg-white/80 dark:bg-gray-800/80 backdrop-blur border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm text-sm"
             />
             <svg className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             {searchTerm && <button onClick={() => setSearchTerm('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 text-xs">✕</button>}
@@ -584,7 +1088,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
 
         {searchTerm && (
           <div className="text-center mb-3 text-xs text-gray-500 dark:text-gray-400">
-            Found { (activeTab === 'learn' ? filteredLearning.length : activeTab === 'interview' ? filteredInterview.length : activeTab === 'problems' ? filteredProblems.length : filteredPractice.length) } result(s) for "{searchTerm}"
+            Found {(activeTab === 'learn' ? filteredLearning.length : activeTab === 'interview' ? filteredInterview.length : activeTab === 'problems' ? filteredProblems.length : filteredPractice.length)} result(s) for "{searchTerm}"
           </div>
         )}
 
@@ -604,11 +1108,11 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
             {filteredLearning.length > 0 ? (
               <div className="space-y-3">
                 {filteredLearning.map((topicItem, idx) => {
-                  const itemId = topicItem.name || `learning_${idx}`;
+                  const itemId = topicItem._id;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
                   const isCompleted = completedLearning[itemId] || false;
-                  
+
                   return (
                     <div key={idx} className={`group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border ${isCompleted ? 'border-green-500/50' : 'border-gray-200/50 dark:border-gray-700/50'} hover:scale-[1.01]`}>
                       <div onClick={() => toggleCard(idx)} className="cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition p-4">
@@ -616,12 +1120,12 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <div className="relative">
-                                <input 
-                                  type="checkbox" 
-                                  checked={isCompleted === true} 
-                                  onChange={() => toggleCompleteLearning(itemId)} 
-                                  onClick={(e) => e.stopPropagation()} 
-                                  className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer" 
+                                <input
+                                  type="checkbox"
+                                  checked={isCompleted === true}
+                                  onChange={() => toggleCompleteLearning(itemId)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer"
                                 />
                               </div>
                               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center text-base group-hover:scale-110 transition-transform">
@@ -728,23 +1232,23 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
             {filteredInterview.length > 0 ? (
               <div className="space-y-3">
                 {filteredInterview.map((item, idx) => {
-                  const itemId = item.question || `interview_${idx}`;
+                  const itemId = item._id;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
                   const isCompleted = completedInterview[itemId] || false;
-                  
+
                   return (
                     <div key={idx} className="bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-md transition-all duration-300 group">
                       <div onClick={() => toggleQuestion(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="flex-1 min-w-0 flex items-start gap-2.5">
                             <div className="relative">
-                              <input 
-                                type="checkbox" 
-                                checked={isCompleted === true} 
-                                onChange={() => toggleCompleteInterview(itemId)} 
-                                onClick={(e) => e.stopPropagation()} 
-                                className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer mt-0.5" 
+                              <input
+                                type="checkbox"
+                                checked={isCompleted === true}
+                                onChange={() => toggleCompleteInterview(itemId)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer mt-0.5"
                               />
                             </div>
                             <div className="w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">{idx + 1}</div>
@@ -824,11 +1328,11 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                   const problemTitle = problem.title || problem.question || problem.name || `Problem ${idx + 1}`;
                   const problemDescription = problem.description || problem.answer || problem.statement || '';
                   const problemCode = problem.code || problem.example || problem.solution || '';
-                  const itemId = problemTitle;
+                  const itemId = problem._id;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
                   const isCompleted = completedProblems[itemId] || false;
-                  
+
                   return (
                     <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
                       <div onClick={() => toggleCard(idx)} className="p-4 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-800 dark:hover:to-gray-750 transition">
@@ -836,12 +1340,12 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <div className="relative">
-                                <input 
-                                  type="checkbox" 
-                                  checked={isCompleted === true} 
-                                  onChange={() => toggleCompleteProblems(itemId)} 
-                                  onClick={(e) => e.stopPropagation()} 
-                                  className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer" 
+                                <input
+                                  type="checkbox"
+                                  checked={isCompleted === true}
+                                  onChange={() => toggleCompleteProblems(itemId)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer"
                                 />
                               </div>
                               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${expLevel === 'fresher' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' : 'bg-gradient-to-r from-orange-500 to-red-500 text-white'}`}>{idx + 1}</div>
@@ -917,21 +1421,21 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
             {filteredPractice.length > 0 ? (
               <div className="space-y-3">
                 {filteredPractice.map((practiceItem, idx) => {
-                  const itemId = practiceItem.line || practiceItem.question || `practice_${idx}`;
+                  const itemId = practiceItem._id;
                   const isStarred = starredItems[itemId] || false;
                   const isBookmarked = bookmarkedItems[itemId] || false;
                   const isCompleted = completedPractice[itemId] || false;
-                  
+
                   return (
                     <div key={idx} className="group bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200/50 dark:border-gray-700/50 hover:scale-[1.01]">
                       <div className="flex gap-2.5">
                         <div className="relative">
-                          <input 
-                            type="checkbox" 
-                            checked={isCompleted === true} 
-                            onChange={() => toggleCompletePractice(itemId)} 
-                            onClick={(e) => e.stopPropagation()} 
-                            className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer mt-1" 
+                          <input
+                            type="checkbox"
+                            checked={isCompleted === true}
+                            onChange={() => toggleCompletePractice(itemId)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 rounded border-gray-300 text-green-500 focus:ring-green-500 cursor-pointer mt-1"
                           />
                         </div>
                         <div className="w-6 h-6 rounded-full bg-gradient-to-r from-orange-500 to-pink-500 flex items-center justify-center text-white text-[10px] font-bold shadow-sm flex-shrink-0">{idx + 1}</div>
@@ -950,7 +1454,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                           </div>
                           <div className="space-y-1 text-xs">
                             <p className={`flex flex-wrap gap-1.5 text-[11px] ${isCompleted ? 'line-through opacity-70' : ''}`}>
-                              <span className="font-semibold text-blue-600 dark:text-blue-400">📖 Explanation:</span> 
+                              <span className="font-semibold text-blue-600 dark:text-blue-400">📖 Explanation:</span>
                               {practiceItem.explanation || practiceItem.answer || 'No explanation provided'}
                             </p>
                             {practiceItem.example && <p className={`flex flex-wrap gap-1.5 text-[11px] ${isCompleted ? 'line-through opacity-70' : ''}`}>
@@ -988,13 +1492,12 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                     {selectedProblem.title || selectedProblem.name || selectedProblem.question || 'Problem Solution'}
                   </h2>
                   <div className="flex gap-2 mt-1">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                      selectedProblem.difficulty === 'Easy' 
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        : selectedProblem.difficulty === 'Hard'
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${selectedProblem.difficulty === 'Easy'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : selectedProblem.difficulty === 'Hard'
                         ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                         : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                    }`}>
+                      }`}>
                       {selectedProblem.difficulty || 'Medium'}
                     </span>
                     <span className="text-[10px] text-gray-500 dark:text-gray-400">
@@ -1003,7 +1506,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                   </div>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={closeSolution}
                 className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 aria-label="Close"
@@ -1014,8 +1517,8 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
 
             <div className="p-6 space-y-5">
               <div className="flex items-center justify-end gap-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                <StarIcon starred={starredItems[selectedProblem.title]} onClick={() => toggleStar(selectedProblem.title)} />
-                <BookmarkIcon bookmarked={bookmarkedItems[selectedProblem.title]} onClick={() => toggleBookmark(selectedProblem.title)} />
+                <StarIcon starred={starredItems[selectedProblem._id]} onClick={() => toggleStar(selectedProblem._id)} />
+                <BookmarkIcon bookmarked={bookmarkedItems[selectedProblem._id]} onClick={() => toggleBookmark(selectedProblem._id)} />
                 <ShareButton title={selectedProblem.title} onShare={handleShare} />
               </div>
 
@@ -1047,8 +1550,8 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
                     <h3 className="font-semibold text-gray-800 dark:text-white flex items-center gap-1.5 text-sm">
                       <span className="text-base">💻</span> Code Example
                     </h3>
-                    <button 
-                      onClick={() => copyToClipboard(selectedProblem.example || selectedProblem.code, { stopPropagation: () => {} })} 
+                    <button
+                      onClick={() => copyToClipboard(selectedProblem.example || selectedProblem.code, { stopPropagation: () => { } })}
                       className="text-[10px] px-2 py-1 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition"
                     >
                       {copied ? '✅ Copied!' : '📋 Copy Code'}
@@ -1075,7 +1578,7 @@ export default function TopicPanel({ topic, activeTab, setActiveTab, darkMode = 
             </div>
 
             <div className="sticky bottom-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-end">
-              <button 
+              <button
                 onClick={closeSolution}
                 className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-sm font-medium"
               >

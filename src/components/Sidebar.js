@@ -1,9 +1,13 @@
-// src/components/Sidebar.js (Category headings enlarged)
+// src/components/Sidebar.js
 'use client';
 import { topics } from '@/data';
 import { useState, useEffect } from 'react';
+// 👇 React Icons imports
+import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
+import { HiMenu, HiX } from 'react-icons/hi';
+import { IoLogoInstagram } from 'react-icons/io';
 
-export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = false, onToggleDark = () => {} }) {
+export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = false, onToggleDark = () => { } }) {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [imageErrors, setImageErrors] = useState({});
@@ -29,15 +33,15 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     '📦 CMS & Others': ['wordpress', 'woocommerce', 'redux']
   };
 
+  // 👇 Ab socialLinks mein icon component store kar rahe hain
   const socialLinks = [
-    { href: 'https://guptamanish0990.github.io/Manish_Gupta/#/', label: 'Portfolio', icon: '💼' },
-    { href: 'https://github.com/Guptamanish0990', label: 'GitHub', icon: '🐙' },
-    { href: 'https://www.instagram.com/0990_manish', label: 'Instagram', icon: '📷' },
-    { href: 'https://linkedin.com/in/manish-gupta-0990', label: 'LinkedIn', icon: '🔗' },
-    { href: 'mailto:websitedeveloper0990@gmail.com', label: 'Email', icon: '📧' }
+    { href: 'https://guptamanish0990.github.io/Manish_Gupta/#/', label: 'Portfolio', icon: '💼' }, // Portfolio emoji rakh sakte hain ya koi icon daalein
+    { href: 'https://github.com/Guptamanish0990', label: 'GitHub', icon: FaGithub },
+    { href: 'https://www.instagram.com/0990_manish', label: 'Instagram', icon: IoLogoInstagram },
+    { href: 'https://linkedin.com/in/manish-gupta-0990', label: 'LinkedIn', icon: FaLinkedin },
+    { href: 'mailto:websitedeveloper0990@gmail.com', label: 'Email', icon: FaEnvelope }
   ];
 
-  // Verified working SVG URLs (Devicon + fallbacks)
   const getIconUrl = (key) => {
     const icons = {
       html: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg',
@@ -125,11 +129,12 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
             className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transition-all duration-300 hover:scale-105"
             aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
           >
-            <span className="relative h-5 w-5">
-              <span className={`absolute left-0 top-0 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? 'translate-y-2 rotate-45' : 'translate-y-0 rotate-0'}`} />
-              <span className={`absolute left-0 top-2 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'}`} />
-              <span className={`absolute left-0 top-4 h-0.5 w-5 rounded-full bg-white transition-all duration-300 ${sidebarOpen ? '-translate-y-2 -rotate-45' : 'translate-y-0 rotate-0'}`} />
-            </span>
+            {/* 👇 Hamburger icon replaced with HiMenu / HiX */}
+            {sidebarOpen ? (
+              <HiX className="h-5 w-5" />
+            ) : (
+              <HiMenu className="h-5 w-5" />
+            )}
           </button>
         </div>
       )}
@@ -143,7 +148,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
           bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950
           border-r border-gray-200 dark:border-gray-800
           flex flex-col h-screen overflow-y-auto transition-all duration-300
-          ${isMobile 
+          ${isMobile
             ? `fixed top-0 left-0 z-50 w-72 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`
             : 'sticky top-0 w-72'
           }
@@ -166,9 +171,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
             <div className="flex items-center gap-2">
               {isMobile && (
                 <button onClick={closeSidebar} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <HiX className="w-4 h-4 text-gray-500" /> {/* Close icon bhi replace kar diya */}
                 </button>
               )}
             </div>
@@ -181,7 +184,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
               <div key={category}>
                 <div className="flex items-center gap-1.5 px-2 mb-2">
                   <div className="w-0.5 h-3 bg-gradient-to-b from-blue-500 to-indigo-500 rounded-full"></div>
-                  {/* Category heading - increased font size */}
                   <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     {category}
                   </h3>
@@ -193,7 +195,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                     const iconUrl = getIconUrl(key);
                     const hasError = imageErrors[key];
                     const showFallback = !iconUrl || hasError;
-                    
+
                     return (
                       <button
                         key={key}
@@ -201,23 +203,21 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                           setCurrentTopic(key);
                           if (isMobile) closeSidebar();
                         }}
-                        className={`w-full text-left px-2 py-2 rounded-lg flex items-center gap-2 transition-all group ${
-                          isActive 
-                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md' 
+                        className={`w-full text-left px-2 py-2 rounded-lg flex items-center gap-2 transition-all group ${isActive
+                            ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md'
                             : `${getTopicColor(key)} text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800`
-                        }`}
+                          }`}
                       >
-                        <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${
-                          isActive 
-                            ? 'bg-white/20' 
+                        <div className={`w-6 h-6 rounded-md flex items-center justify-center transition-all ${isActive
+                            ? 'bg-white/20'
                             : 'bg-gray-100 dark:bg-gray-800 group-hover:scale-110'
-                        }`}>
+                          }`}>
                           {showFallback ? (
                             <span className="text-sm">{getFallbackIcon(key)}</span>
                           ) : (
-                            <img 
-                              src={iconUrl} 
-                              alt={key} 
+                            <img
+                              src={iconUrl}
+                              alt={key}
                               className="w-5 h-5 object-contain"
                               style={{ filter: isActive ? 'brightness(0) invert(1)' : 'none' }}
                               onError={() => handleImageError(key)}
@@ -242,20 +242,28 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
         <div className="p-3 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
           <div className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 shadow-inner">
             <div className="flex justify-center items-center gap-2 mb-2 flex-wrap">
-              {socialLinks.map((link) => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target={link.href.startsWith('http') ? '_blank' : undefined}
-                  rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-                  className="group flex items-center gap-1.5 rounded-full border border-white/70 bg-white/85 px-2.5 py-1.5 text-[10px] font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-700/80 dark:text-gray-200"
-                  title={link.label}
-                  aria-label={link.label}
-                >
-                  <span className="text-base leading-none">{link.icon}</span>
-                  <span>{link.label}</span>
-                </a>
-              ))}
+              {socialLinks.map((link) => {
+                const IconComponent = link.icon; // ab yeh ek component hai (except Portfolio wala)
+                return (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target={link.href.startsWith('http') ? '_blank' : undefined}
+                    rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+                    className="group flex items-center gap-1.5 rounded-full border border-white/70 bg-white/85 px-2.5 py-1.5 text-[10px] font-semibold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:bg-gray-700/80 dark:text-gray-200"
+                    title={link.label}
+                    aria-label={link.label}
+                  >
+                    {/* 👇 Agar IconComponent ek React component hai toh render karo, warna emoji */}
+                    {typeof IconComponent === 'function' ? (
+                      <IconComponent className="text-base leading-none" />
+                    ) : (
+                      <span className="text-base leading-none">{IconComponent}</span> // Portfolio ke liye emoji
+                    )}
+                    <span>{link.label}</span>
+                  </a>
+                );
+              })}
             </div>
             <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
               25+ Technologies<br />Basic → Advanced
