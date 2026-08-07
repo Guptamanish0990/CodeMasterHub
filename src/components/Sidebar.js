@@ -3,7 +3,26 @@
 import { topics } from '@/data';
 import { useState, useEffect } from 'react';
 // 👇 React Icons imports
-import { FaGithub, FaLinkedin, FaEnvelope } from 'react-icons/fa';
+import {
+  FaGithub,
+  FaLinkedin,
+  FaEnvelope,
+  FaHtml5,
+  FaCss3Alt,
+  FaJs,
+  FaPython,
+  FaNode,
+  FaReact,
+  FaGitAlt,
+  FaWordpress,
+  FaShoppingCart,
+  FaRedo,        // Redux ke liye
+  FaBootstrap,
+  FaJava,
+  FaPhp,
+  FaGem,         // Ruby ke liye (FaRuby exist nahi karta)
+  FaCode
+} from 'react-icons/fa';
 import { HiMenu, HiX } from 'react-icons/hi';
 import { IoLogoInstagram } from 'react-icons/io';
 
@@ -33,15 +52,16 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     '📦 CMS & Others': ['wordpress', 'woocommerce', 'redux']
   };
 
-  // 👇 Ab socialLinks mein icon component store kar rahe hain
+  // Social links with React Icons
   const socialLinks = [
-    { href: 'https://guptamanish0990.github.io/Manish_Gupta/#/', label: 'Portfolio', icon: '💼' }, // Portfolio emoji rakh sakte hain ya koi icon daalein
+    { href: 'https://guptamanish0990.github.io/Manish_Gupta/#/', label: 'Portfolio', icon: '💼' },
     { href: 'https://github.com/Guptamanish0990', label: 'GitHub', icon: FaGithub },
     { href: 'https://www.instagram.com/0990_manish', label: 'Instagram', icon: IoLogoInstagram },
     { href: 'https://linkedin.com/in/manish-gupta-0990', label: 'LinkedIn', icon: FaLinkedin },
     { href: 'mailto:websitedeveloper0990@gmail.com', label: 'Email', icon: FaEnvelope }
   ];
 
+  // Technology icon URLs (CDN)
   const getIconUrl = (key) => {
     const icons = {
       html: 'https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/html5/html5-original.svg',
@@ -77,16 +97,39 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
     setImageErrors(prev => ({ ...prev, [key]: true }));
   };
 
-  const getFallbackIcon = (key) => {
-    const fallbacks = {
-      html: '🌐', css: '🎨', javascript: '🟨', python: '🐍',
-      nodejs: '🚀', reactjs: '⚛️', nextjs: '▲', git: '🐙',
-      wordpress: '📝', woocommerce: '🛒', redux: '🔄',
-      bootstrap: '🧩', typescript: '📘', tailwind: '💨', mysql: '🐬',
-      cpp: '⚙️', java: '☕', go: '🐹', rust: '🦀', php: '🐘', ruby: '💎',
-      csharp: '🎯', swift: '🛠️', kotlin: '📱', dart: '🎯'
-    };
-    return fallbacks[key] || '📚';
+  // 👇 Fallback icons using Font Awesome (Fa) – sab valid hain
+  const fallbackIcons = {
+    html: FaHtml5,
+    css: FaCss3Alt,
+    javascript: FaJs,
+    python: FaPython,
+    nodejs: FaNode,
+    reactjs: FaReact,
+    nextjs: FaCode,
+    git: FaGitAlt,
+    wordpress: FaWordpress,
+    woocommerce: FaShoppingCart,
+    redux: FaRedo,
+    bootstrap: FaBootstrap,
+    typescript: FaCode,
+    tailwind: FaCode,
+    mysql: FaCode,
+    cpp: FaCode,
+    java: FaJava,
+    go: FaCode,
+    rust: FaCode,
+    php: FaPhp,
+    ruby: FaGem,         // Ruby ke liye FaGem
+    csharp: FaCode,
+    swift: FaCode,
+    kotlin: FaCode,
+    dart: FaCode
+  };
+
+  // 👇 FallbackIcon component – renders appropriate Fa icon
+  const FallbackIcon = ({ tech }) => {
+    const Icon = fallbackIcons[tech] || FaCode;
+    return <Icon className="w-5 h-5" />;
   };
 
   const getTopicColor = (key) => {
@@ -122,6 +165,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
 
   return (
     <>
+      {/* Mobile toggle button */}
       {isMobile && (
         <div className="fixed left-4 top-4 z-50 lg:hidden">
           <button
@@ -129,7 +173,6 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
             className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg transition-all duration-300 hover:scale-105"
             aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
           >
-            {/* 👇 Hamburger icon replaced with HiMenu / HiX */}
             {sidebarOpen ? (
               <HiX className="h-5 w-5" />
             ) : (
@@ -139,10 +182,12 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
         </div>
       )}
 
+      {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />
       )}
 
+      {/* Sidebar */}
       <aside
         className={`
           bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950
@@ -154,6 +199,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
           }
         `}
       >
+        {/* Header */}
         <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -171,13 +217,14 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
             <div className="flex items-center gap-2">
               {isMobile && (
                 <button onClick={closeSidebar} className="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-                  <HiX className="w-4 h-4 text-gray-500" /> {/* Close icon bhi replace kar diya */}
+                  <HiX className="w-4 h-4 text-gray-500" />
                 </button>
               )}
             </div>
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 overflow-y-auto p-3">
           <div className="space-y-5">
             {Object.entries(groupedTopics).map(([category, topicKeys]) => (
@@ -213,7 +260,7 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                             : 'bg-gray-100 dark:bg-gray-800 group-hover:scale-110'
                           }`}>
                           {showFallback ? (
-                            <span className="text-sm">{getFallbackIcon(key)}</span>
+                            <FallbackIcon tech={key} />
                           ) : (
                             <img
                               src={iconUrl}
@@ -239,11 +286,12 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
           </div>
         </nav>
 
+        {/* Footer */}
         <div className="p-3 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
           <div className="text-center bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 shadow-inner">
             <div className="flex justify-center items-center gap-2 mb-2 flex-wrap">
               {socialLinks.map((link) => {
-                const IconComponent = link.icon; // ab yeh ek component hai (except Portfolio wala)
+                const IconComponent = link.icon;
                 return (
                   <a
                     key={link.label}
@@ -254,11 +302,10 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                     title={link.label}
                     aria-label={link.label}
                   >
-                    {/* 👇 Agar IconComponent ek React component hai toh render karo, warna emoji */}
                     {typeof IconComponent === 'function' ? (
                       <IconComponent className="text-base leading-none" />
                     ) : (
-                      <span className="text-base leading-none">{IconComponent}</span> // Portfolio ke liye emoji
+                      <span className="text-base leading-none">{IconComponent}</span>
                     )}
                     <span>{link.label}</span>
                   </a>

@@ -2,6 +2,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { learningData, interviewData, problemsData, practiceData } from '@/data';
 import TechIcons from '@/components/TechIcons';
+// 👇 React Icons for tab navigation + share buttons
+import {
+  FaBook,
+  FaMicrophone,
+  FaBolt,
+  FaPencilAlt,
+  FaShareAlt,
+  FaCopy,
+  FaTwitter,
+  FaLinkedin
+} from 'react-icons/fa';
 
 // ==================== CODE EDITOR COMPONENT ====================
 function CodeEditor({ initialCode = '', onRun }) {
@@ -202,12 +213,39 @@ function ShareButton({ title, onShare }) {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
         </svg>
       </button>
+
       {showShareOptions && (
-        <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 animate-fade-in">
-          {navigator.share && <button onClick={() => handleShare('native')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">📱 Native Share</button>}
-          <button onClick={() => handleShare('copy')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">📋 Copy Link</button>
-          <button onClick={() => handleShare('twitter')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">🐦 Twitter</button>
-          <button onClick={() => handleShare('linkedin')} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-700">💼 LinkedIn</button>
+        <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-20 animate-fade-in">
+          {navigator.share && (
+            <button
+              onClick={() => handleShare('native')}
+              className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+            >
+              <FaShareAlt className="text-sm" />
+              <span>Native Share</span>
+            </button>
+          )}
+          <button
+            onClick={() => handleShare('copy')}
+            className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <FaCopy className="text-sm" />
+            <span>Copy Link</span>
+          </button>
+          <button
+            onClick={() => handleShare('twitter')}
+            className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <FaTwitter className="text-sm" />
+            <span>Twitter</span>
+          </button>
+          <button
+            onClick={() => handleShare('linkedin')}
+            className="w-full text-left px-3 py-2 text-xs hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+          >
+            <FaLinkedin className="text-sm" />
+            <span>LinkedIn</span>
+          </button>
         </div>
       )}
     </div>
@@ -460,7 +498,6 @@ export default function TopicPanel({
       const diffOrder = { 'Easy': 0, 'Medium': 1, 'Hard': 2 };
       copy.sort((a, b) => (diffOrder[a.difficulty] || 1) - (diffOrder[b.difficulty] || 1));
     } else if (sortKey === 'progress') {
-      // For learning items, check completed status from respective completed state
       const getComp = (item) => {
         if (item._id && completedLearning[item._id]) return true;
         if (item._id && completedInterview[item._id]) return true;
@@ -505,7 +542,7 @@ export default function TopicPanel({
     item.explanation?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Counts for starred/bookmarked (already computed earlier)
+  // Counts for starred/bookmarked
   const starredCount = Object.values(starredItems).filter(Boolean).length;
   const bookmarkedCount = Object.values(bookmarkedItems).filter(Boolean).length;
 
@@ -626,11 +663,12 @@ export default function TopicPanel({
     e.target.value = '';
   };
 
+  // 👇 mainTabs with React Icons
   const mainTabs = [
-    { id: 'learn', label: 'Learning', icon: '📘', desc: 'Basic → Advanced' },
-    { id: 'interview', label: 'Interview', icon: '🎤', desc: 'Q&A' },
-    { id: 'problems', label: 'Problems', icon: '⚡', desc: 'Coding Challenges' },
-    { id: 'practice', label: 'Practice', icon: '📝', desc: 'Questions' }
+    { id: 'learn', label: 'Learning', icon: FaBook, desc: 'Basic → Advanced' },
+    { id: 'interview', label: 'Interview', icon: FaMicrophone, desc: 'Q&A' },
+    { id: 'problems', label: 'Problems', icon: FaBolt, desc: 'Coding Challenges' },
+    { id: 'practice', label: 'Practice', icon: FaPencilAlt, desc: 'Questions' }
   ];
 
   // Set default tab on mount
@@ -717,8 +755,8 @@ export default function TopicPanel({
                 <button
                   onClick={() => onToggleDark(!darkMode)}
                   className={`w-full py-2 text-sm rounded-lg transition flex items-center justify-center gap-2 ${darkMode
-                      ? 'bg-gray-700 text-white hover:bg-gray-600'
-                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
+                    ? 'bg-gray-700 text-white hover:bg-gray-600'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
                     }`}
                 >
                   {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
@@ -738,8 +776,8 @@ export default function TopicPanel({
                         localStorage.setItem(`sortOption_${topic}`, val);
                       }}
                       className={`px-3 py-1.5 text-xs rounded-lg transition ${sortOption === opt.toLowerCase()
-                          ? 'bg-indigo-600 text-white shadow-md'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                     >
                       {opt}
@@ -778,8 +816,8 @@ export default function TopicPanel({
                         setActiveTab(tab.id);
                       }}
                       className={`px-3 py-1.5 text-xs rounded-lg transition ${defaultTab === tab.id
-                          ? 'bg-indigo-600 text-white shadow-md'
-                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                        ? 'bg-indigo-600 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                         }`}
                     >
                       {tab.label}
@@ -873,7 +911,7 @@ export default function TopicPanel({
                 </div>
               )}
 
-              {/* ==================== UPDATED PROGRESS SECTION ==================== */}
+              {/* Progress Section */}
               <div>
                 <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">Progress</p>
                 <div className="space-y-2">
@@ -1002,7 +1040,7 @@ export default function TopicPanel({
 
       {/* Main Content */}
       <div className="relative max-w-5xl mx-auto px-4 py-6 md:px-6 md:py-8">
-        {/* Hero Section */}
+        {/* ====== UPDATED HERO SECTION ====== */}
         <div className={`relative mb-6 overflow-hidden rounded-xl bg-gradient-to-r ${currentInfo.gradient} shadow-lg`}>
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative p-4 md:p-5">
@@ -1011,7 +1049,12 @@ export default function TopicPanel({
                 <div className="relative">
                   <div className="absolute inset-0 bg-white/20 rounded-xl blur-md"></div>
                   <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center text-2xl sm:text-3xl shadow-lg">
-                    {currentInfo.icon}
+                    {/* 👇 CORRECTED: Render React icon component */}
+                    {typeof currentInfo.icon === 'function' ? (
+                      <currentInfo.icon className="w-6 h-6 text-white" />
+                    ) : (
+                      currentInfo.icon
+                    )}
                   </div>
                 </div>
                 <div className="text-center">
@@ -1073,14 +1116,29 @@ export default function TopicPanel({
           </div>
         </div>
 
-        {/* Tab Navigation */}
+        {/* ===== TAB NAVIGATION WITH REACT ICONS ===== */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 mb-6">
           {mainTabs.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`group relative p-2.5 rounded-lg transition-all duration-300 ${activeTab === tab.id ? `bg-gradient-to-r ${currentInfo.gradient} text-white shadow-md transform scale-[1.02]` : 'bg-white/70 dark:bg-gray-800/70 backdrop-blur text-gray-700 dark:text-gray-300 hover:scale-105 hover:shadow-md border border-gray-200/50 dark:border-gray-700/50'}`}>
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`group relative p-2.5 rounded-lg transition-all duration-300 ${activeTab === tab.id
+                ? `bg-gradient-to-r ${currentInfo.gradient} text-white shadow-md transform scale-[1.02]`
+                : 'bg-white/70 dark:bg-gray-800/70 backdrop-blur text-gray-700 dark:text-gray-300 hover:scale-105 hover:shadow-md border border-gray-200/50 dark:border-gray-700/50'
+                }`}
+            >
               <div className="flex flex-col items-center gap-0.5">
-                <div className={`text-lg transition-transform duration-300 group-hover:scale-110 ${activeTab === tab.id ? 'animate-bounce' : ''}`}>{tab.icon}</div>
+                <div className={`text-lg transition-transform duration-300 group-hover:scale-110 ${activeTab === tab.id ? 'animate-bounce' : ''}`}>
+                  {typeof tab.icon === 'function' ? (
+                    <tab.icon className="w-5 h-5" />
+                  ) : (
+                    tab.icon
+                  )}
+                </div>
                 <span className="font-medium text-[11px]">{tab.label}</span>
-                <span className={`text-[9px] ${activeTab === tab.id ? 'text-white/80' : 'text-gray-500'}`}>{tab.desc}</span>
+                <span className={`text-[9px] ${activeTab === tab.id ? 'text-white/80' : 'text-gray-500'}`}>
+                  {tab.desc}
+                </span>
               </div>
             </button>
           ))}
