@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { learningData, interviewData, problemsData, practiceData } from '@/data';
+import { FaSun, FaMoon } from 'react-icons/fa';
 import TechIcons from '@/components/TechIcons';
 // 👇 React Icons for tab navigation + share buttons
 import {
@@ -749,17 +750,27 @@ export default function TopicPanel({
             </div>
 
             <div className="p-4 space-y-6">
-              {/* Dark Mode Toggle */}
+              {/* Theme */}
               <div>
                 <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Theme</p>
                 <button
                   onClick={() => onToggleDark(!darkMode)}
                   className={`w-full py-2 text-sm rounded-lg transition flex items-center justify-center gap-2 ${darkMode
-                    ? 'bg-gray-700 text-white hover:bg-gray-600'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600'
+                      ? 'bg-gray-700 text-white hover:bg-gray-600'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                     }`}
                 >
-                  {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+                  {darkMode ? (
+                    <>
+                      <FaSun className="w-4 h-4" />
+                      <span>Light Mode</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaMoon className="w-4 h-4" />
+                      <span>Dark Mode</span>
+                    </>
+                  )}
                 </button>
               </div>
 
