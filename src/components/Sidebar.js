@@ -295,9 +295,9 @@ export default function Sidebar({ currentTopic, setCurrentTopic, darkMode = fals
                 );
               })}
             </div>
-            <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
+            {/* <p className="text-[10px] text-gray-600 dark:text-gray-400 font-medium leading-relaxed">
               25+ Technologies<br />Basic → Advanced
-            </p>
+            </p> */}
             <div className="mt-2 border-t border-gray-200/70 pt-2 text-[10px] text-gray-600 dark:border-gray-700 dark:text-gray-400">
               <span>Built by </span>
               <a
